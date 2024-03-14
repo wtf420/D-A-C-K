@@ -5,30 +5,48 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class CustomCharacterController : NetworkBehaviour
+public enum CharacterType
 {
+    Pusher,
+    Puller
+}
+
+public class CustomCharacterController : MonoBehaviour
+{
+    [Header("~*// PARAMETERS" )]
+    [SerializeField] public CharacterType characterType = CharacterType.Pusher;
+
+    [Header("~* Movements and Controls" )]
     [SerializeField] protected float moveSpeed;
     [SerializeField] protected float jumpForce;
     [SerializeField] protected float gravityForce;
     [SerializeField] protected float airMovementMultiplier;
     [SerializeField] protected float cameraRotationSpeed;
-    [SerializeField] protected float interactionRange;
+    [Header("~* Others" )]
+    [SerializeField] protected float rangeToInteract;
+    [SerializeField] protected float rangeToPush;
+    [SerializeField] protected float pushForce;
     
-    protected CharacterController characterController;
-    protected new Rigidbody rigidbody;
-    protected Animator animator;
+    
+    [Header("~*// OBJECTS & COMPONENTS" )]
     [SerializeField] protected CinemachineVirtualCamera virtualCamera;
     [SerializeField] protected Canvas ScreenCanvas;
     [SerializeField] protected PlayerInput playerInput;
+    [SerializeField] protected GameObject ragdoll;
+    protected CharacterController characterController;
+    protected new Rigidbody rigidbody;
+    protected Animator animator;
 
+    [Header("~*// VARIABLES" )]
+    protected ButtonPrompt btnPrompt;
     protected Interactable closestInteractable;
-    [SerializeField] protected ButtonPrompt btn;
-    protected float cameraInput;
     protected Vector3 inputDirection;
     protected Vector3 characterVelocity;
     protected Vector3 lastFramePosition; // because distanceMovedSinceLastFrame is unreliable as heck
+    protected float cameraInput;
     protected float distanceMovedSinceLastFrame;
     protected bool isGrounded;
+    public bool ragdollEnabled { get; protected set; }
 
     // Start is called before the first frame update
     void Start()
@@ -39,20 +57,26 @@ public class CustomCharacterController : NetworkBehaviour
         inputDirection = Vector3.zero;
         characterVelocity = Vector3.zero;
         lastFramePosition = this.transform.position;
+        
+        DisableRagdoll();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!IsOwner) 
-        {
-            virtualCamera.Priority = 0;
-            return;
-        }
+        // if (!IsOwner) 
+        // {
+        //     virtualCamera.Priority = 0;
+        //     return;
+        // }
         virtualCamera.Priority = 10;
         isGrounded = characterController.isGrounded;
-        RotateCharacterTowards();
-        MoveCharacter();
+        
+        if (!ragdollEnabled)
+        {
+            RotateCharacterTowards();
+            MoveCharacter();
+        }
         UpdateCamera();
         UpdateAnimator();
         CheckForInteractables();
@@ -60,23 +84,23 @@ public class CustomCharacterController : NetworkBehaviour
 
     void CheckForInteractables()
     {
-        foreach (Collider c in Physics.OverlapSphere(this.transform.position, interactionRange))
+        foreach (Collider c in Physics.OverlapSphere(this.transform.position, rangeToInteract))
         {
             if (c.gameObject.GetComponent<Interactable>())
             {
                 closestInteractable = c.gameObject.GetComponent<Interactable>();
-                if (btn != null) Destroy(btn.gameObject);
+                if (btnPrompt != null) Destroy(btnPrompt.gameObject);
                 if (closestInteractable.isInteractable)
                 {
-                    btn = ButtonPrompt.Create();
-                    btn.transform.SetParent(ScreenCanvas.transform);
-                    btn.SetText(playerInput.currentActionMap.FindAction("Interact").GetBindingDisplayString(0));
-                    btn.SetPosition(Camera.main.WorldToScreenPoint(closestInteractable.gameObject.transform.position));
+                    btnPrompt = ButtonPrompt.Create();
+                    btnPrompt.transform.SetParent(ScreenCanvas.transform);
+                    btnPrompt.SetText(playerInput.currentActionMap.FindAction("Interact").GetBindingDisplayString(0));
+                    btnPrompt.SetPosition(Camera.main.WorldToScreenPoint(closestInteractable.gameObject.transform.position));
                 }
                 return;
             }
         }
-        if (btn != null) Destroy(btn.gameObject);
+        if (btnPrompt != null) Destroy(btnPrompt.gameObject);
     }
 
     void FixedUpdate()
@@ -98,10 +122,6 @@ public class CustomCharacterController : NetworkBehaviour
     void MoveCharacter()
     {
         float _moveSpeed = moveSpeed;
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            _moveSpeed *= 0.2f;
-        }
 
         Vector3 camToPlayer = this.transform.position - virtualCamera.transform.position;
         camToPlayer.y = 0;
@@ -129,6 +149,60 @@ public class CustomCharacterController : NetworkBehaviour
         }
     }
 
+    public void Attack(InputAction.CallbackContext context)
+    {
+        if (context.performed && isGrounded)
+        {
+            switch (characterType)
+            {
+                case CharacterType.Pusher:
+                {
+                    Push();
+                    break;
+                }
+                case CharacterType.Puller:
+                {
+                    Pull();
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    protected void Push()
+    {
+        Debug.DrawRay(transform.position, transform.forward * rangeToPush, Color.red, 0.5f);
+        RaycastHit[] raycastHits = Physics.RaycastAll(transform.position, transform.forward, rangeToPush);
+        foreach (RaycastHit hit in raycastHits)
+        {
+            Rigidbody hitrg = hit.transform.GetComponent<Rigidbody>();
+            if (hit.transform.gameObject != this.gameObject && hitrg != null)
+            {
+                hitrg.AddForce(this.transform.forward * pushForce, ForceMode.Impulse);
+                return;
+            }
+        }
+    }
+
+    protected void Pull()
+    {
+        Debug.DrawRay(transform.position, transform.forward * rangeToPush, Color.red, 0.5f);
+        RaycastHit[] raycastHits = Physics.RaycastAll(transform.position, transform.forward, rangeToPush);
+        foreach (RaycastHit hit in raycastHits)
+        {
+            Rigidbody hitrg = hit.transform.GetComponent<Rigidbody>();
+            if (hit.transform.gameObject != this.gameObject && hitrg != null)
+            {
+                hitrg.AddForce(-this.transform.forward * pushForce, ForceMode.Impulse);
+                return;
+            }
+        }
+    }
+
     public void SetMovement(InputAction.CallbackContext context)
     {
         Vector2 v = context.ReadValue<Vector2>();
@@ -145,6 +219,43 @@ public class CustomCharacterController : NetworkBehaviour
         if (context.performed && isGrounded)
         {
             characterVelocity += transform.up.normalized * jumpForce;
+        }
+    }
+
+    public void ToggleRagdoll()
+    {
+        if (ragdollEnabled)
+            DisableRagdoll(); else
+            EnableRagdoll();
+    }
+
+    public void EnableRagdoll()
+    {
+        characterController.enabled = false;
+        animator.enabled = false;
+        ragdollEnabled = true;
+        foreach (Rigidbody subrigidbody in ragdoll.gameObject.GetComponentsInChildren<Rigidbody>())
+        {
+            subrigidbody.isKinematic = false;
+        }
+        foreach (Collider subcollider in ragdoll.gameObject.GetComponentsInChildren<Collider>())
+        {
+            subcollider.isTrigger = false;
+        }
+    }
+
+    public void DisableRagdoll()
+    {
+        characterController.enabled = true;
+        animator.enabled = true;
+        ragdollEnabled = false;
+        foreach (Rigidbody subrigidbody in ragdoll.gameObject.GetComponentsInChildren<Rigidbody>())
+        {
+            subrigidbody.isKinematic = true;
+        }
+        foreach (Collider subcollider in ragdoll.gameObject.GetComponentsInChildren<Collider>())
+        {
+            subcollider.isTrigger = true;
         }
     }
 
@@ -178,15 +289,13 @@ public class CustomCharacterController : NetworkBehaviour
 
     void RotateCharacterTowards()
     {
-		if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
-        {
-            Vector3 inputDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
-            Vector3 camToPlayer = this.transform.position - virtualCamera.transform.position;
-            camToPlayer.y = 0;
-            Vector3 movementDirection = Quaternion.LookRotation(camToPlayer.normalized) * inputDirection;
+        if (inputDirection == Vector3.zero) return;
+        
+        Vector3 camToPlayer = this.transform.position - virtualCamera.transform.position;
+        camToPlayer.y = 0;
+        Vector3 movementDirection = Quaternion.LookRotation(camToPlayer.normalized) * inputDirection;
 
-            var q = Quaternion.LookRotation(movementDirection);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 1000f * Time.deltaTime);
-        }
+        var q = Quaternion.LookRotation(movementDirection);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 1000f * Time.deltaTime);
     }
 }

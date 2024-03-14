@@ -7,14 +7,14 @@ public class Interactable : MonoBehaviour
 {
     public UnityEvent<CustomCharacterController> InteractEvent;
     public bool isInteractable = true;
-    [SerializeField] private float interactionCooldown = 0f;
+    [SerializeField] private float interactionCooldown = 1f;
 
-    void Start()
+    protected void Start()
     {
         InteractEvent.AddListener(OnInteract);
     }
 
-    void OnDestroy()
+    protected void OnDestroy()
     {
         InteractEvent.RemoveListener(OnInteract);
     }
@@ -28,14 +28,14 @@ public class Interactable : MonoBehaviour
         }
     }
 
-    IEnumerator StartInteractionCoolDown()
+    protected IEnumerator StartInteractionCoolDown()
     {
         isInteractable = false;
         yield return new WaitForSeconds(interactionCooldown);
         isInteractable = true;
     }
 
-    void OnInteract(CustomCharacterController customCharacterController)
+    protected virtual void OnInteract(CustomCharacterController customCharacterController)
     {
         Debug.Log("Interacted!");
     }
