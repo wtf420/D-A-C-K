@@ -11,7 +11,7 @@ public enum CharacterType
     Puller
 }
 
-public class CustomCharacterController : MonoBehaviour
+public class CustomCharacterController : NetworkBehaviour
 {
     [Header("~*// PARAMETERS" )]
     [SerializeField] public CharacterType characterType = CharacterType.Pusher;
@@ -34,8 +34,9 @@ public class CustomCharacterController : MonoBehaviour
     [SerializeField] protected PlayerInput playerInput;
     [SerializeField] protected GameObject ragdoll;
     protected CharacterController characterController;
-    protected new Rigidbody rigidbody;
+    protected Rigidbody rigidbody;
     protected Animator animator;
+    protected Outline outline;
 
     [Header("~*// VARIABLES" )]
     protected ButtonPrompt btnPrompt;
@@ -57,6 +58,7 @@ public class CustomCharacterController : MonoBehaviour
         inputDirection = Vector3.zero;
         characterVelocity = Vector3.zero;
         lastFramePosition = this.transform.position;
+        outline = GetComponentInChildren<Outline>();
         
         DisableRagdoll();
     }
@@ -64,11 +66,12 @@ public class CustomCharacterController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // if (!IsOwner) 
-        // {
-        //     virtualCamera.Priority = 0;
-        //     return;
-        // }
+        if (!IsOwner) 
+        {
+            virtualCamera.Priority = 0;
+            outline.OutlineColor = Color.red;
+            return;
+        }
         virtualCamera.Priority = 10;
         isGrounded = characterController.isGrounded;
         
@@ -222,8 +225,10 @@ public class CustomCharacterController : MonoBehaviour
         }
     }
 
-    public void ToggleRagdoll()
+    [Rpc(SendTo.Everyone)]
+    public void ToggleRagdollRpc()
     {
+        Debug.Log(this.gameObject + " ToggleRagdollRpc!");
         if (ragdollEnabled)
             DisableRagdoll(); else
             EnableRagdoll();

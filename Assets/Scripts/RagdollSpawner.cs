@@ -9,6 +9,6 @@ public class RagdollSpawner : Interactable
 
     protected override void OnInteract(CustomCharacterController customCharacterController)
     {
-        customCharacterController.ToggleRagdoll();
+        customCharacterController.ToggleRagdollRpc();
     }
 }
