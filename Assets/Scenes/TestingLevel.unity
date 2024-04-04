@@ -283,6 +283,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 9206972996016184108, guid: 4e8756f52fbe36346909a9f2698fd6b9,
         type: 3}
+    - target: {fileID: 4907906957290030533, guid: 702cd601c27674b4fa75783705cf0032,
+        type: 3}
+      propertyPath: NetworkConfig.ForceSamePrefabs
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5378711208381828438, guid: 702cd601c27674b4fa75783705cf0032,
         type: 3}
       propertyPath: m_Enabled
@@ -782,7 +787,7 @@ Transform:
   m_GameObject: {fileID: 1313669362}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.28, y: 1.9804404, z: -6.22}
+  m_LocalPosition: {x: -1.28, y: 3.85, z: -6.22}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 1
   m_Children: []

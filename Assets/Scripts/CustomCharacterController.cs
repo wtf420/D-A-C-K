@@ -239,6 +239,10 @@ public class CustomCharacterController : NetworkBehaviour
         characterController.enabled = false;
         animator.enabled = false;
         ragdollEnabled = true;
+        foreach (ClientTransform clientTransform in ragdoll.gameObject.GetComponentsInChildren<ClientTransform>())
+        {
+            clientTransform.enabled = true;
+        }
         foreach (Rigidbody subrigidbody in ragdoll.gameObject.GetComponentsInChildren<Rigidbody>())
         {
             subrigidbody.isKinematic = false;
@@ -254,6 +258,10 @@ public class CustomCharacterController : NetworkBehaviour
         characterController.enabled = true;
         animator.enabled = true;
         ragdollEnabled = false;
+        foreach (ClientTransform clientTransform in ragdoll.gameObject.GetComponentsInChildren<ClientTransform>())
+        {
+            clientTransform.enabled = false;
+        }
         foreach (Rigidbody subrigidbody in ragdoll.gameObject.GetComponentsInChildren<Rigidbody>())
         {
             subrigidbody.isKinematic = true;
