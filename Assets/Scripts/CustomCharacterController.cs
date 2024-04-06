@@ -2,6 +2,7 @@ using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,6 +16,7 @@ public class CustomCharacterController : NetworkBehaviour
 {
     [Header("~*// PARAMETERS" )]
     [SerializeField] public CharacterType characterType = CharacterType.Pusher;
+    [SerializeField] public Interactable thisInteractable;
 
     [Header("~* Movements and Controls" )]
     [SerializeField] protected float moveSpeed;
@@ -34,9 +36,14 @@ public class CustomCharacterController : NetworkBehaviour
     [SerializeField] protected PlayerInput playerInput;
     [SerializeField] protected GameObject ragdoll;
     protected CharacterController characterController;
-    protected Rigidbody rigidbody;
+    protected new Rigidbody rigidbody;
     protected Animator animator;
     protected Outline outline;
+
+    [Header("~*// OTHERS")]
+    [SerializeField] public Rigidbody ragdollCenterRigidbody;
+    [SerializeField] public GameObject pickupPosition;
+
 
     [Header("~*// VARIABLES" )]
     protected ButtonPrompt btnPrompt;
@@ -59,7 +66,8 @@ public class CustomCharacterController : NetworkBehaviour
         characterVelocity = Vector3.zero;
         lastFramePosition = this.transform.position;
         outline = GetComponentInChildren<Outline>();
-        
+
+        //thisInteractable.InteractEvent.AddListener(ToggleRagdollRpc);
         DisableRagdoll();
     }
 
@@ -89,7 +97,8 @@ public class CustomCharacterController : NetworkBehaviour
     {
         foreach (Collider c in Physics.OverlapSphere(this.transform.position, rangeToInteract))
         {
-            if (c.gameObject.GetComponent<Interactable>())
+            Interactable interactable = c.gameObject.GetComponent<Interactable>();
+            if (interactable && interactable != thisInteractable )
             {
                 closestInteractable = c.gameObject.GetComponent<Interactable>();
                 if (btnPrompt != null) Destroy(btnPrompt.gameObject);
@@ -124,6 +133,7 @@ public class CustomCharacterController : NetworkBehaviour
 
     void MoveCharacter()
     {
+        if (characterController.enabled == false) return;
         float _moveSpeed = moveSpeed;
 
         Vector3 camToPlayer = this.transform.position - virtualCamera.transform.position;
@@ -144,11 +154,26 @@ public class CustomCharacterController : NetworkBehaviour
         characterController.Move(characterVelocity);
     }
 
+    public void PickUpPlayerRpc(GameObject playerGameObject)
+    {
+        CustomCharacterController player = playerGameObject.GetComponentInChildren<CustomCharacterController>();
+        if (player != null && player != this)
+        {
+            // player.ragdollCenterRigidbody.transform.position = pickupPosition.transform.position;
+            player.EnableRagdollForPickupRpc();
+            // FixedJoint joint = player.ragdollCenterRigidbody.transform.AddComponent<FixedJoint>();
+            // joint.connectedBody = pickupPosition.GetComponent<Rigidbody>();
+        }
+    }
+
     public void Interact(InputAction.CallbackContext context)
     {
+        if (!IsOwner) return;
         if (context.performed && closestInteractable != null)
         {
-            closestInteractable.Interact(this);
+            InteractInfo info = new InteractInfo();
+            info.character = this;
+            closestInteractable.Interact(info);
         }
     }
 
@@ -232,6 +257,28 @@ public class CustomCharacterController : NetworkBehaviour
         if (ragdollEnabled)
             DisableRagdoll(); else
             EnableRagdoll();
+    }
+
+    [Rpc(SendTo.Everyone)]
+    public void EnableRagdollForPickupRpc()
+    {
+        this.transform.position = this.transform.position + this.transform.up * 100f;
+        // characterController.enabled = false;
+        // animator.enabled = false;
+        // ragdollEnabled = true;
+        // foreach (ClientTransform clientTransform in ragdoll.gameObject.GetComponentsInChildren<ClientTransform>())
+        // {
+        //     clientTransform.enabled = true;
+        // }
+        // foreach (Rigidbody subrigidbody in ragdoll.gameObject.GetComponentsInChildren<Rigidbody>())
+        // {
+        //     subrigidbody.isKinematic = false;
+        // }
+        // foreach (Collider subcollider in ragdoll.gameObject.GetComponentsInChildren<Collider>())
+        // {
+        //     subcollider.isTrigger = false;
+        // }
+        // ragdollCenterRigidbody.isKinematic = true;
     }
 
     public void EnableRagdoll()

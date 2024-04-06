@@ -7,8 +7,8 @@ public class RagdollSpawner : Interactable
     public GameObject ragdoll;
     public GameObject spawnPoint;
 
-    protected override void OnInteract(CustomCharacterController customCharacterController)
+    protected override void OnInteract(InteractInfo info)
     {
-        customCharacterController.ToggleRagdollRpc();
+        info.character.ToggleRagdollRpc();
     }
 }

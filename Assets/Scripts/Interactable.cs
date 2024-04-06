@@ -2,28 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using Unity.Netcode;
 
-public class Interactable : MonoBehaviour
+public class InteractInfo
 {
-    public UnityEvent<CustomCharacterController> InteractEvent;
+    public CustomCharacterController character;
+}
+
+public class Interactable : NetworkBehaviour
+{
+    public UnityEvent InteractEvent;
     public bool isInteractable = true;
     [SerializeField] private float interactionCooldown = 1f;
 
-    protected void Start()
+    protected new void OnDestroy()
     {
-        InteractEvent.AddListener(OnInteract);
+        InteractEvent.RemoveAllListeners();
     }
 
-    protected void OnDestroy()
-    {
-        InteractEvent.RemoveListener(OnInteract);
-    }
-
-    public void Interact(CustomCharacterController c)
+    public void Interact(InteractInfo info)
     {
         if (isInteractable)
         {
-            InteractEvent?.Invoke(c);
+            InteractEvent?.Invoke();
+            OnInteract(info);
             StartCoroutine(StartInteractionCoolDown());
         }
     }
@@ -35,7 +37,7 @@ public class Interactable : MonoBehaviour
         isInteractable = true;
     }
 
-    protected virtual void OnInteract(CustomCharacterController customCharacterController)
+    protected virtual void OnInteract(InteractInfo info)
     {
         Debug.Log("Interacted!");
     }
