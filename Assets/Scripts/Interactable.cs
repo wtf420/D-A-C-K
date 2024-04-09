@@ -6,7 +6,7 @@ using Unity.Netcode;
 
 public class InteractInfo
 {
-    public CustomCharacterController character;
+    public NetworkObjectReference character;
 }
 
 public class Interactable : NetworkBehaviour
@@ -39,6 +39,7 @@ public class Interactable : NetworkBehaviour
 
     protected virtual void OnInteract(InteractInfo info)
     {
+        //override this to do stuff
         Debug.Log("Interacted!");
     }
 }

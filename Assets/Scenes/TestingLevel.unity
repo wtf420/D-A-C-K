@@ -135,7 +135,8 @@ GameObject:
   - component: {fileID: 237004852}
   - component: {fileID: 237004851}
   - component: {fileID: 237004850}
-  - component: {fileID: 237004854}
+  - component: {fileID: 237004855}
+  - component: {fileID: 237004856}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -230,7 +231,28 @@ Transform:
   - {fileID: 1277680426}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &237004854
+--- !u!114 &237004855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 237004849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 592825425
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &237004856
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -247,8 +269,6 @@ MonoBehaviour:
       m_Calls: []
   isInteractable: 1
   interactionCooldown: 1
-  ragdoll: {fileID: 2752814585131302202, guid: addd0d0556ea67341963601f2d6e830a, type: 3}
-  spawnPoint: {fileID: 1277680425}
 --- !u!1001 &440153586
 PrefabInstance:
   m_ObjectHideFlags: 0

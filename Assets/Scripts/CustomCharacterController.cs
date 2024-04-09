@@ -17,6 +17,7 @@ public class CustomCharacterController : NetworkBehaviour
     [Header("~*// PARAMETERS" )]
     [SerializeField] public CharacterType characterType = CharacterType.Pusher;
     [SerializeField] public Interactable thisInteractable;
+    [SerializeField] public NetworkObject networkObject;
 
     [Header("~* Movements and Controls" )]
     [SerializeField] protected float moveSpeed;
@@ -172,7 +173,7 @@ public class CustomCharacterController : NetworkBehaviour
         if (context.performed && closestInteractable != null)
         {
             InteractInfo info = new InteractInfo();
-            info.character = this;
+            info.character = this.networkObject;
             closestInteractable.Interact(info);
         }
     }
