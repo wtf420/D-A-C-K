@@ -82,7 +82,9 @@ public class CustomCharacterController : NetworkBehaviour
             return;
         }
         virtualCamera.Priority = 10;
+
         isGrounded = characterController.isGrounded;
+        Debug.Log(characterVelocity);
         
         if (!ragdollEnabled)
         {
@@ -140,17 +142,15 @@ public class CustomCharacterController : NetworkBehaviour
         Vector3 camToPlayer = this.transform.position - virtualCamera.transform.position;
         camToPlayer.y = 0;
         Vector3 movementDirection = Quaternion.LookRotation(camToPlayer.normalized) * inputDirection;
-
-        Vector3 gravity = -transform.up * gravityForce;
-
-        Vector3 movement = movementDirection.normalized * _moveSpeed * Time.deltaTime;
+        Vector3 movement = movementDirection.normalized * _moveSpeed;
         movement = isGrounded ? movement : movement * airMovementMultiplier;
-        characterController.Move(movement);
+        characterController.Move(movement * Time.deltaTime);
 
         if (isGrounded && characterVelocity.y < 0)
         {
             characterVelocity.y = 0;
         }
+        Vector3 gravity = -transform.up * gravityForce;
         characterVelocity += gravity * Time.deltaTime;
         characterController.Move(characterVelocity);
     }
@@ -247,7 +247,9 @@ public class CustomCharacterController : NetworkBehaviour
     {
         if (context.performed && isGrounded)
         {
+            Debug.Log("Jumping: " + characterVelocity);
             characterVelocity += transform.up.normalized * jumpForce;
+            Debug.Log("Jumped: " + characterVelocity);
         }
     }
 

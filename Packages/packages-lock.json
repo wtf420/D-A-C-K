@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.community.netcode.extensions": {
+      "version": "file:com.community.netcode.extensions@8eab2c9713",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.netcode.gameobjects": "1.0.2"
+      }
+    },
     "com.unity.animation.rigging": {
       "version": "1.2.1",
       "depth": 0,

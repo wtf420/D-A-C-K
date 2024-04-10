@@ -75,7 +75,7 @@ PrefabInstance:
     - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
       propertyPath: jumpForce
-      value: 0.25
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
@@ -90,7 +90,7 @@ PrefabInstance:
     - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
       propertyPath: gravityForce
-      value: 0.75
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
@@ -120,7 +120,7 @@ PrefabInstance:
     - target: {fileID: 802606502740474774, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1291674161454237734, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
