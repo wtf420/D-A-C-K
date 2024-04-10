@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3334696784445057042}
   m_Layer: 0
   m_Name: ItemHoldPostion
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -69,6 +69,12 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
+      propertyPath: Gernade
+      value: 
+      objectReference: {fileID: 3742499118624908669, guid: 4fcbc5b929c03334f8b84e9330d327f2,
+        type: 3}
+    - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
       propertyPath: ragdoll
       value: 
       objectReference: {fileID: 2163751177631455413}
@@ -81,6 +87,11 @@ PrefabInstance:
         type: 3}
       propertyPath: pushForce
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
+      propertyPath: throwForce
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
@@ -97,6 +108,11 @@ PrefabInstance:
       propertyPath: networkObject
       value: 
       objectReference: {fileID: 7107734886927960395}
+    - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
+      propertyPath: pickupPosition
+      value: 
+      objectReference: {fileID: 4377410140486015042}
     - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
       propertyPath: rangeToInteract
@@ -171,6 +187,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3433164008170755665, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 4433854650380359757, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 4793699863005773929, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
@@ -257,6 +283,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: NetworkPlayerWithRagdoll
       objectReference: {fileID: 0}
+    - target: {fileID: 6908705107368137230, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 7737161733883622469, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 8085793722690008757, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6, type: 3}
@@ -336,6 +372,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5587292777096489804}
     m_Modifications:
+    - target: {fileID: 1802866414801700396, guid: addd0d0556ea67341963601f2d6e830a,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 2054574844519286112, guid: addd0d0556ea67341963601f2d6e830a,
         type: 3}
       propertyPath: m_ConnectedAnchor.x
@@ -366,6 +407,11 @@ PrefabInstance:
       propertyPath: m_ConnectedAnchor.z
       value: -0.016576448
       objectReference: {fileID: 0}
+    - target: {fileID: 2365434164470163162, guid: addd0d0556ea67341963601f2d6e830a,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 2752814585131302202, guid: addd0d0556ea67341963601f2d6e830a,
         type: 3}
       propertyPath: m_Name
@@ -375,6 +421,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2752814585131302202, guid: addd0d0556ea67341963601f2d6e830a,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 2874742522002492283, guid: addd0d0556ea67341963601f2d6e830a,
         type: 3}
@@ -480,6 +531,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_CullingMode
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7695290499517254712, guid: addd0d0556ea67341963601f2d6e830a,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 8139027082052623125, guid: addd0d0556ea67341963601f2d6e830a,
         type: 3}

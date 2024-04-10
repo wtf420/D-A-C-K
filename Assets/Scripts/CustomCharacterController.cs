@@ -2,6 +2,7 @@ using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -46,6 +47,10 @@ public class CustomCharacterController : NetworkBehaviour
     [SerializeField] public GameObject pickupPosition;
 
 
+    [Header("~*// WEAPON")]
+    [SerializeField] public Gernade Gernade;
+    [SerializeField] private float throwForce;
+
     [Header("~*// VARIABLES" )]
     protected ButtonPrompt btnPrompt;
     protected Interactable closestInteractable;
@@ -84,7 +89,6 @@ public class CustomCharacterController : NetworkBehaviour
         virtualCamera.Priority = 10;
 
         isGrounded = characterController.isGrounded;
-        Debug.Log(characterVelocity);
         
         if (!ragdollEnabled)
         {
@@ -182,23 +186,26 @@ public class CustomCharacterController : NetworkBehaviour
     {
         if (context.performed && isGrounded)
         {
-            switch (characterType)
-            {
-                case CharacterType.Pusher:
-                {
-                    Push();
-                    break;
-                }
-                case CharacterType.Puller:
-                {
-                    Pull();
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
-            }
+            Gernade gernade = Instantiate(Gernade, pickupPosition.transform.position, this.transform.rotation);
+            gernade.GetComponent<NetworkObject>().SpawnWithOwnership(this.networkObject.OwnerClientId, true);
+            gernade.GetComponent<Rigidbody>().AddForce(this.transform.forward * throwForce, ForceMode.Impulse);
+            // switch (characterType)
+            // {
+            //     case CharacterType.Pusher:
+            //     {
+            //         Push();
+            //         break;
+            //     }
+            //     case CharacterType.Puller:
+            //     {
+            //         Pull();
+            //         break;
+            //     }
+            //     default:
+            //     {
+            //         break;
+            //     }
+            // }
         }
     }
 
@@ -254,6 +261,16 @@ public class CustomCharacterController : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
+    public void SetRagdollStateRpc(bool state)
+    {
+        Debug.Log(this.gameObject + " SetRagdollStateRpc to " + state);
+        if (!state)
+            DisableRagdoll();
+        else
+            EnableRagdoll();
+    }
+
+    [Rpc(SendTo.Everyone)]
     public void ToggleRagdollRpc()
     {
         Debug.Log(this.gameObject + " ToggleRagdollRpc!");
@@ -299,7 +316,7 @@ public class CustomCharacterController : NetworkBehaviour
         }
         foreach (Collider subcollider in ragdoll.gameObject.GetComponentsInChildren<Collider>())
         {
-            subcollider.isTrigger = false;
+            subcollider.enabled = true;
         }
     }
 
@@ -318,7 +335,7 @@ public class CustomCharacterController : NetworkBehaviour
         }
         foreach (Collider subcollider in ragdoll.gameObject.GetComponentsInChildren<Collider>())
         {
-            subcollider.isTrigger = true;
+            subcollider.enabled = false;
         }
     }
 
