@@ -7,13 +7,13 @@ using UnityEngine;
 public class Gernade : NetworkBehaviour
 {
     [SerializeField] protected float explosionTimer, _explosionRadius;
-    [HideInInspector] public GameObject source;
+    [SerializeField] protected NetworkObject networkObject;
 
     protected bool exploded = false;
 
     protected virtual void Awake()
     {
-
+        networkObject = GetComponent<NetworkObject>();
     }
 
     public virtual void Update()
@@ -24,11 +24,12 @@ public class Gernade : NetworkBehaviour
         } else
         {
             if (!exploded)
-                Explode();
+                ExplodeRpc();
         }
     }
 
-    protected virtual void Explode()
+    [Rpc(SendTo.Server)]
+    protected virtual void ExplodeRpc()
     {
         exploded = true;
         RaycastHit[] info = Physics.SphereCastAll(this.transform.position, _explosionRadius, Vector3.up, 0);
@@ -62,7 +63,7 @@ public class Gernade : NetworkBehaviour
         }
         StopAllCoroutines();
         this.GetComponent<Renderer>().enabled = false;
-        Destroy(gameObject);
+        networkObject.Despawn();
     }
 
     [ExecuteInEditMode]

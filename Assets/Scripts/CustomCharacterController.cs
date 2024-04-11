@@ -48,7 +48,7 @@ public class CustomCharacterController : NetworkBehaviour
 
 
     [Header("~*// WEAPON")]
-    [SerializeField] public Gernade Gernade;
+    [SerializeField] public NetworkObject Gernade;
     [SerializeField] private float throwForce;
 
     [Header("~*// VARIABLES" )]
@@ -186,9 +186,7 @@ public class CustomCharacterController : NetworkBehaviour
     {
         if (context.performed && isGrounded)
         {
-            Gernade gernade = Instantiate(Gernade, pickupPosition.transform.position, this.transform.rotation);
-            gernade.GetComponent<NetworkObject>().SpawnWithOwnership(this.networkObject.OwnerClientId, true);
-            gernade.GetComponent<Rigidbody>().AddForce(this.transform.forward * throwForce, ForceMode.Impulse);
+            SpawnGernadeRpc();
             // switch (characterType)
             // {
             //     case CharacterType.Pusher:
@@ -207,6 +205,14 @@ public class CustomCharacterController : NetworkBehaviour
             //     }
             // }
         }
+    }
+
+    [Rpc(SendTo.Server)]
+    public void SpawnGernadeRpc()
+    {
+        NetworkObject gernade = Instantiate(Gernade, pickupPosition.transform.position, this.transform.rotation);
+        gernade.Spawn();
+        gernade.GetComponent<Rigidbody>().AddForce(this.transform.forward * throwForce, ForceMode.Impulse);
     }
 
     protected void Push()
