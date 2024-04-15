@@ -19,6 +19,7 @@ public class CustomCharacterController : NetworkBehaviour
     [SerializeField] public CharacterType characterType = CharacterType.Pusher;
     [SerializeField] public Interactable thisInteractable;
     [SerializeField] public NetworkObject networkObject;
+    public Collider collider => characterController;
 
     [Header("~* Movements and Controls" )]
     [SerializeField] protected float moveSpeed;
@@ -52,6 +53,7 @@ public class CustomCharacterController : NetworkBehaviour
     [SerializeField] private float throwForce;
 
     [Header("~*// VARIABLES" )]
+    private Transform holder;
     protected ButtonPrompt btnPrompt;
     protected Interactable closestInteractable;
     protected Vector3 inputDirection;
@@ -73,7 +75,7 @@ public class CustomCharacterController : NetworkBehaviour
         lastFramePosition = this.transform.position;
         outline = GetComponentInChildren<Outline>();
 
-        //thisInteractable.InteractEvent.AddListener(ToggleRagdollRpc);
+        thisInteractable.InteractEvent.AddListener(SetPickUp);
         DisableRagdoll();
     }
 
@@ -98,6 +100,13 @@ public class CustomCharacterController : NetworkBehaviour
         UpdateCamera();
         UpdateAnimator();
         CheckForInteractables();
+    }
+
+    void LateUpdate()
+    {
+        if (holder == null) return;
+        transform.position = holder.transform.position;
+        transform.rotation = holder.transform.rotation;
     }
 
     void CheckForInteractables()
@@ -165,7 +174,7 @@ public class CustomCharacterController : NetworkBehaviour
         if (player != null && player != this)
         {
             // player.ragdollCenterRigidbody.transform.position = pickupPosition.transform.position;
-            player.EnableRagdollForPickupRpc();
+            player.EnableRagdoll();
             // FixedJoint joint = player.ragdollCenterRigidbody.transform.AddComponent<FixedJoint>();
             // joint.connectedBody = pickupPosition.GetComponent<Rigidbody>();
         }
@@ -285,26 +294,47 @@ public class CustomCharacterController : NetworkBehaviour
             EnableRagdoll();
     }
 
-    [Rpc(SendTo.Everyone)]
-    public void EnableRagdollForPickupRpc()
+    protected virtual void SetPickUp(InteractInfo info)
     {
-        this.transform.position = this.transform.position + this.transform.up * 100f;
-        // characterController.enabled = false;
-        // animator.enabled = false;
-        // ragdollEnabled = true;
-        // foreach (ClientTransform clientTransform in ragdoll.gameObject.GetComponentsInChildren<ClientTransform>())
-        // {
-        //     clientTransform.enabled = true;
-        // }
-        // foreach (Rigidbody subrigidbody in ragdoll.gameObject.GetComponentsInChildren<Rigidbody>())
-        // {
-        //     subrigidbody.isKinematic = false;
-        // }
-        // foreach (Collider subcollider in ragdoll.gameObject.GetComponentsInChildren<Collider>())
-        // {
-        //     subcollider.isTrigger = false;
-        // }
-        // ragdollCenterRigidbody.isKinematic = true;
+        SetPickUpRpc(info.character);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    protected virtual void SetPickUpRpc(NetworkObjectReference transform)
+    {
+        NetworkObject networkObject;
+        if (transform.TryGet(out networkObject) && networkObject.gameObject.GetComponentInChildren<CustomCharacterController>())
+        {
+            CustomCharacterController customCharacterController = networkObject.gameObject.GetComponentInChildren<CustomCharacterController>();
+            if (customCharacterController.pickupPosition.transform != holder)
+            {
+                holder = networkObject.gameObject.GetComponentInChildren<CustomCharacterController>().pickupPosition.transform;
+                EnableRagdoll();
+                ragdollCenterRigidbody.isKinematic = true;
+                foreach (Collider subcollider in ragdoll.gameObject.GetComponentsInChildren<Collider>())
+                {
+                    Physics.IgnoreCollision(subcollider, customCharacterController.collider, true);
+                }
+                Debug.Log("Set Hold:" + holder);
+            }
+            else
+            {
+                holder = null;
+                ragdollCenterRigidbody.isKinematic = false;
+                foreach (Collider subcollider in ragdoll.gameObject.GetComponentsInChildren<Collider>())
+                {
+                    Physics.IgnoreCollision(subcollider, customCharacterController.collider, false);
+                }
+                DisableRagdoll();
+                Debug.Log("Let go");
+            }
+        }
+        else
+        {
+            holder = null;
+            rigidbody.isKinematic = false;
+            Debug.Log("Is null");
+        }
     }
 
     public void EnableRagdoll()

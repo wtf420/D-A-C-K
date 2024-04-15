@@ -22,7 +22,7 @@ public class PickUpable : Interactable
     }
 
     [Rpc(SendTo.Everyone)]
-    protected void SetPickUpRpc(NetworkObjectReference transform)
+    protected virtual void SetPickUpRpc(NetworkObjectReference transform)
     {
         NetworkObject networkObject;
         if (transform.TryGet(out networkObject))

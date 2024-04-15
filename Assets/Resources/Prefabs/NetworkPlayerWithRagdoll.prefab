@@ -133,6 +133,11 @@ PrefabInstance:
       propertyPath: ragdollHoldGameObject
       value: 
       objectReference: {fileID: 2391929336903066531}
+    - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
+      propertyPath: ragdollCenterRigidbody
+      value: 
+      objectReference: {fileID: 2659746908847810338}
     - target: {fileID: 802606502740474774, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
       propertyPath: m_Enabled
@@ -776,6 +781,12 @@ MonoBehaviour:
   InLocalSpace: 0
   Interpolate: 0
   SlerpPosition: 0
+--- !u!54 &2659746908847810338 stripped
+Rigidbody:
+  m_CorrespondingSourceObject: {fileID: 2079985472798229165, guid: addd0d0556ea67341963601f2d6e830a,
+    type: 3}
+  m_PrefabInstance: {fileID: 4050080204319466895}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &3297458098442212634 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1582499424812118165, guid: addd0d0556ea67341963601f2d6e830a,

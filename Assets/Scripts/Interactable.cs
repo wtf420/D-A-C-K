@@ -11,7 +11,7 @@ public class InteractInfo
 
 public class Interactable : NetworkBehaviour
 {
-    public UnityEvent InteractEvent;
+    public UnityEvent<InteractInfo> InteractEvent;
     public bool isInteractable = true;
     [SerializeField] private float interactionCooldown = 1f;
 
@@ -24,7 +24,7 @@ public class Interactable : NetworkBehaviour
     {
         if (isInteractable)
         {
-            InteractEvent?.Invoke();
+            InteractEvent?.Invoke(info);
             OnInteract(info);
             StartCoroutine(StartInteractionCoolDown());
         }
