@@ -32,11 +32,11 @@ public class PickUpable : Interactable
             {
                 holder = networkObject.gameObject.GetComponentInChildren<CustomCharacterController>().pickupPosition.transform;
                 rigidbody.isKinematic = true;
-                Physics.IgnoreCollision(collider, holder.GetComponentInParent<Collider>(), true);
+                Physics.IgnoreCollision(collider, customCharacterController.collider, true);
                 Debug.Log("Set Hold:" + holder);
             } else
             {
-                Physics.IgnoreCollision(collider, holder.GetComponent<Collider>(), false);
+                Physics.IgnoreCollision(collider, customCharacterController.collider, false);
                 holder = null;
                 rigidbody.isKinematic = false;
                 Debug.Log("Let go");

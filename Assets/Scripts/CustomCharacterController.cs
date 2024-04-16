@@ -114,17 +114,14 @@ public class CustomCharacterController : NetworkBehaviour
         foreach (Collider c in Physics.OverlapSphere(this.transform.position, rangeToInteract))
         {
             Interactable interactable = c.gameObject.GetComponent<Interactable>();
-            if (interactable && interactable != thisInteractable )
+            if (interactable && interactable.isInteractable && interactable != thisInteractable )
             {
                 closestInteractable = c.gameObject.GetComponent<Interactable>();
                 if (btnPrompt != null) Destroy(btnPrompt.gameObject);
-                if (closestInteractable.isInteractable)
-                {
-                    btnPrompt = ButtonPrompt.Create();
-                    btnPrompt.transform.SetParent(ScreenCanvas.transform);
-                    btnPrompt.SetText(playerInput.currentActionMap.FindAction("Interact").GetBindingDisplayString(0));
-                    btnPrompt.SetPosition(Camera.main.WorldToScreenPoint(closestInteractable.gameObject.transform.position));
-                }
+                btnPrompt = ButtonPrompt.Create();
+                btnPrompt.transform.SetParent(ScreenCanvas.transform);
+                btnPrompt.SetText(playerInput.currentActionMap.FindAction("Interact").GetBindingDisplayString(0));
+                btnPrompt.SetPosition(Camera.main.WorldToScreenPoint(closestInteractable.gameObject.transform.position));
                 return;
             }
         }
@@ -320,12 +317,13 @@ public class CustomCharacterController : NetworkBehaviour
             else
             {
                 holder = null;
-                ragdollCenterRigidbody.isKinematic = false;
                 foreach (Collider subcollider in ragdoll.gameObject.GetComponentsInChildren<Collider>())
                 {
                     Physics.IgnoreCollision(subcollider, customCharacterController.collider, false);
                 }
-                DisableRagdoll();
+                // DisableRagdoll();
+                ragdollCenterRigidbody.isKinematic = false;
+                ragdollCenterRigidbody.AddForce(this.transform.forward * throwForce, ForceMode.Impulse);
                 Debug.Log("Let go");
             }
         }
