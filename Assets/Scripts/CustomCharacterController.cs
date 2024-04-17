@@ -111,6 +111,7 @@ public class CustomCharacterController : NetworkBehaviour
 
     void CheckForInteractables()
     {
+        closestInteractable = null;
         foreach (Collider c in Physics.OverlapSphere(this.transform.position, rangeToInteract))
         {
             Interactable interactable = c.gameObject.GetComponent<Interactable>();
@@ -340,6 +341,7 @@ public class CustomCharacterController : NetworkBehaviour
         characterController.enabled = false;
         animator.enabled = false;
         ragdollEnabled = true;
+        thisInteractable.isInteractable = true;
         foreach (ClientTransform clientTransform in ragdoll.gameObject.GetComponentsInChildren<ClientTransform>())
         {
             clientTransform.enabled = true;
@@ -359,6 +361,7 @@ public class CustomCharacterController : NetworkBehaviour
         characterController.enabled = true;
         animator.enabled = true;
         ragdollEnabled = false;
+        thisInteractable.isInteractable = false;
         foreach (ClientTransform clientTransform in ragdoll.gameObject.GetComponentsInChildren<ClientTransform>())
         {
             clientTransform.enabled = false;
