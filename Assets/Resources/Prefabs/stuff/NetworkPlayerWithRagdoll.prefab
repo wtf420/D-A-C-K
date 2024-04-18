@@ -110,6 +110,11 @@ PrefabInstance:
       objectReference: {fileID: 7107734886927960395}
     - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
+      propertyPath: virtualCamera
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
       propertyPath: pickupPosition
       value: 
       objectReference: {fileID: 4377410140486015042}
@@ -127,7 +132,12 @@ PrefabInstance:
         type: 3}
       propertyPath: thisInteractable
       value: 
-      objectReference: {fileID: 7820699667467917770}
+      objectReference: {fileID: 8611894784043333136}
+    - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
+      propertyPath: characterController
+      value: 
+      objectReference: {fileID: 3100294880596980404}
     - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
       propertyPath: ragdollHoldGameObject
@@ -301,6 +311,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 8085793722690008757, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6, type: 3}
+    - {fileID: 4433854650380359757, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 7903560840392172142, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
@@ -310,11 +321,7 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 3086029535719920306}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7737161733883622469, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7820699667467917770}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6, type: 3}
 --- !u!114 &2926830504093842224 stripped
 MonoBehaviour:
@@ -322,35 +329,18 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 2316287923851512098}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5438923394593766759}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a11b2cf32fae963458ad84ae0c829c5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &5438923394593766759 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7737161733883622469, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+--- !u!143 &3100294880596980404 stripped
+CharacterController:
+  m_CorrespondingSourceObject: {fileID: 802606502740474774, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
     type: 3}
   m_PrefabInstance: {fileID: 2316287923851512098}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7820699667467917770
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5438923394593766759}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d998b35c85a0f1245a915e47c051ef3e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  InteractEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  isInteractable: 1
-  interactionCooldown: 1
 --- !u!4 &5587292777096489804 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7903560840392172142, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
@@ -640,6 +630,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 862458463705563781}
+    - targetCorrespondingSourceObject: {fileID: 1802866414801700396, guid: addd0d0556ea67341963601f2d6e830a,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8611894784043333136}
     - targetCorrespondingSourceObject: {fileID: 6132793496447602869, guid: addd0d0556ea67341963601f2d6e830a,
         type: 3}
       insertIndex: -1
@@ -781,6 +775,23 @@ MonoBehaviour:
   InLocalSpace: 0
   Interpolate: 0
   SlerpPosition: 0
+--- !u!114 &8611894784043333136
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2391929336903066531}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d998b35c85a0f1245a915e47c051ef3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  InteractEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  isInteractable: 1
+  interactionCooldown: 0.2
 --- !u!54 &2659746908847810338 stripped
 Rigidbody:
   m_CorrespondingSourceObject: {fileID: 2079985472798229165, guid: addd0d0556ea67341963601f2d6e830a,
