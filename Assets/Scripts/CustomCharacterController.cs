@@ -64,10 +64,10 @@ public class CustomCharacterController : NetworkBehaviour
     protected float distanceMovedSinceLastFrame;
     protected bool isGrounded;
     protected bool canMove;
-    public bool ragdollEnabled { get; protected set; }
+    public NetworkVariable<bool> ragdollEnabled;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         rigidbody = GetComponent<Rigidbody>();
         animator = GetComponentInChildren<Animator>();
@@ -76,16 +76,25 @@ public class CustomCharacterController : NetworkBehaviour
         lastFramePosition = this.transform.position;
         outline = GetComponentInChildren<Outline>();
         canMove = true;
-        virtualCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CinemachineVirtualCamera>();
-        if (IsOwner)
-        {
-            virtualCamera.Follow = ragdollCenterRigidbody.transform;
-            virtualCamera.LookAt = ragdollCenterRigidbody.transform;
-        }
+        ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
         thisInteractable.InteractEvent.AddListener(SetPickUp);
         thisInteractable.isInteractable = false;
+    }
+
+    void Start()
+    {
+        virtualCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CinemachineVirtualCamera>();
+        if (!IsOwner) return;
+        virtualCamera.Follow = ragdollCenterRigidbody.transform;
+        virtualCamera.LookAt = ragdollCenterRigidbody.transform;
         DisableRagdoll();
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (ragdollEnabled.Value)
+            EnableRagdoll(); else DisableRagdoll();
     }
 
     // Update is called once per frame
@@ -101,7 +110,7 @@ public class CustomCharacterController : NetworkBehaviour
 
         isGrounded = characterController.isGrounded;
         
-        if (!ragdollEnabled)
+        if (!ragdollEnabled.Value)
         {
             RotateCharacterTowards();
             MoveCharacter();
@@ -126,7 +135,6 @@ public class CustomCharacterController : NetworkBehaviour
         {
             Interactable interactable = c.gameObject.GetComponent<Interactable>();
 
-            if (interactable) Debug.Log(c + " | " + interactable + " | " + interactable.isInteractable + " | " + (interactable != thisInteractable));
             if (interactable && interactable.isInteractable && interactable != thisInteractable )
             {
                 float distance = Vector3.Distance(this.transform.position, interactable.transform.position);
@@ -137,7 +145,6 @@ public class CustomCharacterController : NetworkBehaviour
                 }
             }
         }
-        Debug.Log(closestInteractable);
         if (btnPrompt != null) Destroy(btnPrompt.gameObject);
         if (closestInteractable != null)
         {
@@ -287,9 +294,7 @@ public class CustomCharacterController : NetworkBehaviour
     {
         if (context.performed && isGrounded)
         {
-            Debug.Log("Jumping: " + characterVelocity);
             characterVelocity += transform.up.normalized * jumpForce;
-            Debug.Log("Jumped: " + characterVelocity);
         }
     }
 
@@ -307,7 +312,7 @@ public class CustomCharacterController : NetworkBehaviour
     public void ToggleRagdollRpc()
     {
         Debug.Log(this.gameObject + " ToggleRagdollRpc!");
-        if (ragdollEnabled)
+        if (ragdollEnabled.Value)
             DisableRagdoll(); else
             EnableRagdoll();
     }
@@ -331,7 +336,6 @@ public class CustomCharacterController : NetworkBehaviour
                 {
                     Physics.IgnoreCollision(subcollider, holderCharacter.collider, true);
                 }
-                EnableRagdoll();
                 ragdollCenterRigidbody.isKinematic = true;
                 holder = networkObject.gameObject.GetComponentInChildren<CustomCharacterController>().pickupPosition.transform;
                 Debug.Log("Set Hold:" + holder);
@@ -360,11 +364,11 @@ public class CustomCharacterController : NetworkBehaviour
 
     public void EnableRagdoll()
     {
+        if (IsOwner) ragdollEnabled.Value = true;
         thisInteractable.isInteractable = true;
         characterController.detectCollisions = false;
         canMove = false;
         animator.enabled = false;
-        ragdollEnabled = true;
         foreach (ClientTransform clientTransform in ragdoll.gameObject.GetComponentsInChildren<ClientTransform>())
         {
             clientTransform.enabled = true;
@@ -381,12 +385,12 @@ public class CustomCharacterController : NetworkBehaviour
 
     public void DisableRagdoll()
     {
+        if (IsOwner) ragdollEnabled.Value = false;
         Vector3 p = ragdollCenterRigidbody.transform.position;
         thisInteractable.isInteractable = false;
         characterController.detectCollisions = true;
         canMove = true;
         animator.enabled = true;
-        ragdollEnabled = false;
         foreach (ClientTransform clientTransform in ragdoll.gameObject.GetComponentsInChildren<ClientTransform>())
         {
             clientTransform.enabled = false;
