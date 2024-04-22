@@ -140,6 +140,11 @@ PrefabInstance:
       objectReference: {fileID: 3100294880596980404}
     - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
         type: 3}
+      propertyPath: weaponHoldTransform
+      value: 
+      objectReference: {fileID: 6872598149485366443}
+    - target: {fileID: 629144187240460818, guid: 72ff107089fc54f4dbfb6e8e99a9fbe6,
+        type: 3}
       propertyPath: ragdollHoldGameObject
       value: 
       objectReference: {fileID: 2391929336903066531}
@@ -915,6 +920,12 @@ MonoBehaviour:
   InLocalSpace: 0
   Interpolate: 0
   SlerpPosition: 0
+--- !u!1 &6872598149485366443 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7445745298855995684, guid: addd0d0556ea67341963601f2d6e830a,
+    type: 3}
+  m_PrefabInstance: {fileID: 4050080204319466895}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &7235293867733107424 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6655241683871393647, guid: addd0d0556ea67341963601f2d6e830a,

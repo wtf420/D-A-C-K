@@ -47,9 +47,10 @@ public class CustomCharacterController : NetworkBehaviour
     [Header("~*// OTHERS")]
     [SerializeField] public Rigidbody ragdollCenterRigidbody;
     [SerializeField] public GameObject pickupPosition;
-
+    [SerializeField] public GameObject weaponHoldTransform;
 
     [Header("~*// WEAPON")]
+    [SerializeField] public GameObject Weapon;
     [SerializeField] public NetworkObject Gernade;
     [SerializeField] private float throwForce;
 
@@ -125,6 +126,16 @@ public class CustomCharacterController : NetworkBehaviour
         if (holder == null) return;
         ragdollCenterRigidbody.transform.position = holder.transform.position;
         ragdollCenterRigidbody.transform.rotation = holder.transform.rotation;
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        WeaponPickUp weaponPickUp = other.GetComponent<WeaponPickUp>();
+        if (weaponPickUp && this.Weapon == null)
+        {
+            animator.SetLayerWeight(animator.GetLayerIndex("BaseballBat"), 1);
+            Weapon = Instantiate(weaponPickUp.weapon, weaponHoldTransform.transform, false);
+        }
     }
 
     void CheckForInteractables()

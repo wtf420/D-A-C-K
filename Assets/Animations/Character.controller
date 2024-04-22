@@ -624,7 +624,7 @@ AnimatorController:
     m_SyncedLayerAffectsTiming: 0
     m_Controller: {fileID: 9100000}
   - serializedVersion: 5
-    m_Name: Baseball Bat
+    m_Name: BaseballBat
     m_StateMachine: {fileID: 8086824063390135286}
     m_Mask: {fileID: 31900000, guid: 019e0a3e9ad2b1c4092564faaed77cc3, type: 2}
     m_Motions:
@@ -646,7 +646,7 @@ AnimatorController:
     m_Behaviours: []
     m_BlendingMode: 0
     m_SyncedLayerIndex: 0
-    m_DefaultWeight: 1
+    m_DefaultWeight: 0
     m_IKPass: 0
     m_SyncedLayerAffectsTiming: 0
     m_Controller: {fileID: 9100000}
@@ -1081,7 +1081,7 @@ AnimatorStateMachine:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Baseball Bat
+  m_Name: BaseballBat
   m_ChildStates: []
   m_ChildStateMachines: []
   m_AnyStateTransitions: []

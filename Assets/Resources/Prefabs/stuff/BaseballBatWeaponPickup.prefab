@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5172615686107992025}
   - component: {fileID: 7995282715065005821}
   - component: {fileID: 4546620289852960109}
+  - component: {fileID: 2268468247993676776}
   m_Layer: 0
   m_Name: BaseballBatWeaponPickup
   m_TagString: Untagged
@@ -106,6 +107,19 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2268468247993676776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2021746816700040435}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbcce877456368240afc551114711d50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weapon: {fileID: 6812531860756211609, guid: ecb480d87c36ac242bc4b2eb395d9904, type: 3}
 --- !u!1 &4675653211955553773
 GameObject:
   m_ObjectHideFlags: 0
