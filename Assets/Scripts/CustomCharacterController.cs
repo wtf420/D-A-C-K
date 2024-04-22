@@ -220,6 +220,7 @@ public class CustomCharacterController : NetworkBehaviour
     {
         if (context.performed && isGrounded)
         {
+            animator.Play("Attack");
             SpawnGernadeRpc();
             // switch (characterType)
             // {
@@ -294,6 +295,7 @@ public class CustomCharacterController : NetworkBehaviour
     {
         if (context.performed && isGrounded)
         {
+            animator.Play("Jump");
             characterVelocity += transform.up.normalized * jumpForce;
         }
     }
