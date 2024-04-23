@@ -4,5 +4,5 @@ using UnityEngine;
 
 public class WeaponPickUp : MonoBehaviour
 {
-    public GameObject weapon;
+    public Weapon weapon;
 }

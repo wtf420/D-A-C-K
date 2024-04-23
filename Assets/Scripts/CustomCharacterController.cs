@@ -50,7 +50,7 @@ public class CustomCharacterController : NetworkBehaviour
     [SerializeField] public GameObject weaponHoldTransform;
 
     [Header("~*// WEAPON")]
-    [SerializeField] public GameObject Weapon;
+    [SerializeField] public Weapon Weapon;
     [SerializeField] public NetworkObject Gernade;
     [SerializeField] private float throwForce;
 
@@ -135,6 +135,8 @@ public class CustomCharacterController : NetworkBehaviour
         {
             animator.SetLayerWeight(animator.GetLayerIndex("BaseballBat"), 1);
             Weapon = Instantiate(weaponPickUp.weapon, weaponHoldTransform.transform, false);
+            Weapon.SetWielder(this);
+            Destroy(weaponPickUp.gameObject);
         }
     }
 
@@ -231,25 +233,12 @@ public class CustomCharacterController : NetworkBehaviour
     {
         if (context.performed && isGrounded)
         {
-            animator.Play("Attack");
-            SpawnGernadeRpc();
-            // switch (characterType)
-            // {
-            //     case CharacterType.Pusher:
-            //     {
-            //         Push();
-            //         break;
-            //     }
-            //     case CharacterType.Puller:
-            //     {
-            //         Pull();
-            //         break;
-            //     }
-            //     default:
-            //     {
-            //         break;
-            //     }
-            // }
+            if (Weapon)
+            {
+                Weapon.AttemptAttack();
+                animator.Play("Attack");
+            }
+            //SpawnGernadeRpc();
         }
     }
 
