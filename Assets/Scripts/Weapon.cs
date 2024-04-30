@@ -1,17 +1,36 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Weapon : MonoBehaviour
+public class Weapon : NetworkBehaviour
 {
     public CustomCharacterController wielder;
     public float range, attackAngle, minDistance;
     public float coolDown, timing;
     private bool isAttackable = true;
+    private Transform holderTransform = null;
 
-    public void SetWielder(CustomCharacterController customCharacterController = null)
+    void LateUpdate()
     {
-        wielder = customCharacterController;
+        if (holderTransform == null) return;
+        transform.position = holderTransform.transform.position;
+        transform.rotation = holderTransform.transform.rotation;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    public void SetWielderRpc(NetworkObjectReference networkObjectReference)
+    {
+        NetworkObject networkObject;
+        if (networkObjectReference.TryGet(out networkObject))
+        {
+            CustomCharacterController customCharacterController = networkObject.gameObject.GetComponentInChildren<CustomCharacterController>();
+            if (customCharacterController)
+            {
+                wielder = customCharacterController;
+                holderTransform = wielder.weaponHoldTransform.transform;
+            }
+        }
     }
 
     public void AttemptAttack()

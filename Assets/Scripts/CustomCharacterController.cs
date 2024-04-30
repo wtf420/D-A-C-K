@@ -52,7 +52,7 @@ public class CustomCharacterController : NetworkBehaviour
     [SerializeField] public GameObject weaponHoldTransform;
 
     [Header("~*// WEAPON")]
-    [SerializeField] public Weapon Weapon;
+    [SerializeField] public Weapon weapon;
     [SerializeField] public NetworkObject Gernade;
     [SerializeField] private float throwForce;
 
@@ -134,11 +134,15 @@ public class CustomCharacterController : NetworkBehaviour
     void OnTriggerEnter(Collider other)
     {
         WeaponPickUp weaponPickUp = other.GetComponent<WeaponPickUp>();
-        if (weaponPickUp && this.Weapon == null)
+        if (weaponPickUp && this.weapon == null)
         {
             animator.SetLayerWeight(animator.GetLayerIndex("BaseballBat2"), 1);
-            Weapon = Instantiate(weaponPickUp.weapon, weaponHoldTransform.transform, false);
-            Weapon.SetWielder(this);
+            if (IsOwner)
+            {
+                weapon = Instantiate(weaponPickUp.weapon);
+                this.weapon.NetworkObject.Spawn();
+                weapon.SetWielderRpc(networkObject);
+            }
             Destroy(weaponPickUp.gameObject);
         }
     }
@@ -252,9 +256,9 @@ public class CustomCharacterController : NetworkBehaviour
     {
         if (context.performed)
         {
-            if (Weapon)
+            if (weapon)
             {
-                Weapon.AttemptAttack();
+                weapon.AttemptAttack();
                 animator.SetTrigger("Attack");
             }
             //SpawnGernadeRpc();
