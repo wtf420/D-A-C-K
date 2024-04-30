@@ -28,6 +28,8 @@ public class CustomCharacterController : NetworkBehaviour
     [SerializeField] protected float gravityForce;
     [SerializeField] protected float airMovementMultiplier;
     [SerializeField] protected float cameraRotationSpeed;
+    [SerializeField] protected float maxFallingSpeed;
+    [SerializeField] protected float maxFallingDistance = 10f; //how far player fall before its considered infinite falling
     [Header("~* Others" )]
     [SerializeField] protected float rangeToInteract;
     [SerializeField] protected float rangeToPush;
@@ -110,7 +112,8 @@ public class CustomCharacterController : NetworkBehaviour
         virtualCamera.Priority = 10;
 
         isGrounded = characterController.isGrounded;
-        
+
+        CheckForPlatformBelow();
         if (!ragdollEnabled.Value)
         {
             RotateCharacterTowards();
@@ -138,6 +141,21 @@ public class CustomCharacterController : NetworkBehaviour
             Weapon.SetWielder(this);
             Destroy(weaponPickUp.gameObject);
         }
+    }
+
+    void CheckForPlatformBelow()
+    {
+        bool result = false;
+        RaycastHit[] hits= Physics.RaycastAll(transform.position, -transform.up, maxFallingDistance, ~LayerMask.GetMask("Player"));
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.collider != null && !hit.collider.isTrigger) 
+            {
+                result = true;
+                break;
+            } else continue;
+        }
+        Debug.Log(result);
     }
 
     void CheckForInteractables()
@@ -203,6 +221,7 @@ public class CustomCharacterController : NetworkBehaviour
         }
         Vector3 gravity = -transform.up * gravityForce;
         characterVelocity += gravity * Time.deltaTime;
+        characterVelocity.y = Mathf.Clamp(characterVelocity.y, maxFallingSpeed, Mathf.Infinity);
         characterController.Move(characterVelocity);
     }
 
