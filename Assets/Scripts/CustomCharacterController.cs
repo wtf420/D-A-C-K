@@ -133,7 +133,7 @@ public class CustomCharacterController : NetworkBehaviour
         WeaponPickUp weaponPickUp = other.GetComponent<WeaponPickUp>();
         if (weaponPickUp && this.Weapon == null)
         {
-            animator.SetLayerWeight(animator.GetLayerIndex("BaseballBat"), 1);
+            animator.SetLayerWeight(animator.GetLayerIndex("BaseballBat2"), 1);
             Weapon = Instantiate(weaponPickUp.weapon, weaponHoldTransform.transform, false);
             Weapon.SetWielder(this);
             Destroy(weaponPickUp.gameObject);
@@ -231,12 +231,12 @@ public class CustomCharacterController : NetworkBehaviour
 
     public void Attack(InputAction.CallbackContext context)
     {
-        if (context.performed && isGrounded)
+        if (context.performed)
         {
             if (Weapon)
             {
                 Weapon.AttemptAttack();
-                animator.Play("Attack");
+                animator.SetTrigger("Attack");
             }
             //SpawnGernadeRpc();
         }
