@@ -12,12 +12,6 @@ public class ButtonPrompt : MonoBehaviour
         text = GetComponentInChildren<TextMeshProUGUI>();
     }
 
-    public static ButtonPrompt Create()
-    {
-        ButtonPrompt buttonPrompt = Instantiate(Resources.Load<ButtonPrompt>("Prefabs/ButtonPrompt"));
-        return buttonPrompt;
-    }
-
     public void SetText(string str = "")
     {
         text.text = str;

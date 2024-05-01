@@ -8,16 +8,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public enum CharacterType
-{
-    Pusher,
-    Puller
-}
-
 public class CustomCharacterController : NetworkBehaviour
 {
     [Header("~*// PARAMETERS" )]
-    [SerializeField] public CharacterType characterType = CharacterType.Pusher;
     [SerializeField] public Interactable thisInteractable;
     [SerializeField] public NetworkObject networkObject;
     public new Collider collider => characterController;
@@ -47,6 +40,7 @@ public class CustomCharacterController : NetworkBehaviour
     protected Outline outline;
 
     [Header("~*// OTHERS")]
+    [SerializeField] public ButtonPrompt buttonPrompt;
     [SerializeField] public Rigidbody ragdollCenterRigidbody;
     [SerializeField] public GameObject pickupPosition;
     [SerializeField] public GameObject weaponHoldTransform;
@@ -183,7 +177,7 @@ public class CustomCharacterController : NetworkBehaviour
         if (btnPrompt != null) Destroy(btnPrompt.gameObject);
         if (closestInteractable != null)
         {
-            btnPrompt = ButtonPrompt.Create();
+            btnPrompt = Instantiate(buttonPrompt, ScreenCanvas.transform, false);
             btnPrompt.transform.SetParent(ScreenCanvas.transform);
             btnPrompt.SetText(playerInput.currentActionMap.FindAction("Interact").GetBindingDisplayString(0));
             btnPrompt.SetPosition(Camera.main.WorldToScreenPoint(closestInteractable.gameObject.transform.position));
@@ -234,10 +228,7 @@ public class CustomCharacterController : NetworkBehaviour
         CustomCharacterController player = playerGameObject.GetComponentInChildren<CustomCharacterController>();
         if (player != null && player != this)
         {
-            // player.ragdollCenterRigidbody.transform.position = pickupPosition.transform.position;
             player.EnableRagdoll();
-            // FixedJoint joint = player.ragdollCenterRigidbody.transform.AddComponent<FixedJoint>();
-            // joint.connectedBody = pickupPosition.GetComponent<Rigidbody>();
         }
     }
 
@@ -271,36 +262,6 @@ public class CustomCharacterController : NetworkBehaviour
         NetworkObject gernade = Instantiate(Gernade, pickupPosition.transform.position, this.transform.rotation);
         gernade.Spawn();
         gernade.GetComponent<Rigidbody>().AddForce(this.transform.forward * throwForce, ForceMode.Impulse);
-    }
-
-    protected void Push()
-    {
-        Debug.DrawRay(transform.position, transform.forward * rangeToPush, Color.red, 0.5f);
-        RaycastHit[] raycastHits = Physics.RaycastAll(transform.position, transform.forward, rangeToPush);
-        foreach (RaycastHit hit in raycastHits)
-        {
-            Rigidbody hitrg = hit.transform.GetComponent<Rigidbody>();
-            if (hit.transform.gameObject != this.gameObject && hitrg != null)
-            {
-                hitrg.AddForce(this.transform.forward * pushForce, ForceMode.Impulse);
-                return;
-            }
-        }
-    }
-
-    protected void Pull()
-    {
-        Debug.DrawRay(transform.position, transform.forward * rangeToPush, Color.red, 0.5f);
-        RaycastHit[] raycastHits = Physics.RaycastAll(transform.position, transform.forward, rangeToPush);
-        foreach (RaycastHit hit in raycastHits)
-        {
-            Rigidbody hitrg = hit.transform.GetComponent<Rigidbody>();
-            if (hit.transform.gameObject != this.gameObject && hitrg != null)
-            {
-                hitrg.AddForce(-this.transform.forward * pushForce, ForceMode.Impulse);
-                return;
-            }
-        }
     }
 
     public void SetMovement(InputAction.CallbackContext context)
