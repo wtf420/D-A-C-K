@@ -29,6 +29,7 @@ public class Weapon : NetworkBehaviour
             {
                 wielder = customCharacterController;
                 holderTransform = wielder.weaponHoldTransform.transform;
+                customCharacterController.weapon = this;
             }
         }
     }

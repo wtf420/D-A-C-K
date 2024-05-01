@@ -23,6 +23,8 @@ public class CustomCharacterController : NetworkBehaviour
     [SerializeField] protected float cameraRotationSpeed;
     [SerializeField] protected float maxFallingSpeed;
     [SerializeField] protected float maxFallingDistance = 10f; //how far player fall before its considered infinite falling
+    [SerializeField] protected float maxFallingTime = 0.5f; //how long player fall before checking for infinite falling
+
     [Header("~* Others" )]
     [SerializeField] protected float rangeToInteract;
     [SerializeField] protected float rangeToPush;
@@ -40,6 +42,7 @@ public class CustomCharacterController : NetworkBehaviour
     protected Outline outline;
 
     [Header("~*// OTHERS")]
+    [SerializeField] public NetworkPlayer controlPlayer;
     [SerializeField] public ButtonPrompt buttonPrompt;
     [SerializeField] public Rigidbody ragdollCenterRigidbody;
     [SerializeField] public GameObject pickupPosition;
@@ -59,6 +62,7 @@ public class CustomCharacterController : NetworkBehaviour
     protected Vector3 lastFramePosition; // because distanceMovedSinceLastFrame is unreliable as heck
     protected float cameraInput;
     protected float distanceMovedSinceLastFrame;
+    protected float currentFallingTime;
     protected bool isGrounded;
     protected bool canMove;
     public NetworkVariable<bool> ragdollEnabled;
@@ -74,6 +78,7 @@ public class CustomCharacterController : NetworkBehaviour
         outline = GetComponentInChildren<Outline>();
         canMove = true;
         ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        currentFallingTime = 0.0f;
 
         thisInteractable.InteractEvent.AddListener(SetPickUp);
         thisInteractable.isInteractable = false;
@@ -106,6 +111,14 @@ public class CustomCharacterController : NetworkBehaviour
         virtualCamera.Priority = 10;
 
         isGrounded = characterController.isGrounded;
+        if (isGrounded) currentFallingTime = 0.0f; else 
+        {
+            currentFallingTime += Time.deltaTime;
+            if (currentFallingTime > maxFallingTime && !CheckForPlatformBelow() && controlPlayer != null)
+            {
+                controlPlayer.DespawnRpc();
+            }
+        }
 
         CheckForPlatformBelow();
         if (!ragdollEnabled.Value)
@@ -125,23 +138,13 @@ public class CustomCharacterController : NetworkBehaviour
         ragdollCenterRigidbody.transform.rotation = holder.transform.rotation;
     }
 
-    void OnTriggerEnter(Collider other)
+    [Rpc(SendTo.ClientsAndHost)]
+    public void OnWeaponPickUpRpc()
     {
-        WeaponPickUp weaponPickUp = other.GetComponent<WeaponPickUp>();
-        if (weaponPickUp && this.weapon == null)
-        {
-            animator.SetLayerWeight(animator.GetLayerIndex("BaseballBat2"), 1);
-            if (IsOwner)
-            {
-                weapon = Instantiate(weaponPickUp.weapon);
-                this.weapon.NetworkObject.Spawn();
-                weapon.SetWielderRpc(networkObject);
-            }
-            Destroy(weaponPickUp.gameObject);
-        }
+        animator.SetLayerWeight(animator.GetLayerIndex("BaseballBat2"), 1);
     }
 
-    void CheckForPlatformBelow()
+    bool CheckForPlatformBelow()
     {
         bool result = false;
         RaycastHit[] hits= Physics.RaycastAll(transform.position, -transform.up, maxFallingDistance, ~LayerMask.GetMask("Player"));
@@ -153,7 +156,7 @@ public class CustomCharacterController : NetworkBehaviour
                 break;
             } else continue;
         }
-        Debug.Log(result);
+        return result;
     }
 
     void CheckForInteractables()

@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEditor;
 
 public class NetworkPlayer : NetworkBehaviour
 {
@@ -12,44 +11,48 @@ public class NetworkPlayer : NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        currentCharacter = null;
-    }
-
-    internal void Spawn()
-    {
-        if (currentCharacter == null)
+        if (IsOwner)
         {
-            currentCharacter = Instantiate(characterPrefab);
-            currentCharacter.networkObject.Spawn();
+            currentCharacter = null;
+            StartCoroutine(Spawn());
         }
     }
 
-    internal void DeSpawn()
+    IEnumerator Spawn()
     {
-        if (currentCharacter == null)
+        yield return new WaitForSeconds(3f);
+        SpawnServerRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void SpawnServerRpc()
+    {
+        CustomCharacterController character = Instantiate(characterPrefab);
+        character.NetworkObject.Spawn();
+        SetPlayerRpc(character);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    public void SetPlayerRpc(NetworkBehaviourReference characterReference)
+    {
+        if (characterReference.TryGet(out CustomCharacterController character))
         {
-            currentCharacter.networkObject.Despawn();
-            Destroy(currentCharacter.gameObject);
+            this.currentCharacter = character;
+            character.controlPlayer = this;
         }
     }
-}
 
-[CustomEditor(typeof(NetworkPlayer))]
-public class LevelScriptEditor : Editor
-{
-    public override void OnInspectorGUI()
+    [Rpc(SendTo.Server)]
+    public void DespawnRpc()
     {
-        NetworkPlayer myTarget = (NetworkPlayer)target;
+        currentCharacter.networkObject.Despawn();
+        StartCoroutine(Respawn());
+    }
 
-        if (GUILayout.Button("Spawn"))
-        {
-            myTarget.Spawn();
-        }
-
-        if (GUILayout.Button("Despawn"))
-        {
-            myTarget.DeSpawn();
-        }
+    IEnumerator Respawn()
+    {
+        yield return new WaitForSeconds(1f);
+        SpawnServerRpc();
     }
 }
 
