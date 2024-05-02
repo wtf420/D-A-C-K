@@ -8,6 +8,12 @@ public class WeaponPickUp : NetworkBehaviour
 {
     public Weapon weapon;
 
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        Debug.Log("Spawned");
+    }
+
     void OnTriggerEnter(Collider other)
     {
         CustomCharacterController character = other.GetComponent<CustomCharacterController>();
@@ -21,7 +27,7 @@ public class WeaponPickUp : NetworkBehaviour
     [Rpc(SendTo.Server)]
     private void DestroyRpc()
     {
-        this.NetworkObject.Despawn();
+        this.NetworkObject.Despawn(true);
     }
 
     [Rpc(SendTo.Server)]

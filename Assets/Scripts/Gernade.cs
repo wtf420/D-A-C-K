@@ -63,7 +63,7 @@ public class Gernade : NetworkBehaviour
         }
         StopAllCoroutines();
         this.GetComponent<Renderer>().enabled = false;
-        networkObject.Despawn();
+        networkObject.Despawn(true);
     }
 
     [ExecuteInEditMode]

@@ -6,6 +6,7 @@ using Unity.Netcode;
 using Unity.Netcode.Components;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public class CustomCharacterController : NetworkBehaviour
@@ -41,8 +42,13 @@ public class CustomCharacterController : NetworkBehaviour
     protected Animator animator;
     protected Outline outline;
 
+    [Header("~* NETWORKING")]
+    public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>();
+    public NetworkPlayer controlPlayer;
+    public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
     [Header("~*// OTHERS")]
-    [SerializeField] public NetworkPlayer controlPlayer;
+    
     [SerializeField] public ButtonPrompt buttonPrompt;
     [SerializeField] public Rigidbody ragdollCenterRigidbody;
     [SerializeField] public GameObject pickupPosition;
@@ -65,7 +71,6 @@ public class CustomCharacterController : NetworkBehaviour
     protected float currentFallingTime;
     protected bool isGrounded;
     protected bool canMove;
-    public NetworkVariable<bool> ragdollEnabled;
 
     // Start is called before the first frame update
     void Awake()
@@ -77,11 +82,12 @@ public class CustomCharacterController : NetworkBehaviour
         lastFramePosition = this.transform.position;
         outline = GetComponentInChildren<Outline>();
         canMove = true;
-        ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         currentFallingTime = 0.0f;
 
         thisInteractable.InteractEvent.AddListener(SetPickUp);
         thisInteractable.isInteractable = false;
+
+        controlPlayerNetworkBehaviourReference.OnValueChanged += UpdatePlayerFromReference;
     }
 
     void Start()
@@ -90,13 +96,20 @@ public class CustomCharacterController : NetworkBehaviour
         if (!IsOwner) return;
         virtualCamera.Follow = ragdollCenterRigidbody.transform;
         virtualCamera.LookAt = ragdollCenterRigidbody.transform;
-        DisableRagdoll();
     }
 
     public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
+        UpdatePlayerFromReference(controlPlayerNetworkBehaviourReference.Value, controlPlayerNetworkBehaviourReference.Value);
         if (ragdollEnabled.Value)
             EnableRagdoll(); else DisableRagdoll();
+    }
+
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+        controlPlayerNetworkBehaviourReference.OnValueChanged -= UpdatePlayerFromReference;
     }
 
     // Update is called once per frame
@@ -120,7 +133,6 @@ public class CustomCharacterController : NetworkBehaviour
             }
         }
 
-        CheckForPlatformBelow();
         if (!ragdollEnabled.Value)
         {
             RotateCharacterTowards();
@@ -136,6 +148,14 @@ public class CustomCharacterController : NetworkBehaviour
         if (holder == null) return;
         ragdollCenterRigidbody.transform.position = holder.transform.position;
         ragdollCenterRigidbody.transform.rotation = holder.transform.rotation;
+    }
+
+    void UpdatePlayerFromReference(NetworkBehaviourReference previous, NetworkBehaviourReference current)
+    {
+        if (current.TryGet(out NetworkPlayer player))
+        {
+            this.controlPlayer = player;
+        }
     }
 
     [Rpc(SendTo.ClientsAndHost)]

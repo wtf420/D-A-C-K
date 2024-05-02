@@ -301,7 +301,7 @@ PrefabInstance:
         type: 3}
       propertyPath: NetworkConfig.PlayerPrefab
       value: 
-      objectReference: {fileID: 7747801267139150352, guid: acfb1293a200e6d499bad177865d6d80,
+      objectReference: {fileID: 4236215939875417043, guid: 3332d105322da704f8652b8681b9f967,
         type: 3}
     - target: {fileID: 4907906957290030533, guid: 702cd601c27674b4fa75783705cf0032,
         type: 3}

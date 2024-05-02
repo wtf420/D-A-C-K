@@ -2918,6 +2918,7 @@ MonoBehaviour:
   cameraRotationSpeed: 180
   maxFallingSpeed: -0.5
   maxFallingDistance: 10
+  maxFallingTime: 0.5
   rangeToInteract: 5
   rangeToPush: 5
   pushForce: 5
@@ -2926,6 +2927,9 @@ MonoBehaviour:
   playerInput: {fileID: 7972265297056911992}
   ragdoll: {fileID: 6585683680172852972}
   characterController: {fileID: 2186144649091647777}
+  controlPlayer: {fileID: 0}
+  ragdollEnabled:
+    m_InternalValue: 0
   buttonPrompt: {fileID: 7962680770915283319, guid: b70038d361ac3af40823e79bf9283974,
     type: 3}
   ragdollCenterRigidbody: {fileID: 3621471050670951426}
@@ -2934,8 +2938,6 @@ MonoBehaviour:
   weapon: {fileID: 0}
   Gernade: {fileID: 5370315932681615843, guid: 4fcbc5b929c03334f8b84e9330d327f2, type: 3}
   throwForce: 100
-  ragdollEnabled:
-    m_InternalValue: 0
 --- !u!114 &7972265297056911992
 MonoBehaviour:
   m_ObjectHideFlags: 0
