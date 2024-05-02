@@ -43,7 +43,7 @@ public class CustomCharacterController : NetworkBehaviour
     protected Outline outline;
 
     [Header("~* NETWORKING")]
-    public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>();
+    public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkPlayer controlPlayer;
     public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
@@ -75,6 +75,7 @@ public class CustomCharacterController : NetworkBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        Debug.Log("Awake " + NetworkObjectId);
         rigidbody = GetComponent<Rigidbody>();
         animator = GetComponentInChildren<Animator>();
         inputDirection = Vector3.zero;
@@ -90,20 +91,32 @@ public class CustomCharacterController : NetworkBehaviour
         controlPlayerNetworkBehaviourReference.OnValueChanged += UpdatePlayerFromReference;
     }
 
+    //Late join data handle here
     void Start()
     {
         virtualCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CinemachineVirtualCamera>();
-        if (!IsOwner) return;
+        //Late join data handle
+        UpdatePlayerFromReference(controlPlayerNetworkBehaviourReference.Value, controlPlayerNetworkBehaviourReference.Value);
+        if (ragdollEnabled.Value)
+            EnableRagdoll();
+        else DisableRagdoll();
+
+        if (!IsOwner)
+        {
+            virtualCamera.Priority = 0;
+            outline.OutlineColor = Color.red;
+            return;
+        }
+        outline.OutlineColor = Color.green;
         virtualCamera.Follow = ragdollCenterRigidbody.transform;
         virtualCamera.LookAt = ragdollCenterRigidbody.transform;
+        virtualCamera.Priority = 10;
     }
 
+    //sync or create network data
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        UpdatePlayerFromReference(controlPlayerNetworkBehaviourReference.Value, controlPlayerNetworkBehaviourReference.Value);
-        if (ragdollEnabled.Value)
-            EnableRagdoll(); else DisableRagdoll();
     }
 
     public override void OnDestroy()
@@ -115,14 +128,7 @@ public class CustomCharacterController : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!IsOwner) 
-        {
-            virtualCamera.Priority = 0;
-            outline.OutlineColor = Color.red;
-            return;
-        }
-        virtualCamera.Priority = 10;
-
+        if (!IsOwner) return;
         isGrounded = characterController.isGrounded;
         if (isGrounded) currentFallingTime = 0.0f; else 
         {

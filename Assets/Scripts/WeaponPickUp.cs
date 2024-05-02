@@ -11,7 +11,6 @@ public class WeaponPickUp : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        Debug.Log("Spawned");
     }
 
     void OnTriggerEnter(Collider other)

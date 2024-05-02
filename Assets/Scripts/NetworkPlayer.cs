@@ -7,29 +7,30 @@ public class NetworkPlayer : NetworkBehaviour
 {
     [SerializeField] CustomCharacterController characterPrefab;
 
-    private NetworkVariable<NetworkBehaviourReference> currentCharacterNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>();
-    private CustomCharacterController currentCharacter;
+    public NetworkVariable<NetworkBehaviourReference> currentCharacterNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    [SerializeField] public CustomCharacterController currentCharacter;
 
     void Awake()
     {
         currentCharacterNetworkBehaviourReference.OnValueChanged += UpdateCharacterFromReference;
     }
 
-    // Start is called before the first frame update
+    //Late join data handle here
     void Start()
     {
+        //Late join data handle
+        UpdateCharacterFromReference(currentCharacterNetworkBehaviourReference.Value, currentCharacterNetworkBehaviourReference.Value);
+    }
+
+    //sync or create network data
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
         if (IsOwner)
         {
             currentCharacter = null;
             SpawnServerRpc();
         }
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-        Debug.Log("Value changed: " + currentCharacterNetworkBehaviourReference.Value.ToString());
-        UpdateCharacterFromReference(currentCharacterNetworkBehaviourReference.Value, currentCharacterNetworkBehaviourReference.Value);
     }
 
     public override void OnDestroy()
