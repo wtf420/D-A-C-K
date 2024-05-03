@@ -2918,7 +2918,7 @@ MonoBehaviour:
   cameraRotationSpeed: 180
   maxFallingSpeed: -0.5
   maxFallingDistance: 10
-  maxFallingTime: 0.5
+  maxFallingTime: 1
   rangeToInteract: 5
   rangeToPush: 5
   pushForce: 5
@@ -2937,7 +2937,7 @@ MonoBehaviour:
   weaponHoldTransform: {fileID: 288039359966522278}
   weapon: {fileID: 0}
   Gernade: {fileID: 5370315932681615843, guid: 4fcbc5b929c03334f8b84e9330d327f2, type: 3}
-  throwForce: 100
+  throwForce: 200
 --- !u!114 &7972265297056911992
 MonoBehaviour:
   m_ObjectHideFlags: 0

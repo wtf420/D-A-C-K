@@ -68,14 +68,14 @@ public class CustomCharacterController : NetworkBehaviour
     protected Vector3 lastFramePosition; // because distanceMovedSinceLastFrame is unreliable as heck
     protected float cameraInput;
     protected float distanceMovedSinceLastFrame;
-    protected float currentFallingTime;
+    protected float currentFallingTimer;
+    protected float disableRagdollTimer = 0.0f;
     protected bool isGrounded;
     protected bool canMove;
 
     // Start is called before the first frame update
     void Awake()
     {
-        Debug.Log("Awake " + NetworkObjectId);
         rigidbody = GetComponent<Rigidbody>();
         animator = GetComponentInChildren<Animator>();
         inputDirection = Vector3.zero;
@@ -83,7 +83,7 @@ public class CustomCharacterController : NetworkBehaviour
         lastFramePosition = this.transform.position;
         outline = GetComponentInChildren<Outline>();
         canMove = true;
-        currentFallingTime = 0.0f;
+        currentFallingTimer = 0.0f;
 
         thisInteractable.InteractEvent.AddListener(SetPickUp);
         thisInteractable.isInteractable = false;
@@ -129,11 +129,13 @@ public class CustomCharacterController : NetworkBehaviour
     void Update()
     {
         if (!IsOwner) return;
-        isGrounded = characterController.isGrounded;
-        if (isGrounded) currentFallingTime = 0.0f; else 
+        CheckForPlatformBelow(out float a);
+        isGrounded = ragdollEnabled.Value ? (holder != null || a < 1.0f) : characterController.isGrounded;
+        Debug.Log((currentFallingTimer > maxFallingTime) + " | " + !CheckForPlatformBelow(out a) + " | " + (controlPlayer != null));
+        if (isGrounded) currentFallingTimer = 0.0f; else 
         {
-            currentFallingTime += Time.deltaTime;
-            if (currentFallingTime > maxFallingTime && !CheckForPlatformBelow() && controlPlayer != null)
+            currentFallingTimer += Time.deltaTime;
+            if (currentFallingTimer > maxFallingTime && !CheckForPlatformBelow(out a) && controlPlayer != null)
             {
                 controlPlayer.DespawnRpc();
             }
@@ -141,8 +143,16 @@ public class CustomCharacterController : NetworkBehaviour
 
         if (!ragdollEnabled.Value)
         {
+            if (disableRagdollTimer != 0.0f) disableRagdollTimer = 0.0f;
             RotateCharacterTowards();
             MoveCharacter();
+        } else
+        {
+            disableRagdollTimer += Time.deltaTime;
+            if (disableRagdollTimer > 3.0f)
+            {
+                //free yourself & standup
+            }
         }
         UpdateCamera();
         UpdateAnimator();
@@ -170,18 +180,20 @@ public class CustomCharacterController : NetworkBehaviour
         animator.SetLayerWeight(animator.GetLayerIndex("BaseballBat2"), 1);
     }
 
-    bool CheckForPlatformBelow()
+    bool CheckForPlatformBelow(out float distance)
     {
         bool result = false;
-        RaycastHit[] hits= Physics.RaycastAll(transform.position, -transform.up, maxFallingDistance, ~LayerMask.GetMask("Player"));
+        RaycastHit[] hits= Physics.RaycastAll(ragdollCenterRigidbody.position, -transform.up, maxFallingDistance, ~LayerMask.GetMask("Player"));
         foreach (RaycastHit hit in hits)
         {
             if (hit.collider != null && !hit.collider.isTrigger) 
             {
+                distance = hit.distance;
                 result = true;
                 break;
             } else continue;
         }
+        distance = Mathf.Infinity;
         return result;
     }
 
@@ -358,6 +370,7 @@ public class CustomCharacterController : NetworkBehaviour
             else
             {
                 //get let go and throw yourself forward
+                Vector3 direction = holder.forward;
                 holder = null;
                 foreach (Collider subcollider in ragdoll.gameObject.GetComponentsInChildren<Collider>())
                 {
@@ -365,7 +378,7 @@ public class CustomCharacterController : NetworkBehaviour
                 }
                 //DisableRagdoll();
                 ragdollCenterRigidbody.isKinematic = false;
-                ragdollCenterRigidbody.AddForce(this.transform.forward * throwForce, ForceMode.Impulse);
+                ragdollCenterRigidbody.AddForce(direction * throwForce, ForceMode.Impulse);
                 Debug.Log("Let go");
             }
         }

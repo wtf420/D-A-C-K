@@ -6,11 +6,28 @@ using UnityEngine;
 
 public class WeaponPickUp : NetworkBehaviour
 {
-    public Weapon weapon;
+    public Weapon weapon; 
 
     public override void OnNetworkSpawn()
     {
+        Debug.Log("OnNetworkSpawn: ");
         base.OnNetworkSpawn();
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        Debug.Log("OnNetworkDespawn: ");
+        base.OnNetworkDespawn();
+    }
+
+    void Start()
+    {
+        Debug.Log("Start: ");
+    }
+
+    void Update()
+    {
+        Debug.Log("Update: ");
     }
 
     void OnTriggerEnter(Collider other)
