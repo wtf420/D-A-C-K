@@ -44,7 +44,7 @@ public class CustomCharacterController : NetworkBehaviour
     public NetworkPlayer controlPlayer;
     public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    public NetworkVariable<FixedString32Bytes> shirtColor = new NetworkVariable<FixedString32Bytes>("#FF0000", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<FixedString32Bytes> shirtColor = new NetworkVariable<FixedString32Bytes>("#FF0000", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     [Header("~*// OTHERS")]
 
@@ -94,8 +94,12 @@ public class CustomCharacterController : NetworkBehaviour
     //Late join data handle here
     void Start()
     {
+        Debug.Log("Start: " + shirtColor.Value);
         Material shirtMaterial = renderer.materials.FirstOrDefault((x) => x.name == "ShirtColor (Instance)");
-        if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(shirtColor.Value.ToString(), out Color color)) shirtMaterial.color = color;
+        if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(shirtColor.Value.ToString(), out Color color)) 
+        {
+            shirtMaterial.color = color;
+        }
 
         virtualCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CinemachineVirtualCamera>();
         //Late join data handle
@@ -115,7 +119,7 @@ public class CustomCharacterController : NetworkBehaviour
         } else
         {
             //Initialize as owner
-            
+
             //reenable outline so it will render properly
             outline.enabled = false;
             outline.enabled = true;
@@ -131,6 +135,8 @@ public class CustomCharacterController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+        shirtColor.Value = "#" + ColorUtility.ToHtmlStringRGBA(Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
+        Debug.Log("OnNetworkSpawn: " + shirtColor.Value);
     }
 
     public override void OnDestroy()
@@ -145,7 +151,6 @@ public class CustomCharacterController : NetworkBehaviour
         if (!IsOwner) return;
         CheckForPlatformBelow(out float a);
         isGrounded = ragdollEnabled.Value ? (holder != null || a < 1.0f) : characterController.isGrounded;
-        Debug.Log((currentFallingTimer > maxFallingTime) + " | " + !CheckForPlatformBelow(out a) + " | " + (controlPlayer != null));
         if (isGrounded) currentFallingTimer = 0.0f;
         else
         {

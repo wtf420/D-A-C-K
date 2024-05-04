@@ -54,7 +54,6 @@ public class NetworkPlayer : NetworkBehaviour
         character.NetworkObject.SpawnWithOwnership(this.OwnerClientId);
         currentCharacterNetworkBehaviourReference.Value = character;
         character.controlPlayerNetworkBehaviourReference.Value = this;
-        character.shirtColor.Value = ColorUtility.ToHtmlStringRGBA(Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
     }
 
     [Rpc(SendTo.Server)]
