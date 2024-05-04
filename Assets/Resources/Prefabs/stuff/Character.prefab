@@ -735,7 +735,7 @@ SkinnedMeshRenderer:
   m_Materials:
   - {fileID: 3511325375820423461, guid: 5469d045b142193469f8342c1e7d085f, type: 3}
   - {fileID: -4288583467269203127, guid: 5469d045b142193469f8342c1e7d085f, type: 3}
-  - {fileID: -414921334540547795, guid: 5469d045b142193469f8342c1e7d085f, type: 3}
+  - {fileID: 2100000, guid: ae116c532a8899e44a78171cb0de0d3d, type: 2}
   - {fileID: -4191690391359059294, guid: 5469d045b142193469f8342c1e7d085f, type: 3}
   - {fileID: 4217796364934669478, guid: 5469d045b142193469f8342c1e7d085f, type: 3}
   - {fileID: 4835078630258379571, guid: 5469d045b142193469f8342c1e7d085f, type: 3}
@@ -2930,11 +2930,47 @@ MonoBehaviour:
   controlPlayer: {fileID: 0}
   ragdollEnabled:
     m_InternalValue: 0
+  shirtColor:
+    m_InternalValue:
+      utf8LengthInBytes: 7
+      bytes:
+        offset0000:
+          byte0000: 35
+          byte0001: 70
+          byte0002: 70
+          byte0003: 48
+          byte0004: 48
+          byte0005: 48
+          byte0006: 48
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
   buttonPrompt: {fileID: 7962680770915283319, guid: b70038d361ac3af40823e79bf9283974,
     type: 3}
   ragdollCenterRigidbody: {fileID: 3621471050670951426}
   pickupPosition: {fileID: 4230022060960188215}
   weaponHoldTransform: {fileID: 288039359966522278}
+  renderer: {fileID: 3155495341004373286}
   weapon: {fileID: 0}
   Gernade: {fileID: 5370315932681615843, guid: 4fcbc5b929c03334f8b84e9330d327f2, type: 3}
   throwForce: 200

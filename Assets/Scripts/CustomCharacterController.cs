@@ -1,22 +1,20 @@
 using Cinemachine;
-using System;
 using System.Collections;
+using Unity.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
-using Unity.Netcode.Components;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public class CustomCharacterController : NetworkBehaviour
 {
-    [Header("~*// PARAMETERS" )]
+    [Header("~*// PARAMETERS")]
     [SerializeField] public Interactable thisInteractable;
     [SerializeField] public NetworkObject networkObject;
     public new Collider collider => characterController;
 
-    [Header("~* Movements and Controls" )]
+    [Header("~* Movements and Controls")]
     [SerializeField] protected float moveSpeed;
     [SerializeField] protected float jumpForce;
     [SerializeField] protected float gravityForce;
@@ -26,13 +24,13 @@ public class CustomCharacterController : NetworkBehaviour
     [SerializeField] protected float maxFallingDistance = 10f; //how far player fall before its considered infinite falling
     [SerializeField] protected float maxFallingTime = 0.5f; //how long player fall before checking for infinite falling
 
-    [Header("~* Others" )]
+    [Header("~* Others")]
     [SerializeField] protected float rangeToInteract;
     [SerializeField] protected float rangeToPush;
     [SerializeField] protected float pushForce;
-    
-    
-    [Header("~*// OBJECTS & COMPONENTS" )]
+
+
+    [Header("~*// OBJECTS & COMPONENTS")]
     [SerializeField] protected CinemachineVirtualCamera virtualCamera;
     [SerializeField] protected Canvas ScreenCanvas;
     [SerializeField] protected PlayerInput playerInput;
@@ -43,23 +41,25 @@ public class CustomCharacterController : NetworkBehaviour
     protected Outline outline;
 
     [Header("~* NETWORKING")]
-    public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkPlayer controlPlayer;
+    public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<FixedString32Bytes> shirtColor = new NetworkVariable<FixedString32Bytes>("#FF0000", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     [Header("~*// OTHERS")]
-    
+
     [SerializeField] public ButtonPrompt buttonPrompt;
     [SerializeField] public Rigidbody ragdollCenterRigidbody;
     [SerializeField] public GameObject pickupPosition;
     [SerializeField] public GameObject weaponHoldTransform;
+    [SerializeField] public new Renderer renderer;
 
     [Header("~*// WEAPON")]
     [SerializeField] public Weapon weapon;
     [SerializeField] public NetworkObject Gernade;
     [SerializeField] private float throwForce;
 
-    [Header("~*// VARIABLES" )]
+    [Header("~*// VARIABLES")]
     private Transform holder;
     protected ButtonPrompt btnPrompt;
     protected Interactable closestInteractable;
@@ -94,6 +94,9 @@ public class CustomCharacterController : NetworkBehaviour
     //Late join data handle here
     void Start()
     {
+        Material shirtMaterial = renderer.materials.FirstOrDefault((x) => x.name == "ShirtColor (Instance)");
+        if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(shirtColor.Value.ToString(), out Color color)) shirtMaterial.color = color;
+
         virtualCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CinemachineVirtualCamera>();
         //Late join data handle
         UpdatePlayerFromReference(controlPlayerNetworkBehaviourReference.Value, controlPlayerNetworkBehaviourReference.Value);
@@ -104,13 +107,24 @@ public class CustomCharacterController : NetworkBehaviour
         if (!IsOwner)
         {
             virtualCamera.Priority = 0;
+
+            outline.enabled = false;
+            outline.enabled = true;
             outline.OutlineColor = Color.red;
             return;
+        } else
+        {
+            //Initialize as owner
+            
+            //reenable outline so it will render properly
+            outline.enabled = false;
+            outline.enabled = true;
+            outline.OutlineColor = Color.green;
+
+            virtualCamera.Follow = ragdollCenterRigidbody.transform;
+            virtualCamera.LookAt = ragdollCenterRigidbody.transform;
+            virtualCamera.Priority = 10;
         }
-        outline.OutlineColor = Color.green;
-        virtualCamera.Follow = ragdollCenterRigidbody.transform;
-        virtualCamera.LookAt = ragdollCenterRigidbody.transform;
-        virtualCamera.Priority = 10;
     }
 
     //sync or create network data
@@ -132,7 +146,8 @@ public class CustomCharacterController : NetworkBehaviour
         CheckForPlatformBelow(out float a);
         isGrounded = ragdollEnabled.Value ? (holder != null || a < 1.0f) : characterController.isGrounded;
         Debug.Log((currentFallingTimer > maxFallingTime) + " | " + !CheckForPlatformBelow(out a) + " | " + (controlPlayer != null));
-        if (isGrounded) currentFallingTimer = 0.0f; else 
+        if (isGrounded) currentFallingTimer = 0.0f;
+        else
         {
             currentFallingTimer += Time.deltaTime;
             if (currentFallingTimer > maxFallingTime && !CheckForPlatformBelow(out a) && controlPlayer != null)
@@ -146,7 +161,8 @@ public class CustomCharacterController : NetworkBehaviour
             if (disableRagdollTimer != 0.0f) disableRagdollTimer = 0.0f;
             RotateCharacterTowards();
             MoveCharacter();
-        } else
+        }
+        else
         {
             disableRagdollTimer += Time.deltaTime;
             if (disableRagdollTimer > 3.0f)
@@ -183,15 +199,16 @@ public class CustomCharacterController : NetworkBehaviour
     bool CheckForPlatformBelow(out float distance)
     {
         bool result = false;
-        RaycastHit[] hits= Physics.RaycastAll(ragdollCenterRigidbody.position, -transform.up, maxFallingDistance, ~LayerMask.GetMask("Player"));
+        RaycastHit[] hits = Physics.RaycastAll(ragdollCenterRigidbody.position, -transform.up, maxFallingDistance, ~LayerMask.GetMask("Player"));
         foreach (RaycastHit hit in hits)
         {
-            if (hit.collider != null && !hit.collider.isTrigger) 
+            if (hit.collider != null && !hit.collider.isTrigger)
             {
                 distance = hit.distance;
                 result = true;
                 break;
-            } else continue;
+            }
+            else continue;
         }
         distance = Mathf.Infinity;
         return result;
@@ -205,7 +222,7 @@ public class CustomCharacterController : NetworkBehaviour
         {
             Interactable interactable = c.gameObject.GetComponent<Interactable>();
 
-            if (interactable && interactable.isInteractable && interactable != thisInteractable )
+            if (interactable && interactable.isInteractable && interactable != thisInteractable)
             {
                 float distance = Vector3.Distance(this.transform.position, interactable.transform.position);
                 if (distance < minDistance)
@@ -340,7 +357,8 @@ public class CustomCharacterController : NetworkBehaviour
     {
         Debug.Log(this.gameObject + " ToggleRagdollRpc!");
         if (ragdollEnabled.Value)
-            DisableRagdoll(); else
+            DisableRagdoll();
+        else
             EnableRagdoll();
     }
 
@@ -444,7 +462,8 @@ public class CustomCharacterController : NetworkBehaviour
         {
             animator.SetBool("IsInAir", true);
             animator.SetLayerWeight(animator.GetLayerIndex("InAirLayer"), 1);
-        } else
+        }
+        else
         {
             animator.SetBool("IsInAir", false);
             animator.SetLayerWeight(animator.GetLayerIndex("InAirLayer"), 0);
@@ -454,12 +473,14 @@ public class CustomCharacterController : NetworkBehaviour
         {
             animator.SetBool("IsRunning", true);
             animator.SetBool("IsWalking", false);
-        } else
+        }
+        else
         if (distanceMovedSinceLastFrame <= 0.1 && distanceMovedSinceLastFrame > 0.02)
         {
             animator.SetBool("IsRunning", false);
             animator.SetBool("IsWalking", true);
-        } else
+        }
+        else
         {
             animator.SetBool("IsRunning", false);
             animator.SetBool("IsWalking", false);
@@ -469,7 +490,7 @@ public class CustomCharacterController : NetworkBehaviour
     void RotateCharacterTowards()
     {
         if (inputDirection == Vector3.zero) return;
-        
+
         Vector3 camToPlayer = this.transform.position - virtualCamera.transform.position;
         camToPlayer.y = 0;
         Vector3 movementDirection = Quaternion.LookRotation(camToPlayer.normalized) * inputDirection;
