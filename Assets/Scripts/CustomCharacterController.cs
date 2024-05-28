@@ -44,10 +44,10 @@ public class CustomCharacterController : NetworkBehaviour
     public NetworkPlayer controlPlayer;
     public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    public NetworkVariable<FixedString32Bytes> shirtColor = new NetworkVariable<FixedString32Bytes>("#FF0000", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<FixedString32Bytes> shirtColor = new NetworkVariable<FixedString32Bytes>("123456", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    protected NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     [Header("~*// OTHERS")]
-
     [SerializeField] public ButtonPrompt buttonPrompt;
     [SerializeField] public Rigidbody ragdollCenterRigidbody;
     [SerializeField] public GameObject pickupPosition;
@@ -94,19 +94,12 @@ public class CustomCharacterController : NetworkBehaviour
     //Late join data handle here
     void Start()
     {
-        Debug.Log("Start: " + shirtColor.Value);
-        Material shirtMaterial = renderer.materials.FirstOrDefault((x) => x.name == "ShirtColor (Instance)");
-        if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(shirtColor.Value.ToString(), out Color color)) 
-        {
-            shirtMaterial.color = color;
-        }
-
+        Debug.Log("Start");
         virtualCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<CinemachineVirtualCamera>();
-        //Late join data handle
-        UpdatePlayerFromReference(controlPlayerNetworkBehaviourReference.Value, controlPlayerNetworkBehaviourReference.Value);
         if (ragdollEnabled.Value)
             EnableRagdoll();
         else DisableRagdoll();
+        StartCoroutine(StartAfterServerLoad());
 
         if (!IsOwner)
         {
@@ -135,8 +128,37 @@ public class CustomCharacterController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+        if (IsOwner) NetworkSpawnRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void NetworkSpawnRpc()
+    {
+        StartCoroutine(NetworkSpawn());
+    }
+
+    IEnumerator NetworkSpawn()
+    {
+        yield return new WaitUntil(() => GameManager.Instance.NetworkSpawned.Value);
         shirtColor.Value = "#" + ColorUtility.ToHtmlStringRGBA(Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
         Debug.Log("OnNetworkSpawn: " + shirtColor.Value);
+        networkSpawned.Value = true;
+    }
+
+    IEnumerator StartAfterServerLoad()
+    {
+        yield return new WaitUntil(() => networkSpawned.Value);
+        Debug.Log("StartAfterServerLoad: " + shirtColor.Value);
+        UpdatePlayerFromReference(controlPlayerNetworkBehaviourReference.Value, controlPlayerNetworkBehaviourReference.Value);
+        Material shirtMaterial = renderer.materials.FirstOrDefault((x) => x.name == "ShirtColor (Instance)");
+        if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(shirtColor.Value.ToString(), out Color color))
+        {
+            shirtMaterial.color = color;
+        }
+        else
+        {
+            Debug.Log("Color parse failed");
+        }
     }
 
     public override void OnDestroy()

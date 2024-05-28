@@ -26,11 +26,26 @@ public class NetworkPlayer : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        if (IsOwner)
-        {
-            currentCharacter = null;
-            SpawnServerRpc();
-        }
+        if (IsOwner) NetworkSpawnRpc();
+    }
+    
+    [Rpc(SendTo.Server)]
+    public void NetworkSpawnRpc()
+    {
+        StartCoroutine(NetworkSpawn());
+    }
+
+    IEnumerator NetworkSpawn()
+    {
+        yield return new WaitUntil(() => GameManager.Instance.NetworkSpawned.Value);
+        currentCharacter = null;
+        SpawnServerRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void NewPlayerOnServerRpc()
+    {
+        GameManager.Instance.AddPlayer(this);
     }
 
     public override void OnDestroy()
@@ -54,6 +69,7 @@ public class NetworkPlayer : NetworkBehaviour
         character.NetworkObject.SpawnWithOwnership(this.OwnerClientId);
         currentCharacterNetworkBehaviourReference.Value = character;
         character.controlPlayerNetworkBehaviourReference.Value = this;
+        GameManager.Instance.playerAliveDict[this] = true;
     }
 
     [Rpc(SendTo.Server)]
@@ -61,6 +77,7 @@ public class NetworkPlayer : NetworkBehaviour
     {
         currentCharacter.networkObject.Despawn(true);
         StartCoroutine(Respawn());
+        GameManager.Instance.playerAliveDict[this] = false;
     }
 
     IEnumerator Respawn()
