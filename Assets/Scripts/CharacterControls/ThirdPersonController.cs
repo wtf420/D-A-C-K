@@ -33,7 +33,7 @@ public class ThirdPersonController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         virtualCameraLookTarget.transform.eulerAngles = cameraDirection;
         Physics.IgnoreLayerCollision(6, 7);
@@ -78,7 +78,7 @@ public class ThirdPersonController : MonoBehaviour
             transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 1000f * Time.deltaTime);
         }
 
-        if (Input.GetKeyDown(KeyCode.Mouse0))
+        if (Input.GetKeyDown(KeyCode.Mouse0) && isAiming)
         {
             RaycastHit[] hits = Physics.RaycastAll(Camera.main.transform.position, Camera.main.transform.forward, Mathf.Infinity, ~ignoreRaycastMask);
             foreach (RaycastHit hit in hits)
@@ -91,6 +91,11 @@ public class ThirdPersonController : MonoBehaviour
                 }
                 else continue;
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            if (Time.timeScale == 0f) Time.timeScale = 1f; else Time.timeScale = 0f;
         }
     }
 
@@ -177,6 +182,12 @@ public class ThirdPersonController : MonoBehaviour
         externalForcesVelocity += force;
     }
 
+    public void AddImpulseForceToRagdollPart(Vector3 force, string bodyPartName)
+    {
+        EnableRagdoll();
+        ragdoll.AddForceToBodyPart(force, bodyPartName);
+    }
+
     public void EnableRagdoll()
     {
         animator.enabled = false;
@@ -205,7 +216,7 @@ public class ThirdPersonControllerEditor : Editor
         
         if (GUILayout.Button("Test Force"))
         {
-            ThirdPersonControllerTarget.AddImpulseForce(testForce);
+            ThirdPersonControllerTarget.AddImpulseForceToRagdollPart(testForce, "Spine");
         }
 
         if (GUILayout.Button("Enable Ragdoll"))
