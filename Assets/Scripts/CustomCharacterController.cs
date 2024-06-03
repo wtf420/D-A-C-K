@@ -26,9 +26,6 @@ public class CustomCharacterController : NetworkBehaviour
 
     [Header("~* Others")]
     [SerializeField] protected float rangeToInteract;
-    [SerializeField] protected float rangeToPush;
-    [SerializeField] protected float pushForce;
-
 
     [Header("~*// OBJECTS & COMPONENTS")]
     [SerializeField] protected CinemachineVirtualCamera virtualCamera;
