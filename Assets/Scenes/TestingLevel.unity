@@ -2020,6 +2020,60 @@ Transform:
   - {fileID: 1265340437}
   m_Father: {fileID: 1069654777}
   m_LocalEulerAnglesHint: {x: 23.495253, y: 0.2076547, z: -3.0957227}
+--- !u!1 &697989836
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 697989838}
+  - component: {fileID: 697989837}
+  m_Layer: 0
+  m_Name: CinemachineTargetGroup
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &697989837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 697989836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5eb80d8e62d9d145bb50fb783c0f731, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PositionMode: 0
+  m_RotationMode: 0
+  m_UpdateMethod: 0
+  m_Targets:
+  - target: {fileID: 1913721457}
+    weight: 10
+    radius: 0
+  - target: {fileID: 1313669367}
+    weight: 0
+    radius: 0
+--- !u!4 &697989838
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 697989836}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 2.117}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &791639762
 GameObject:
   m_ObjectHideFlags: 0
@@ -4006,7 +4060,7 @@ MonoBehaviour:
   m_Priority: 10
   m_StandbyUpdate: 2
   m_LookAt: {fileID: 0}
-  m_Follow: {fileID: 1913721457}
+  m_Follow: {fileID: 697989838}
   m_Lens:
     FieldOfView: 60
     OrthographicSize: 5
@@ -4055,7 +4109,7 @@ GameObject:
   - component: {fileID: 1313669365}
   - component: {fileID: 1313669364}
   - component: {fileID: 1313669363}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4188,6 +4242,8 @@ GameObject:
   - component: {fileID: 1337591686}
   - component: {fileID: 1337591685}
   - component: {fileID: 1337591684}
+  - component: {fileID: 1337591689}
+  - component: {fileID: 1337591690}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -4217,6 +4273,7 @@ MonoBehaviour:
   virtualCamera: {fileID: 1723244935}
   animator: {fileID: 1172142495}
   ragdoll: {fileID: 1172142492}
+  thirdPersonAimController: {fileID: 1337591689}
   movementSpeed: 10
   lookSpeed: 360
   jumpForce: 5
@@ -4224,6 +4281,7 @@ MonoBehaviour:
   maxGroundCheckRadius: 0.2
   isGrounded: 0
   isAiming: 0
+  playerInput: {fileID: 1337591690}
 --- !u!143 &1337591685
 CharacterController:
   m_ObjectHideFlags: 0
@@ -4323,6 +4381,80 @@ Transform:
   - {fileID: 1172142491}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1337591689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1337591683}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96b009700aa5768489f489b7876bcbb2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cinemachineFollowTarget: {fileID: 697989838}
+  virtualCamera: {fileID: 1287638194}
+  lookSpeed: 3
+  inverted: 0
+  topAngleClamp: 30
+  bottomAngleClamp: 30
+  playerInput: {fileID: 1337591690}
+--- !u!114 &1337591690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1337591683}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: fc8994657609e5945a60996bb7513968,
+    type: 3}
+  m_NotificationBehavior: 2
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 60fda313-9456-43af-b9fb-912d3cfbd44b
+    m_ActionName: New action map/Jump[/Keyboard/space]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: a2a62544-1ae1-4eef-8fb4-c4a7717e8b7a
+    m_ActionName: New action map/Movement[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: e5da96b4-5561-4481-bc5d-76a2b60c7a90
+    m_ActionName: New action map/Interact[/Keyboard/f]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 8d50f65b-596e-47de-8c36-1503aa834919
+    m_ActionName: New action map/Attack[/Keyboard/j]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 983a1c99-be6f-43fa-94ad-6a52df979f05
+    m_ActionName: New action map/Look[/Mouse/delta]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 66f5972b-4d52-4789-a92b-1f0afb932dd8
+    m_ActionName: New action map/Aim[/Mouse/rightButton]
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: New action map
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 1242593602}
 --- !u!1 &1345816838
 GameObject:
   m_ObjectHideFlags: 0
@@ -6271,3 +6403,4 @@ SceneRoots:
   - {fileID: 1242593603}
   - {fileID: 1337591688}
   - {fileID: 1174268879}
+  - {fileID: 697989838}

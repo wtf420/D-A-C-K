@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
-using Unity.Multiplayer.Tools.NetStatsReporting;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.ProBuilder.MeshOperations;
+using UnityEngine.InputSystem;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class ThirdPersonController : MonoBehaviour
 {
@@ -15,6 +17,7 @@ public class ThirdPersonController : MonoBehaviour
     [SerializeField] CinemachineVirtualCamera virtualCamera;
     [SerializeField] Animator animator;
     [SerializeField] Ragdoll ragdoll;
+    [SerializeField] ThirdPersonAimController thirdPersonAimController;
 
     [SerializeField] float movementSpeed = 10f;
     [SerializeField] float lookSpeed = 360f;
@@ -24,20 +27,32 @@ public class ThirdPersonController : MonoBehaviour
     [SerializeField] bool isGrounded = false;
     [SerializeField] bool isAiming = false;
 
+    [SerializeField] PlayerInput playerInput;
+    InputAction MovementAction;
+    // InputAction AimAction;
+    // InputAction Interact;
+    // InputAction AttackAction;
+    // InputAction JumpAction;
+
     float distanceMovedSinceLastFrame = 0.0f;
     Vector3 lastFramePosition;
     Vector3 externalForcesVelocity = Vector3.zero;
     float gravity = 0f;
-    Vector3 cameraDirection = Vector3.zero;
+    Vector3 inputDirection = new Vector3(0, 0, 0);
 
+    #region MonobehaviourMethods
     // Start is called before the first frame update
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        virtualCameraLookTarget.transform.eulerAngles = cameraDirection;
         Physics.IgnoreLayerCollision(6, 7);
         ragdoll.DisableRagdoll();
+
+        MovementAction = playerInput.actions.FindAction("Movement");
+        // Interact = playerInput.actions.FindAction("Interact");
+        // AttackAction = playerInput.actions.FindAction("Attack");
+        // JumpAction = playerInput.actions.FindAction("Jump");
     }
 
     // Update is called once per frame
@@ -54,26 +69,30 @@ public class ThirdPersonController : MonoBehaviour
         //Movement
         Vector3 cameraDirection = Camera.main.transform.forward;
         cameraDirection.y = 0;
-        Vector3 movementDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+        Vector2 v = MovementAction.ReadValue<Vector2>();
+        Vector3 movementDirection = new Vector3(v.x, 0, v.y);
         movementDirection = Quaternion.LookRotation(cameraDirection.normalized) * movementDirection;
         characterController.Move(movementDirection * movementSpeed * Time.deltaTime);
         characterController.Move(externalForcesVelocity * Time.deltaTime);
         externalForcesVelocity = Vector3.Lerp(externalForcesVelocity, Vector3.zero, drag * Time.deltaTime);
         characterController.Move(gravity * transform.up * Time.deltaTime);
 
-        isAiming = Input.GetKey(KeyCode.Mouse1);
+        isAiming = thirdPersonAimController.isAiming;
         virtualCamera.gameObject.SetActive(false);
         if (isAiming)
         {
+            //rotate gun model to camera direction
             Vector3 cameraforward = Camera.main.transform.forward;
             gun.transform.forward = cameraforward;
+            //rotate character model to camera direction
             cameraforward.y = 0;
             var q = Quaternion.LookRotation(cameraforward);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 1000f * Time.deltaTime);
-            virtualCamera.gameObject.SetActive(true);
+            //virtualCamera.gameObject.SetActive(true);
         }
         else if (movementDirection != Vector3.zero)
         {
+            //rotate character model to movement direction
             var q = Quaternion.LookRotation(movementDirection);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 1000f * Time.deltaTime);
         }
@@ -104,6 +123,38 @@ public class ThirdPersonController : MonoBehaviour
         distanceMovedSinceLastFrame = (transform.position - lastFramePosition).magnitude;
         lastFramePosition = transform.position;
         UpdateAnimator();
+    }
+    #endregion MonoBehaviourMethods
+
+    #region RPCs
+    #endregion RPCs
+
+    #region Methods
+    bool GroundCheck(float maxDistance = 0.05f)
+    {
+        Collider[] hits = Physics.OverlapSphere(groundCheckPosition.transform.position, maxDistance, ~ignoreRaycastMask);
+        foreach (Collider hit in hits)
+        {
+            if (hit != null && !hit.isTrigger)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    float DistanceToGround(float maxDistance = 0.05f)
+    {
+        RaycastHit[] hits = Physics.RaycastAll(groundCheckPosition.transform.position, -transform.up, maxDistance, ~ignoreRaycastMask);
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.collider != null && !hit.collider.isTrigger)
+            {
+                return hit.distance;
+            }
+            else continue;
+        }
+        return Mathf.Infinity;
     }
 
     void UpdateAnimator()
@@ -137,46 +188,6 @@ public class ThirdPersonController : MonoBehaviour
         }
     }
 
-    void LateUpdate()
-    {
-        //Camera movement
-        Vector3 cameraLookMovementDirection = new Vector3(-Input.GetAxisRaw("Mouse Y"), Input.GetAxisRaw("Mouse X"), 0);
-        Vector3 currentvirtualCameraLookTargetRotation = Camera.main.transform.eulerAngles;
-        currentvirtualCameraLookTargetRotation += cameraLookMovementDirection * lookSpeed * Time.deltaTime;
-        currentvirtualCameraLookTargetRotation.z = 0;
-        if (currentvirtualCameraLookTargetRotation.x > 180 && currentvirtualCameraLookTargetRotation.x < 270 + 30) currentvirtualCameraLookTargetRotation.x = 270 + 30;
-        else if (currentvirtualCameraLookTargetRotation.x < 180 && currentvirtualCameraLookTargetRotation.x > 90 - 30) currentvirtualCameraLookTargetRotation.x = 90 - 30;
-        cameraDirection = currentvirtualCameraLookTargetRotation;
-        virtualCameraLookTarget.transform.eulerAngles = cameraDirection;
-    }
-
-    bool GroundCheck(float maxDistance = 0.05f)
-    {
-        Collider[] hits = Physics.OverlapSphere(groundCheckPosition.transform.position, maxDistance, ~ignoreRaycastMask);
-        foreach (Collider hit in hits)
-        {
-            if (hit != null && !hit.isTrigger)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    float DistanceToGround(float maxDistance = 0.05f)
-    {
-        RaycastHit[] hits = Physics.RaycastAll(groundCheckPosition.transform.position, -transform.up, maxDistance, ~ignoreRaycastMask);
-        foreach (RaycastHit hit in hits)
-        {
-            if (hit.collider != null && !hit.collider.isTrigger)
-            {
-                return hit.distance;
-            }
-            else continue;
-        }
-        return Mathf.Infinity;
-    }
-
     public void AddImpulseForce(Vector3 force)
     {
         externalForcesVelocity += force;
@@ -199,8 +210,10 @@ public class ThirdPersonController : MonoBehaviour
         animator.enabled = true;
         ragdoll.DisableRagdoll();
     }
+    #endregion Methods
 }
 
+#region Custom Editor
 #if UNITY_EDITOR
 [CustomEditor(typeof(ThirdPersonController))]
 public class ThirdPersonControllerEditor : Editor
@@ -213,7 +226,7 @@ public class ThirdPersonControllerEditor : Editor
         DrawDefaultInspector();
 
         testForce = EditorGUILayout.Vector3Field("Test Force", testForce);
-        
+
         if (GUILayout.Button("Test Force"))
         {
             ThirdPersonControllerTarget.AddImpulseForceToRagdollPart(testForce, "Spine");
@@ -231,3 +244,4 @@ public class ThirdPersonControllerEditor : Editor
     }
 }
 #endif
+#endregion

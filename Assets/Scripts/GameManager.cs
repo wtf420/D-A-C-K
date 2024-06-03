@@ -7,7 +7,7 @@ public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance;
     public NetworkVariable<bool> NetworkSpawned = new NetworkVariable<bool>(false);
-    public NetworkList<NetworkBehaviourReference> players = new NetworkList<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    //public NetworkList<NetworkBehaviourReference> players = new NetworkList<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     [SerializeField] public Dictionary<NetworkPlayer, bool> playerAliveDict = new Dictionary<NetworkPlayer, bool>();
 
@@ -50,11 +50,11 @@ public class GameManager : NetworkBehaviour
 
     public void AddPlayer(NetworkBehaviourReference player)
     {
-        players.Add(player);
-        NetworkPlayer p;
-        if (player.TryGet(out p))
-        {
-            playerAliveDict.Add(p, true);
-        }
+        // players.Add(player);
+        // NetworkPlayer p;
+        // if (player.TryGet(out p))
+        // {
+        //     playerAliveDict.Add(p, true);
+        // }
     }
 }
