@@ -9,12 +9,16 @@ public class PlayerThirdPersonAimController : ThirdPersonAimController
     [SerializeField] public float aimSpeed = 1f;
     [SerializeField] public float aimFOV = 20f;
     [HideInInspector] public bool isAiming = false;
+    [SerializeField] protected CinemachineVirtualCamera aimVirtualCamera;
 
     // Start is called before the first frame update
     protected override void Start()
     {
         base.Start();
         isAiming = false;
+        aimVirtualCamera.gameObject.SetActive(false);
+        virtualCamera.gameObject.SetActive(true);
+        aimVirtualCamera.Follow = cinemachineFollowTarget;
     }
 
     public void AimInputAction(InputAction.CallbackContext context)
@@ -22,12 +26,14 @@ public class PlayerThirdPersonAimController : ThirdPersonAimController
         if (context.phase == InputActionPhase.Performed)
         {
             isAiming = true;
-            virtualCamera.m_Lens.FieldOfView = aimFOV;
+            aimVirtualCamera.gameObject.SetActive(true);
+            virtualCamera.gameObject.SetActive(false);
         }
         else if (context.phase == InputActionPhase.Canceled)
         {
             isAiming = false;
-            virtualCamera.m_Lens.FieldOfView = lookFOV;
+            aimVirtualCamera.gameObject.SetActive(false);
+            virtualCamera.gameObject.SetActive(true);
         }
     }
 
