@@ -4,6 +4,8 @@ using Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
+using Unity.Collections.LowLevel.Unsafe;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,34 +19,40 @@ public class ThirdPersonController : NetworkBehaviour
     [Header("~*// Movement")]
     [SerializeField] CharacterController characterController;
     [SerializeField] GameObject groundCheckPosition;
-
     [SerializeField] float movementSpeed = 10f;
     [SerializeField] float jumpForce = 10f;
     [SerializeField] float drag = 10f;
     [SerializeField] float maxGroundCheckRadius = 0.05f;
-
     Vector3 lastFramePosition;
-    float distanceMovedSinceLastFrame = 0.0f; // because distanceMovedSinceLastFrame is unreliable as heck
     Vector3 externalForcesVelocity = Vector3.zero;
+    float distanceMovedSinceLastFrame = 0.0f; // because distanceMovedSinceLastFrame is unreliable as heck
     float verticalVelocity = 0f;
 
     [Header("~*// Controls")]
     [SerializeField] CinemachineVirtualCamera virtualCamera;
     [SerializeField] PlayerThirdPersonAimController playerThirdPersonAimController;
     [SerializeField] GameObject virtualCameraLookTarget;
-
     bool isAiming => playerThirdPersonAimController.isAiming;
     bool isGrounded = false;
+    bool movementEnabled = true;
+
+    [Header("~*// Interact system")]
+    [SerializeField] float rangeToInteract = 5.0f;
 
     [Header("~*// Animations")]
     [SerializeField] Animator animator;
     [SerializeField] Ragdoll ragdoll;
+    public bool ragdollEnabled { get; private set; } = false;
 
     [Header("~*// Player Input")]
     [SerializeField] PlayerInput playerInput;
-
     Vector3 inputMovementDirection = new Vector3(0, 0, 0);
-    Vector3 inputAimDirection = new Vector3(0, 0, 0);
+
+    [Header("~*// UI")]
+    [SerializeField] Canvas screenCanvas;
+    [SerializeField] ButtonPrompt buttonPromptPrefab;
+    ButtonPrompt currentButtonPrompt;
+    Interactable closestInteractable = null;
 
     // [Header("~* Combat")]
     // [SerializeField] Gun gun;
@@ -63,7 +71,8 @@ public class ThirdPersonController : NetworkBehaviour
     void Update()
     {
         isGrounded = GroundCheck(maxGroundCheckRadius);
-        PlayerMovement();
+        if (movementEnabled) PlayerMovement();
+        CheckForInteractables();
     }
 
     void FixedUpdate()
@@ -174,6 +183,49 @@ public class ThirdPersonController : NetworkBehaviour
         }
         Debug.DrawLine(this.transform.position, this.transform.position + transform.forward * 100f, Color.red, 0.5f);
     }
+
+    void CheckForInteractables()
+    {
+        float minDistance;
+        if (closestInteractable == null) minDistance = Mathf.Infinity;
+        else 
+        {
+            minDistance = Vector3.Distance(this.transform.position, closestInteractable.transform.position);
+            if (minDistance > rangeToInteract)
+            {
+                minDistance = Mathf.Infinity;
+                closestInteractable = null;
+            }
+        }
+
+        //search for nearest interactable
+        foreach (Collider c in Physics.OverlapSphere(this.transform.position, rangeToInteract, ~ignoreRaycastMask))
+        {
+            Interactable interactable = c.gameObject.GetComponent<Interactable>();
+
+            if (interactable && interactable.isInteractable && closestInteractable != interactable)
+            {
+                float distance = Vector3.Distance(this.transform.position, interactable.transform.position);
+                if (distance < minDistance)
+                {
+                    closestInteractable = interactable;
+                    minDistance = Vector3.Distance(this.transform.position, interactable.transform.position);
+                }
+            }
+        }
+
+        //Update interactable prompt
+        if (currentButtonPrompt != null && closestInteractable == null) Destroy(currentButtonPrompt.gameObject);
+        else if (closestInteractable != null)
+        {
+            if (currentButtonPrompt == null)
+            {
+                currentButtonPrompt = Instantiate(buttonPromptPrefab, screenCanvas.transform, false);
+                currentButtonPrompt.SetText(playerInput.currentActionMap.FindAction("Interact").GetBindingDisplayString(0));
+            }
+            currentButtonPrompt.SetPosition(Camera.main.WorldToScreenPoint(closestInteractable.gameObject.transform.position));
+        }
+    }
     #endregion
 
     #region Methods
@@ -249,12 +301,18 @@ public class ThirdPersonController : NetworkBehaviour
     public void EnableRagdoll()
     {
         animator.enabled = false;
+        movementEnabled = false;
+        ragdollEnabled = true;
+        characterController.detectCollisions = false;
         ragdoll.EnableRagdoll();
     }
 
     public void DisableRagdoll()
     {
         animator.enabled = true;
+        movementEnabled = true;
+        ragdollEnabled = false;
+        characterController.detectCollisions = true;
         ragdoll.DisableRagdoll();
     }
     #endregion Methods

@@ -3273,56 +3273,67 @@ MonoBehaviour:
     rigidbody: {fileID: 1445605970}
     clientTransform: {fileID: 1445605972}
     collider: {fileID: 1445605973}
+    outline: {fileID: 0}
   - name: mixamorig:LeftUpLeg
     gameObject: {fileID: 342000501}
     rigidbody: {fileID: 342000503}
     clientTransform: {fileID: 342000504}
     collider: {fileID: 342000506}
+    outline: {fileID: 0}
   - name: mixamorig:LeftLeg
     gameObject: {fileID: 500314216}
     rigidbody: {fileID: 500314220}
     clientTransform: {fileID: 500314218}
     collider: {fileID: 500314221}
+    outline: {fileID: 0}
   - name: mixamorig:RightUpLeg
     gameObject: {fileID: 1693370246}
     rigidbody: {fileID: 1693370248}
     clientTransform: {fileID: 1693370249}
     collider: {fileID: 1693370251}
+    outline: {fileID: 0}
   - name: mixamorig:RightLeg
     gameObject: {fileID: 2121288456}
     rigidbody: {fileID: 2121288460}
     clientTransform: {fileID: 2121288458}
     collider: {fileID: 2121288461}
+    outline: {fileID: 0}
   - name: mixamorig:Spine
     gameObject: {fileID: 1129340734}
     rigidbody: {fileID: 1129340736}
     clientTransform: {fileID: 1129340737}
     collider: {fileID: 1129340739}
+    outline: {fileID: 0}
   - name: mixamorig:LeftArm
     gameObject: {fileID: 1117435718}
     rigidbody: {fileID: 1117435720}
     clientTransform: {fileID: 1117435721}
     collider: {fileID: 1117435723}
+    outline: {fileID: 0}
   - name: mixamorig:LeftForeArm
     gameObject: {fileID: 1432774350}
     rigidbody: {fileID: 1432774354}
     clientTransform: {fileID: 1432774352}
     collider: {fileID: 1432774355}
+    outline: {fileID: 0}
   - name: mixamorig:Head
     gameObject: {fileID: 2029759879}
     rigidbody: {fileID: 2029759883}
     clientTransform: {fileID: 2029759881}
     collider: {fileID: 2029759884}
+    outline: {fileID: 0}
   - name: mixamorig:RightArm
     gameObject: {fileID: 558359267}
     rigidbody: {fileID: 558359269}
     clientTransform: {fileID: 558359270}
     collider: {fileID: 558359272}
+    outline: {fileID: 0}
   - name: mixamorig:RightForeArm
     gameObject: {fileID: 2023953115}
     rigidbody: {fileID: 2023953119}
     clientTransform: {fileID: 2023953117}
     collider: {fileID: 2023953120}
+    outline: {fileID: 0}
 --- !u!114 &1172142493
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4314,9 +4325,13 @@ MonoBehaviour:
   virtualCamera: {fileID: 1287638194}
   playerThirdPersonAimController: {fileID: 1337591691}
   virtualCameraLookTarget: {fileID: 1913721456}
+  rangeToInteract: 5
   animator: {fileID: 1172142495}
   ragdoll: {fileID: 1172142492}
   playerInput: {fileID: 1337591690}
+  screenCanvas: {fileID: 791639766}
+  buttonPromptPrefab: {fileID: 7962680770915283319, guid: b70038d361ac3af40823e79bf9283974,
+    type: 3}
 --- !u!143 &1337591685
 CharacterController:
   m_ObjectHideFlags: 0
@@ -4922,7 +4937,6 @@ GameObject:
   - component: {fileID: 1445605970}
   - component: {fileID: 1445605974}
   - component: {fileID: 1445605972}
-  - component: {fileID: 1445605971}
   m_Layer: 7
   m_Name: mixamorig:Hips
   m_TagString: Player
@@ -4975,23 +4989,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &1445605971
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1445605968}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d998b35c85a0f1245a915e47c051ef3e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  InteractEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  isInteractable: 1
-  interactionCooldown: 0.2
 --- !u!114 &1445605972
 MonoBehaviour:
   m_ObjectHideFlags: 0

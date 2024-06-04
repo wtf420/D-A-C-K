@@ -12,6 +12,7 @@ public class BodyPart
     public Rigidbody rigidbody;
     public ClientTransform clientTransform;
     public Collider collider;
+    public Outline outline;
 }
 
 public class Ragdoll : MonoBehaviour
