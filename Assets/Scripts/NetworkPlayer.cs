@@ -1,25 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.Collections;
 using UnityEngine;
 
 public class NetworkPlayer : NetworkBehaviour
 {
-    [SerializeField] CustomCharacterController characterPrefab;
+    [SerializeField] ThirdPersonController thirdPersonControllerPrefab;
 
     public NetworkVariable<NetworkBehaviourReference> currentCharacterNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    [SerializeField] public CustomCharacterController currentCharacter;
+    public NetworkVariable<FixedString32Bytes> playerColor = new NetworkVariable<FixedString32Bytes>("123456", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    [SerializeField] public ThirdPersonController currentCharacter;
 
     void Awake()
     {
-        currentCharacterNetworkBehaviourReference.OnValueChanged += UpdateCharacterFromReference;
+        
     }
 
     //Late join data handle here
     void Start()
     {
         //Late join data handle
-        UpdateCharacterFromReference(currentCharacterNetworkBehaviourReference.Value, currentCharacterNetworkBehaviourReference.Value);
     }
 
     //sync or create network data
@@ -28,17 +29,18 @@ public class NetworkPlayer : NetworkBehaviour
         base.OnNetworkSpawn();
         if (IsOwner) NetworkSpawnRpc();
     }
-    
+
     [Rpc(SendTo.Server)]
     public void NetworkSpawnRpc()
     {
+        playerColor.Value = "#" + ColorUtility.ToHtmlStringRGBA(Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
+        currentCharacter = null;
         StartCoroutine(NetworkSpawn());
     }
 
     IEnumerator NetworkSpawn()
     {
         yield return new WaitUntil(() => GameManager.Instance.NetworkSpawned.Value);
-        currentCharacter = null;
         SpawnServerRpc();
     }
 
@@ -51,31 +53,23 @@ public class NetworkPlayer : NetworkBehaviour
     public override void OnDestroy()
     {
         base.OnDestroy();
-        currentCharacterNetworkBehaviourReference.OnValueChanged -= UpdateCharacterFromReference;
-    }
-
-    void UpdateCharacterFromReference(NetworkBehaviourReference previous, NetworkBehaviourReference current)
-    {
-        if (current.TryGet(out CustomCharacterController character))
-        {
-            this.currentCharacter = character;
-        }
     }
 
     [Rpc(SendTo.Server)]
     public void SpawnServerRpc()
     {
-        CustomCharacterController character = Instantiate(characterPrefab);
-        character.NetworkObject.SpawnWithOwnership(this.OwnerClientId);
-        currentCharacterNetworkBehaviourReference.Value = character;
-        character.controlPlayerNetworkBehaviourReference.Value = this;
+        ThirdPersonController thirdPersonController = Instantiate(thirdPersonControllerPrefab, null);
+        thirdPersonController.NetworkObject.SpawnWithOwnership(this.OwnerClientId);
+        currentCharacterNetworkBehaviourReference.Value = thirdPersonController;
+        //thirdPersonController.controlPlayerNetworkBehaviourReference.Value = this;
+        thirdPersonController.NetworkSpawnRpc(this);
         GameManager.Instance.playerAliveDict[this] = true;
     }
 
     [Rpc(SendTo.Server)]
-    public void DespawnRpc()
+    public void KillRpc()
     {
-        currentCharacter.networkObject.Despawn(true);
+        currentCharacter.NetworkObject.Despawn(true);
         StartCoroutine(Respawn());
         GameManager.Instance.playerAliveDict[this] = false;
     }

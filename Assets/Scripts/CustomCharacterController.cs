@@ -176,7 +176,7 @@ public class CustomCharacterController : NetworkBehaviour
             currentFallingTimer += Time.deltaTime;
             if (currentFallingTimer > maxFallingTime && !CheckForPlatformBelow(out a) && controlPlayer != null)
             {
-                controlPlayer.DespawnRpc();
+                //controlPlayer.DespawnRpc();
             }
         }
 

@@ -37,7 +37,7 @@ public class GameManager : NetworkBehaviour
                 else if (currentAlivePlayer > 1)
                     break;
             }
-            if (currentAlivePlayer == 1) Debug.Log("Winner: " + winner.NetworkObject.GetInstanceID());
+            //if (currentAlivePlayer == 1) Debug.Log("Winner: " + winner.NetworkObject.GetInstanceID());
         }
     }
 

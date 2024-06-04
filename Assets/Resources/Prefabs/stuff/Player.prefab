@@ -718,7 +718,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3944211395
+  GlobalObjectIdHash: 3757217874
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -781,13 +781,20 @@ MonoBehaviour:
   maxGroundCheckRadius: 0.2
   virtualCamera: {fileID: 1426581296847490612}
   playerThirdPersonAimController: {fileID: 2062671228488013058}
+  maxFallingTime: 3
   rangeToInteract: 5
   animator: {fileID: 4885513983431928102}
   ragdoll: {fileID: 3505399903176981747}
+  shirtMaterial: {fileID: 2100000, guid: ae116c532a8899e44a78171cb0de0d3d, type: 2}
+  renderer: {fileID: 7724685924857804189}
   playerInput: {fileID: 8940947999746283133}
   screenCanvas: {fileID: 4371215151111452275}
   buttonPromptPrefab: {fileID: 7962680770915283319, guid: b70038d361ac3af40823e79bf9283974,
     type: 3}
+  <NetworkObject>k__BackingField: {fileID: 5862384184944065004}
+  controlPlayer: {fileID: 0}
+  ragdollEnabled:
+    m_InternalValue: 0
 --- !u!114 &8940947999746283133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1518,7 +1525,6 @@ GameObject:
   - component: {fileID: 3895775840626061118}
   - component: {fileID: 7047443774975868685}
   - component: {fileID: 1099019858503120692}
-  - component: {fileID: 471647796080719840}
   - component: {fileID: 8877303202790250623}
   m_Layer: 7
   m_Name: mixamorig:Hips
@@ -1593,27 +1599,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &471647796080719840
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4416816088370888549}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3177223615
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
 --- !u!114 &8877303202790250623
 MonoBehaviour:
   m_ObjectHideFlags: 0

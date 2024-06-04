@@ -4,8 +4,7 @@ using Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
-using Unity.Collections.LowLevel.Unsafe;
-
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -31,17 +30,22 @@ public class ThirdPersonController : NetworkBehaviour
     [Header("~*// Controls")]
     [SerializeField] CinemachineVirtualCamera virtualCamera;
     [SerializeField] PlayerThirdPersonAimController playerThirdPersonAimController;
+    [SerializeField] float maxFallingTime = 0.5f;
+    protected new Camera camera;
     bool isAiming => playerThirdPersonAimController.isAiming;
     bool isGrounded = false;
     bool movementEnabled = true;
+    float currentFallingTimer = 0.0f;
+
 
     [Header("~*// Interact system")]
     [SerializeField] float rangeToInteract = 5.0f;
 
-    [Header("~*// Animations")]
+    [Header("~*// Animations & Ragdoll")]
     [SerializeField] Animator animator;
     [SerializeField] Ragdoll ragdoll;
-    public bool ragdollEnabled { get; private set; } = false;
+    [SerializeField] Material shirtMaterial;
+    [SerializeField] new Renderer renderer;
 
     [Header("~*// Player Input")]
     [SerializeField] PlayerInput playerInput;
@@ -55,15 +59,25 @@ public class ThirdPersonController : NetworkBehaviour
 
     // [Header("~* Combat")]
     // [SerializeField] Gun gun;
+    [field: Header("~* NETWORKING")]
+    [field: SerializeField] public new NetworkObject NetworkObject { get; private set;}
+    public NetworkPlayer controlPlayer;
+    public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     #region Monobehaviour & NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        camera = Camera.main;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         Physics.IgnoreLayerCollision(6, 7); //so the ragdoll and character controller dont interact with each other
         ragdoll.DisableRagdoll();
+        shirtMaterial = renderer.materials.FirstOrDefault((x) => x.name == "ShirtColor (Instance)");
+
+        StartCoroutine(InitializeData());
 
         if (!IsOwner)
         {
@@ -91,26 +105,49 @@ public class ThirdPersonController : NetworkBehaviour
         }
     }
 
+    //sync or create network data
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+    }
+
     // Update is called once per frame
     void Update()
     {
+        if (!networkSpawned.Value) return;
         isGrounded = GroundCheck(maxGroundCheckRadius);
+        if (!IsOwner) return;
         if (movementEnabled) PlayerMovement();
         CheckForInteractables();
     }
 
     void FixedUpdate()
     {
+        if (!networkSpawned.Value) return;
         distanceMovedSinceLastFrame = (transform.position - lastFramePosition).magnitude;
         lastFramePosition = transform.position;
+        if (!IsOwner) return;
         UpdateAnimator();
     }
     #endregion MonoBehaviourMethods
 
     #region RPCs
+    [Rpc(SendTo.Server)] //Server mark complete server spawn process
+    public void NetworkSpawnRpc(NetworkBehaviourReference networkBehaviourReference)
+    {
+        controlPlayerNetworkBehaviourReference.Value = networkBehaviourReference;
+        networkSpawned.Value = true;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    public void KillRpc()
+    {
+        EnableRagdoll();
+        if (IsServer) controlPlayer.KillRpc();
+    }
     #endregion RPCs
 
-    #region InputActions
+    #region Input actions
     public void MovementDirectionInputAction(InputAction.CallbackContext context)
     {
         if (context.performed)
@@ -157,15 +194,28 @@ public class ThirdPersonController : NetworkBehaviour
     }
     #endregion
 
-    #region Player Control
+    #region Player control
     public void PlayerMovement()
     {
+        float distanceToGround = DistanceToGround(5f);
+        //check falling state
+        if (isGrounded) currentFallingTimer = 0.0f;
+        else
+        {
+            currentFallingTimer += Time.deltaTime;
+            if (currentFallingTimer > maxFallingTime && distanceToGround == Mathf.Infinity && controlPlayer != null)
+            {
+                controlPlayer.KillRpc();
+                return;
+            }
+        }
+
         // Applying gravity
-        if (isGrounded && DistanceToGround(0.1f) < 0.1f && verticalVelocity < 0f) verticalVelocity = 0f;
+        if (isGrounded && distanceToGround < 0.1f && verticalVelocity < 0f) verticalVelocity = 0f;
         verticalVelocity -= 9.81f * Time.deltaTime;
 
         //Move player relative to camera direction
-        Vector3 cameraDirection = Camera.main.transform.forward;
+        Vector3 cameraDirection = camera.transform.forward;
         cameraDirection.y = 0;
         Vector3 relativeMovementDirection = Quaternion.LookRotation(cameraDirection.normalized) * inputMovementDirection;
         characterController.Move(relativeMovementDirection * movementSpeed * Time.deltaTime);
@@ -182,11 +232,9 @@ public class ThirdPersonController : NetworkBehaviour
 
     public void PlayerRotation()
     {
-        Debug.Log("PlayerRotation");
         if (isAiming)
         {
-            Debug.Log("isAiming");
-            Vector3 cameraforward = Camera.main.transform.forward;
+            Vector3 cameraforward = camera.transform.forward;
             //rotate character model to camera direction
             cameraforward.y = 0;
             var q = Quaternion.LookRotation(cameraforward);
@@ -194,9 +242,8 @@ public class ThirdPersonController : NetworkBehaviour
         }
         else if (inputMovementDirection != Vector3.zero)
         {
-            Debug.Log("inputMovementDirection");
             //rotate character model to movement direction
-            Vector3 cameraDirection = Camera.main.transform.forward;
+            Vector3 cameraDirection = camera.transform.forward;
             cameraDirection.y = 0;
             Vector3 relativeMovementDirection = Quaternion.LookRotation(cameraDirection.normalized) * inputMovementDirection;
             var q = Quaternion.LookRotation(relativeMovementDirection);
@@ -206,7 +253,7 @@ public class ThirdPersonController : NetworkBehaviour
 
     public void PlayerAttack()
     {
-        RaycastHit[] hits = Physics.RaycastAll(Camera.main.transform.position, Camera.main.transform.forward, Mathf.Infinity, ~ignoreRaycastMask);
+        RaycastHit[] hits = Physics.RaycastAll(camera.transform.position, camera.transform.forward, Mathf.Infinity, ~ignoreRaycastMask);
         foreach (RaycastHit hit in hits)
         {
             if (hit.collider != null && !hit.collider.isTrigger)
@@ -257,14 +304,29 @@ public class ThirdPersonController : NetworkBehaviour
             if (currentButtonPrompt == null)
             {
                 currentButtonPrompt = Instantiate(buttonPromptPrefab, screenCanvas.transform, false);
-                currentButtonPrompt.SetText(playerInput.currentActionMap.FindAction("Interact").GetBindingDisplayString(0));
+                currentButtonPrompt.SetText("Interact");
+                //currentButtonPrompt.SetText(playerInput.currentActionMap.FindAction("Interact").GetBindingDisplayString(0));
             }
-            currentButtonPrompt.SetPosition(Camera.main.WorldToScreenPoint(closestInteractable.gameObject.transform.position));
+            currentButtonPrompt.SetPosition(camera.WorldToScreenPoint(closestInteractable.gameObject.transform.position));
         }
     }
     #endregion
 
     #region Methods
+    // Set controlPlayer before use!
+    IEnumerator InitializeData()
+    {
+        yield return new WaitUntil(() => networkSpawned.Value);
+        if (controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer player))
+        {
+            this.controlPlayer = player;
+            if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
+            {
+                shirtMaterial.color = color;
+            }
+        }
+    }
+
     bool GroundCheck(float maxDistance = 0.05f)
     {
         Collider[] hits = Physics.OverlapSphere(groundCheckPosition.transform.position, maxDistance, ~ignoreRaycastMask);
@@ -328,9 +390,9 @@ public class ThirdPersonController : NetworkBehaviour
         externalForcesVelocity += force;
     }
 
+    // EnableRagdoll() before use!
     public void AddImpulseForceToRagdollPart(Vector3 force, string bodyPartName)
     {
-        EnableRagdoll();
         ragdoll.AddForceToBodyPart(force, bodyPartName);
     }
 
@@ -338,7 +400,7 @@ public class ThirdPersonController : NetworkBehaviour
     {
         animator.enabled = false;
         movementEnabled = false;
-        ragdollEnabled = true;
+        ragdollEnabled.Value = true;
         characterController.detectCollisions = false;
         ragdoll.EnableRagdoll();
     }
@@ -347,7 +409,7 @@ public class ThirdPersonController : NetworkBehaviour
     {
         animator.enabled = true;
         movementEnabled = true;
-        ragdollEnabled = false;
+        ragdollEnabled.Value = false;
         characterController.detectCollisions = true;
         ragdoll.DisableRagdoll();
     }
