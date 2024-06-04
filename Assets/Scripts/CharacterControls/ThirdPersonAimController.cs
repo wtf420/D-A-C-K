@@ -6,56 +6,52 @@ using UnityEngine.InputSystem;
 
 public class ThirdPersonAimController : MonoBehaviour
 {
-    [SerializeField] Transform cinemachineFollowTarget;
-    [SerializeField] CinemachineVirtualCamera virtualCamera;
+    [SerializeField] protected Transform cinemachineFollowTarget;
+    [SerializeField] protected CinemachineVirtualCamera virtualCamera;
 
     [SerializeField] public float lookSpeed = 3f;
-    [SerializeField] public float aimSpeed = 1f;
+    [SerializeField] public float lookFOV = 60f;
     [SerializeField] public bool invertAim = false;
 
     [SerializeField] public float topAngleClamp = 30f;
     [SerializeField] public float bottomAngleClamp = 30f;
 
-    public bool isAiming = false;
-
-    Vector3 cameraDirection = Vector3.zero;
-    Vector3 inputAimDirection = Vector3.zero;
+    protected Vector3 cameraDirection = Vector3.zero;
+    protected Vector3 inputAimDirection = Vector3.zero;
 
     // Start is called before the first frame update
-    void Start()
+    protected virtual void Start()
     {
         cinemachineFollowTarget.transform.forward = transform.forward;
+        inputAimDirection = Vector3.zero;
+        virtualCamera.m_Lens.FieldOfView = lookFOV;
     }
 
-    void Update()
+    public virtual void UpdateFollowTarget(Transform target)
     {
+        cinemachineFollowTarget = target;
         virtualCamera.Follow = cinemachineFollowTarget;
     }
 
-    public void AimDirectionInputAction(InputAction.CallbackContext context)
+    public virtual void AimDirectionInputAction(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (context.phase == InputActionPhase.Performed)
         {
             Vector2 v = context.ReadValue<Vector2>();
             inputAimDirection = new Vector3(invertAim ? v.y : -v.y, v.x, 0);
         }
-        else
+        else if (context.phase == InputActionPhase.Canceled)
         {
             inputAimDirection = Vector3.zero;
         }
     }
 
-    public void AimInputAction(InputAction.CallbackContext context)
-    {
-        isAiming = context.performed;
-    }
-
     // Update is called once per frame
-    void LateUpdate()
+    protected virtual void LateUpdate()
     {
         //Input to camera direction
         Vector3 currentvirtualCameraLookTargetRotation = Camera.main.transform.eulerAngles;
-        currentvirtualCameraLookTargetRotation += inputAimDirection * (isAiming ? aimSpeed : lookSpeed) * Time.deltaTime;
+        currentvirtualCameraLookTargetRotation += inputAimDirection * lookSpeed * Time.deltaTime;
         //Clamp viewing angle
         if (currentvirtualCameraLookTargetRotation.x > 180 && currentvirtualCameraLookTargetRotation.x < 270 + bottomAngleClamp) currentvirtualCameraLookTargetRotation.x = 270 + bottomAngleClamp;
         else if (currentvirtualCameraLookTargetRotation.x < 180 && currentvirtualCameraLookTargetRotation.x > 90 - topAngleClamp) currentvirtualCameraLookTargetRotation.x = 90 - topAngleClamp;

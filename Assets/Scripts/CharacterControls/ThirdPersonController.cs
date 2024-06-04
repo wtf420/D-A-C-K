@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-public class ThirdPersonController : MonoBehaviour
+public class ThirdPersonController : NetworkBehaviour
 {
     [Header("~*// Constants")]
     [SerializeField] LayerMask ignoreRaycastMask;
@@ -29,10 +30,10 @@ public class ThirdPersonController : MonoBehaviour
 
     [Header("~*// Controls")]
     [SerializeField] CinemachineVirtualCamera virtualCamera;
-    [SerializeField] ThirdPersonAimController thirdPersonAimController;
+    [SerializeField] PlayerThirdPersonAimController playerThirdPersonAimController;
     [SerializeField] GameObject virtualCameraLookTarget;
 
-    bool isAiming => thirdPersonAimController.isAiming;
+    bool isAiming => playerThirdPersonAimController.isAiming;
     bool isGrounded = false;
 
     [Header("~*// Animations")]
@@ -45,8 +46,8 @@ public class ThirdPersonController : MonoBehaviour
     Vector3 inputMovementDirection = new Vector3(0, 0, 0);
     Vector3 inputAimDirection = new Vector3(0, 0, 0);
 
-    [Header("~* Combat")]
-    [SerializeField] Gun gun;
+    // [Header("~* Combat")]
+    // [SerializeField] Gun gun;
 
     #region MonobehaviourMethods
     // Start is called before the first frame update
@@ -62,29 +63,7 @@ public class ThirdPersonController : MonoBehaviour
     void Update()
     {
         isGrounded = GroundCheck(maxGroundCheckRadius);
-
         PlayerMovement();
-        PlayerAim();
-
-        if (Input.GetKeyDown(KeyCode.Mouse0) && isAiming)
-        {
-            RaycastHit[] hits = Physics.RaycastAll(Camera.main.transform.position, Camera.main.transform.forward, Mathf.Infinity, ~ignoreRaycastMask);
-            foreach (RaycastHit hit in hits)
-            {
-                if (hit.collider != null && !hit.collider.isTrigger)
-                {
-                    Debug.Log(hit.collider.gameObject.ToString());
-                    Debug.DrawLine(gun.transform.position, hit.point, Color.red, 0.5f);
-                    break;
-                }
-                else continue;
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            if (Time.timeScale == 0f) Time.timeScale = 1f; else Time.timeScale = 0f;
-        }
     }
 
     void FixedUpdate()
@@ -123,7 +102,15 @@ public class ThirdPersonController : MonoBehaviour
     {
         if (context.performed)
         {
+            if (Time.timeScale == 0f) Time.timeScale = 1f; else Time.timeScale = 0f;
+        }
+    }
 
+    public void AttackInputAction(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            PlayerAttack();
         }
     }
     #endregion
@@ -155,14 +142,11 @@ public class ThirdPersonController : MonoBehaviour
     {
         if (isAiming)
         {
-            //rotate gun model to camera direction
             Vector3 cameraforward = Camera.main.transform.forward;
-            gun.transform.forward = cameraforward;
             //rotate character model to camera direction
             cameraforward.y = 0;
             var q = Quaternion.LookRotation(cameraforward);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 1000f * Time.deltaTime);
-            //virtualCamera.gameObject.SetActive(true);
         }
         else if (inputMovementDirection != Vector3.zero)
         {
@@ -175,9 +159,20 @@ public class ThirdPersonController : MonoBehaviour
         }
     }
 
-    public void PlayerAim()
+    public void PlayerAttack()
     {
-        virtualCamera.gameObject.SetActive(isAiming);
+        RaycastHit[] hits = Physics.RaycastAll(Camera.main.transform.position, Camera.main.transform.forward, Mathf.Infinity, ~ignoreRaycastMask);
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.collider != null && !hit.collider.isTrigger)
+            {
+                Debug.Log(hit.collider.gameObject.ToString());
+                Debug.DrawLine(this.transform.position, hit.point, Color.red, 0.5f);
+                return;
+            }
+            else continue;
+        }
+        Debug.DrawLine(this.transform.position, this.transform.position + transform.forward * 100f, Color.red, 0.5f);
     }
     #endregion
 
