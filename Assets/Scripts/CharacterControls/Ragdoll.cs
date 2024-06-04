@@ -12,12 +12,12 @@ public class BodyPart
     public Rigidbody rigidbody;
     public ClientTransform clientTransform;
     public Collider collider;
-    public Outline outline;
 }
 
 public class Ragdoll : MonoBehaviour
 {
     [SerializeField] public List<BodyPart> bodyParts = new List<BodyPart>();
+    [SerializeField] public Outline outline;
 
     // Start is called before the first frame update
     void Start()

@@ -41,6 +41,6 @@ public class PlayerThirdPersonAimController : ThirdPersonAimController
         else if (currentvirtualCameraLookTargetRotation.x < 180 && currentvirtualCameraLookTargetRotation.x > 90 - topAngleClamp) currentvirtualCameraLookTargetRotation.x = 90 - topAngleClamp;
         //Rotate cinemachineFollowTarget to direction in world coordinates
         cameraDirection = currentvirtualCameraLookTargetRotation;
-        cinemachineFollowTarget.transform.eulerAngles = cameraDirection;
+        cinemachineFollowTarget.transform.eulerAngles = currentvirtualCameraLookTargetRotation;
     }
 }

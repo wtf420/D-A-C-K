@@ -31,7 +31,6 @@ public class ThirdPersonController : NetworkBehaviour
     [Header("~*// Controls")]
     [SerializeField] CinemachineVirtualCamera virtualCamera;
     [SerializeField] PlayerThirdPersonAimController playerThirdPersonAimController;
-    [SerializeField] GameObject virtualCameraLookTarget;
     bool isAiming => playerThirdPersonAimController.isAiming;
     bool isGrounded = false;
     bool movementEnabled = true;
@@ -57,7 +56,7 @@ public class ThirdPersonController : NetworkBehaviour
     // [Header("~* Combat")]
     // [SerializeField] Gun gun;
 
-    #region MonobehaviourMethods
+    #region Monobehaviour & NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     {
@@ -65,6 +64,31 @@ public class ThirdPersonController : NetworkBehaviour
         Cursor.visible = false;
         Physics.IgnoreLayerCollision(6, 7); //so the ragdoll and character controller dont interact with each other
         ragdoll.DisableRagdoll();
+
+        if (!IsOwner)
+        {
+            virtualCamera.Priority = 0;
+
+            ragdoll.outline.enabled = false;
+            ragdoll.outline.enabled = true;
+            ragdoll.outline.OutlineColor = Color.red;
+
+            playerThirdPersonAimController.enabled = false;
+            playerInput.enabled = false;
+            return;
+        }
+        else
+        {
+            //Initialize as owner
+
+            //reenable outline so it will render properly
+            ragdoll.outline.enabled = false;
+            ragdoll.outline.enabled = true;
+            ragdoll.outline.OutlineColor = Color.green;
+
+            playerThirdPersonAimController.enabled = true;
+            playerInput.enabled = true;
+        }
     }
 
     // Update is called once per frame
@@ -111,7 +135,16 @@ public class ThirdPersonController : NetworkBehaviour
     {
         if (context.performed)
         {
-            if (Time.timeScale == 0f) Time.timeScale = 1f; else Time.timeScale = 0f;
+            //if (Time.timeScale == 0f) Time.timeScale = 1f; else Time.timeScale = 0f;
+            if (Cursor.visible)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            } else
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
         }
     }
 
@@ -149,8 +182,10 @@ public class ThirdPersonController : NetworkBehaviour
 
     public void PlayerRotation()
     {
+        Debug.Log("PlayerRotation");
         if (isAiming)
         {
+            Debug.Log("isAiming");
             Vector3 cameraforward = Camera.main.transform.forward;
             //rotate character model to camera direction
             cameraforward.y = 0;
@@ -159,6 +194,7 @@ public class ThirdPersonController : NetworkBehaviour
         }
         else if (inputMovementDirection != Vector3.zero)
         {
+            Debug.Log("inputMovementDirection");
             //rotate character model to movement direction
             Vector3 cameraDirection = Camera.main.transform.forward;
             cameraDirection.y = 0;
