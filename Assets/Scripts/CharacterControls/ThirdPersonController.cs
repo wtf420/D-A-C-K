@@ -10,35 +10,43 @@ using UnityEditor;
 
 public class ThirdPersonController : MonoBehaviour
 {
+    [Header("~*// Constants")]
     [SerializeField] LayerMask ignoreRaycastMask;
-    [SerializeField] GameObject virtualCameraLookTarget, groundCheckPosition;
+
+    [Header("~*// Movement")]
     [SerializeField] CharacterController characterController;
-    [SerializeField] Gun gun;
-    [SerializeField] CinemachineVirtualCamera virtualCamera;
-    [SerializeField] Animator animator;
-    [SerializeField] Ragdoll ragdoll;
-    [SerializeField] ThirdPersonAimController thirdPersonAimController;
+    [SerializeField] GameObject groundCheckPosition;
 
     [SerializeField] float movementSpeed = 10f;
-    [SerializeField] float lookSpeed = 360f;
     [SerializeField] float jumpForce = 10f;
     [SerializeField] float drag = 10f;
     [SerializeField] float maxGroundCheckRadius = 0.05f;
-    [SerializeField] bool isGrounded = false;
-    [SerializeField] bool isAiming = false;
 
-    [SerializeField] PlayerInput playerInput;
-    InputAction MovementAction;
-    // InputAction AimAction;
-    // InputAction Interact;
-    // InputAction AttackAction;
-    // InputAction JumpAction;
-
-    float distanceMovedSinceLastFrame = 0.0f;
     Vector3 lastFramePosition;
+    float distanceMovedSinceLastFrame = 0.0f; // because distanceMovedSinceLastFrame is unreliable as heck
     Vector3 externalForcesVelocity = Vector3.zero;
-    float gravity = 0f;
-    Vector3 inputDirection = new Vector3(0, 0, 0);
+    float verticalVelocity = 0f;
+
+    [Header("~*// Controls")]
+    [SerializeField] CinemachineVirtualCamera virtualCamera;
+    [SerializeField] ThirdPersonAimController thirdPersonAimController;
+    [SerializeField] GameObject virtualCameraLookTarget;
+
+    bool isAiming => thirdPersonAimController.isAiming;
+    bool isGrounded = false;
+
+    [Header("~*// Animations")]
+    [SerializeField] Animator animator;
+    [SerializeField] Ragdoll ragdoll;
+
+    [Header("~*// Player Input")]
+    [SerializeField] PlayerInput playerInput;
+
+    Vector3 inputMovementDirection = new Vector3(0, 0, 0);
+    Vector3 inputAimDirection = new Vector3(0, 0, 0);
+
+    [Header("~* Combat")]
+    [SerializeField] Gun gun;
 
     #region MonobehaviourMethods
     // Start is called before the first frame update
@@ -46,56 +54,17 @@ public class ThirdPersonController : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        Physics.IgnoreLayerCollision(6, 7);
+        Physics.IgnoreLayerCollision(6, 7); //so the ragdoll and character controller dont interact with each other
         ragdoll.DisableRagdoll();
-
-        MovementAction = playerInput.actions.FindAction("Movement");
-        // Interact = playerInput.actions.FindAction("Interact");
-        // AttackAction = playerInput.actions.FindAction("Attack");
-        // JumpAction = playerInput.actions.FindAction("Jump");
     }
 
     // Update is called once per frame
     void Update()
     {
         isGrounded = GroundCheck(maxGroundCheckRadius);
-        if (isGrounded && DistanceToGround(0.1f) < 0.1f && gravity < 0f) gravity = 0f;
-        gravity -= 9.81f * Time.deltaTime;
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            gravity += jumpForce;
-        }
 
-        //Movement
-        Vector3 cameraDirection = Camera.main.transform.forward;
-        cameraDirection.y = 0;
-        Vector2 v = MovementAction.ReadValue<Vector2>();
-        Vector3 movementDirection = new Vector3(v.x, 0, v.y);
-        movementDirection = Quaternion.LookRotation(cameraDirection.normalized) * movementDirection;
-        characterController.Move(movementDirection * movementSpeed * Time.deltaTime);
-        characterController.Move(externalForcesVelocity * Time.deltaTime);
-        externalForcesVelocity = Vector3.Lerp(externalForcesVelocity, Vector3.zero, drag * Time.deltaTime);
-        characterController.Move(gravity * transform.up * Time.deltaTime);
-
-        isAiming = thirdPersonAimController.isAiming;
-        virtualCamera.gameObject.SetActive(false);
-        if (isAiming)
-        {
-            //rotate gun model to camera direction
-            Vector3 cameraforward = Camera.main.transform.forward;
-            gun.transform.forward = cameraforward;
-            //rotate character model to camera direction
-            cameraforward.y = 0;
-            var q = Quaternion.LookRotation(cameraforward);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 1000f * Time.deltaTime);
-            //virtualCamera.gameObject.SetActive(true);
-        }
-        else if (movementDirection != Vector3.zero)
-        {
-            //rotate character model to movement direction
-            var q = Quaternion.LookRotation(movementDirection);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 1000f * Time.deltaTime);
-        }
+        PlayerMovement();
+        PlayerAim();
 
         if (Input.GetKeyDown(KeyCode.Mouse0) && isAiming)
         {
@@ -128,6 +97,89 @@ public class ThirdPersonController : MonoBehaviour
 
     #region RPCs
     #endregion RPCs
+
+    #region InputActions
+    public void MovementDirectionInputAction(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            Vector2 v = context.ReadValue<Vector2>();
+            inputMovementDirection = new Vector3(v.x, 0, v.y);
+        } else
+        {
+            inputMovementDirection = Vector3.zero;
+        }
+    }
+
+    public void JumpInputAction(InputAction.CallbackContext context)
+    {
+        if (context.performed && isGrounded)
+        {
+            verticalVelocity += jumpForce;
+        }
+    }
+
+    public void InteractInputAction(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+
+        }
+    }
+    #endregion
+
+    #region Player Control
+    public void PlayerMovement()
+    {
+        // Applying gravity
+        if (isGrounded && DistanceToGround(0.1f) < 0.1f && verticalVelocity < 0f) verticalVelocity = 0f;
+        verticalVelocity -= 9.81f * Time.deltaTime;
+
+        //Move player relative to camera direction
+        Vector3 cameraDirection = Camera.main.transform.forward;
+        cameraDirection.y = 0;
+        Vector3 relativeMovementDirection = Quaternion.LookRotation(cameraDirection.normalized) * inputMovementDirection;
+        characterController.Move(relativeMovementDirection * movementSpeed * Time.deltaTime);
+
+        //Applying physics
+        characterController.Move(externalForcesVelocity * Time.deltaTime);
+        externalForcesVelocity = Vector3.Lerp(externalForcesVelocity, Vector3.zero, drag * Time.deltaTime);
+
+        //Applying gravity & jump
+        characterController.Move(verticalVelocity * transform.up * Time.deltaTime);
+
+        PlayerRotation();
+    }
+
+    public void PlayerRotation()
+    {
+        if (isAiming)
+        {
+            //rotate gun model to camera direction
+            Vector3 cameraforward = Camera.main.transform.forward;
+            gun.transform.forward = cameraforward;
+            //rotate character model to camera direction
+            cameraforward.y = 0;
+            var q = Quaternion.LookRotation(cameraforward);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 1000f * Time.deltaTime);
+            //virtualCamera.gameObject.SetActive(true);
+        }
+        else if (inputMovementDirection != Vector3.zero)
+        {
+            //rotate character model to movement direction
+            Vector3 cameraDirection = Camera.main.transform.forward;
+            cameraDirection.y = 0;
+            Vector3 relativeMovementDirection = Quaternion.LookRotation(cameraDirection.normalized) * inputMovementDirection;
+            var q = Quaternion.LookRotation(relativeMovementDirection);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, q, 1000f * Time.deltaTime);
+        }
+    }
+
+    public void PlayerAim()
+    {
+        virtualCamera.gameObject.SetActive(isAiming);
+    }
+    #endregion
 
     #region Methods
     bool GroundCheck(float maxDistance = 0.05f)

@@ -21,7 +21,19 @@ public class Ragdoll : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        bodyParts.Clear();
+        foreach (Rigidbody subrigidbody in GetComponentsInChildren<Rigidbody>())
+        {
+            BodyPart bodyPart = new BodyPart
+            {
+                name = subrigidbody.gameObject.name,
+                gameObject = subrigidbody.gameObject,
+                rigidbody = subrigidbody,
+                collider = subrigidbody.gameObject.GetComponent<Collider>(),
+                clientTransform = subrigidbody.gameObject.GetComponent<ClientTransform>()
+            };
+            bodyParts.Add(bodyPart);
+        }
     }
 
     public void EnableRagdoll()
@@ -52,7 +64,8 @@ public class Ragdoll : MonoBehaviour
         if (bodyPart != null)
         {
             bodyPart.rigidbody.AddForce(force, ForceMode.Impulse);
-        } else
+        }
+        else
         {
             Debug.Log("Body part not found");
         }
@@ -82,7 +95,18 @@ public class RagdollEditor : Editor
                     clientTransform = subrigidbody.gameObject.GetComponent<ClientTransform>()
                 };
                 targetRagdoll.bodyParts.Add(bodyPart);
-                subrigidbody.mass = 1f;
+            }
+        }
+
+        if (GUILayout.Button("Apply configure"))
+        {
+            foreach (BodyPart bodyPart in targetRagdoll.bodyParts)
+            {
+                bodyPart.rigidbody.mass = 0.1f;
+                if (bodyPart.gameObject.GetComponent<CharacterJoint>())
+                {
+                    bodyPart.gameObject.GetComponent<CharacterJoint>().enableProjection = true;
+                }
             }
         }
     }
