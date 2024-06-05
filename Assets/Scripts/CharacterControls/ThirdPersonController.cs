@@ -64,7 +64,7 @@ public class ThirdPersonController : NetworkBehaviour
     public NetworkPlayer controlPlayer;
     public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    public NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     #region Monobehaviour & NetworkBehaviour
     // Start is called before the first frame update
@@ -76,8 +76,6 @@ public class ThirdPersonController : NetworkBehaviour
         Physics.IgnoreLayerCollision(6, 7); //so the ragdoll and character controller dont interact with each other
         ragdoll.DisableRagdoll();
         shirtMaterial = renderer.materials.FirstOrDefault((x) => x.name == "ShirtColor (Instance)");
-
-        StartCoroutine(InitializeData());
 
         if (!IsOwner)
         {
@@ -96,6 +94,7 @@ public class ThirdPersonController : NetworkBehaviour
             //Initialize as owner
 
             //reenable outline so it will render properly
+            networkSpawned.Value = true;
             ragdoll.outline.enabled = false;
             ragdoll.outline.enabled = true;
             ragdoll.outline.OutlineColor = Color.green;
@@ -103,6 +102,7 @@ public class ThirdPersonController : NetworkBehaviour
             playerThirdPersonAimController.enabled = true;
             playerInput.enabled = true;
         }
+        StartCoroutine(InitializeData());
     }
 
     //sync or create network data
@@ -317,14 +317,14 @@ public class ThirdPersonController : NetworkBehaviour
     IEnumerator InitializeData()
     {
         yield return new WaitUntil(() => networkSpawned.Value);
-        if (controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer player))
-        {
-            this.controlPlayer = player;
-            if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
-            {
-                shirtMaterial.color = color;
-            }
-        }
+        // if (controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer player))
+        // {
+        //     this.controlPlayer = player;
+        //     if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
+        //     {
+        //         shirtMaterial.color = color;
+        //     }
+        // }
     }
 
     bool GroundCheck(float maxDistance = 0.05f)
