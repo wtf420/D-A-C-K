@@ -71,8 +71,6 @@ public class ThirdPersonController : NetworkBehaviour
     void Start()
     {
         camera = Camera.main;
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
         Physics.IgnoreLayerCollision(6, 7); //so the ragdoll and character controller dont interact with each other
         ragdoll.DisableRagdoll();
         shirtMaterial = renderer.materials.FirstOrDefault((x) => x.name == "ShirtColor (Instance)");
@@ -92,6 +90,8 @@ public class ThirdPersonController : NetworkBehaviour
         else
         {
             //Initialize as owner
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
 
             //reenable outline so it will render properly
             networkSpawned.Value = true;
@@ -136,7 +136,7 @@ public class ThirdPersonController : NetworkBehaviour
     public void NetworkSpawnRpc(NetworkBehaviourReference networkBehaviourReference)
     {
         controlPlayerNetworkBehaviourReference.Value = networkBehaviourReference;
-        networkSpawned.Value = true;
+        //networkSpawned.Value = true;
     }
 
     [Rpc(SendTo.Everyone)]

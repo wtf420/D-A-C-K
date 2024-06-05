@@ -14,11 +14,27 @@ public class PlayerThirdPersonAimController : ThirdPersonAimController
     // Start is called before the first frame update
     protected override void Start()
     {
-        base.Start();
+        if (!IsOwner)
+        {
+            virtualCamera.Follow = null;
+            virtualCamera.LookAt = null;
+            virtualCamera.gameObject.SetActive(false);
+            aimVirtualCamera.Follow = null;
+            aimVirtualCamera.LookAt = null;
+            aimVirtualCamera.gameObject.SetActive(false);
+        }
+        else
+        {
+            virtualCamera.Follow = cinemachineFollowTarget;
+            virtualCamera.gameObject.SetActive(true);
+            virtualCamera.Follow = cinemachineFollowTarget;
+            aimVirtualCamera.gameObject.SetActive(false);
+
+            cinemachineFollowTarget.transform.forward = transform.forward;
+            inputAimDirection = Vector3.zero;
+            virtualCamera.m_Lens.FieldOfView = lookFOV;
+        }
         isAiming = false;
-        aimVirtualCamera.gameObject.SetActive(false);
-        virtualCamera.gameObject.SetActive(true);
-        aimVirtualCamera.Follow = cinemachineFollowTarget;
     }
 
     public void AimInputAction(InputAction.CallbackContext context)
@@ -39,6 +55,7 @@ public class PlayerThirdPersonAimController : ThirdPersonAimController
 
     protected override void LateUpdate()
     {
+        if (!IsOwner) return;
         //Input to camera direction
         Vector3 currentvirtualCameraLookTargetRotation = Camera.main.transform.eulerAngles;
         currentvirtualCameraLookTargetRotation += inputAimDirection * (isAiming ? aimSpeed : lookSpeed) * Time.deltaTime;

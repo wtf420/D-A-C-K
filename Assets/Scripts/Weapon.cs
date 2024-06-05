@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Weapon : NetworkBehaviour
 {
-    public CustomCharacterController wielder;
+    public ThirdPersonController wielder;
     public float range, attackAngle, minDistance;
     public float coolDown, timing;
     private bool isAttackable = true;
@@ -16,22 +16,6 @@ public class Weapon : NetworkBehaviour
         if (holderTransform == null) return;
         transform.position = holderTransform.transform.position;
         transform.rotation = holderTransform.transform.rotation;
-    }
-
-    [Rpc(SendTo.Everyone)]
-    public void SetWielderRpc(NetworkObjectReference networkObjectReference)
-    {
-        NetworkObject networkObject;
-        if (networkObjectReference.TryGet(out networkObject))
-        {
-            CustomCharacterController customCharacterController = networkObject.gameObject.GetComponentInChildren<CustomCharacterController>();
-            if (customCharacterController)
-            {
-                wielder = customCharacterController;
-                holderTransform = wielder.weaponHoldTransform.transform;
-                customCharacterController.weapon = this;
-            }
-        }
     }
 
     public void AttemptAttack()
@@ -78,11 +62,10 @@ public class Weapon : NetworkBehaviour
             }
             if (c) continue; else Debug.Log("Considered: " + hit.collider.gameObject + " has no gameobject in between!");
 
-            Debug.Log(hit.collider.gameObject + " | " + hit.collider.gameObject.GetComponentInParent<CustomCharacterController>() != null);
-            if (hit.collider.gameObject.GetComponent<CustomCharacterController>() != null)
+            Debug.Log(hit.collider.gameObject + " | " + hit.collider.gameObject.GetComponentInParent<ThirdPersonController>() != null);
+            if (hit.collider.gameObject.GetComponent<ThirdPersonController>() != null)
             {
-                Debug.Log("Set Ragdoll State successfully!");
-                hit.collider.gameObject.GetComponent<CustomCharacterController>().SetRagdollStateRpc(true);
+                //handle hit
             }
             //Debug.DrawLine(this.transform.position, hitlocation, Color.green, 5f);
         }

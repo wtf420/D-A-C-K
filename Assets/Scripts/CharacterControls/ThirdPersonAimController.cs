@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using Cinemachine;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class ThirdPersonAimController : MonoBehaviour
+public class ThirdPersonAimController : NetworkBehaviour
 {
     [SerializeField] protected Transform cinemachineFollowTarget;
     [SerializeField] protected CinemachineVirtualCamera virtualCamera;
@@ -22,10 +23,19 @@ public class ThirdPersonAimController : MonoBehaviour
     // Start is called before the first frame update
     protected virtual void Start()
     {
-        cinemachineFollowTarget.transform.forward = transform.forward;
-        inputAimDirection = Vector3.zero;
-        virtualCamera.m_Lens.FieldOfView = lookFOV;
-        virtualCamera.Follow = cinemachineFollowTarget;
+        if (!IsOwner)
+        {
+            virtualCamera.Follow = null;
+            virtualCamera.LookAt = null;
+            virtualCamera.gameObject.SetActive(false);
+        } else
+        {
+            virtualCamera.Follow = cinemachineFollowTarget;
+            virtualCamera.gameObject.SetActive(true);
+            cinemachineFollowTarget.transform.forward = transform.forward;
+            inputAimDirection = Vector3.zero;
+            virtualCamera.m_Lens.FieldOfView = lookFOV;
+        } 
     }
 
     public virtual void UpdateFollowTarget(Transform target)
@@ -50,6 +60,7 @@ public class ThirdPersonAimController : MonoBehaviour
     // Update is called once per frame
     protected virtual void LateUpdate()
     {
+        if (!IsOwner) return;
         //Input to camera direction
         Vector3 currentvirtualCameraLookTargetRotation = Camera.main.transform.eulerAngles;
         currentvirtualCameraLookTargetRotation += inputAimDirection * lookSpeed * Time.deltaTime;

@@ -16,36 +16,36 @@ public class PickUpable : Interactable
         transform.rotation = holder.transform.rotation;
     }
 
-    protected override void OnInteract(InteractInfo info)
-    {
-        SetPickUpRpc(info.character);
-    }
+    // protected override void OnInteract(InteractInfo info)
+    // {
+    //     SetPickUpRpc(info.character);
+    // }
 
-    [Rpc(SendTo.Everyone)]
-    protected virtual void SetPickUpRpc(NetworkObjectReference transform)
-    {
-        NetworkObject networkObject;
-        if (transform.TryGet(out networkObject))
-        {
-            CustomCharacterController customCharacterController = networkObject.gameObject.GetComponentInChildren<CustomCharacterController>();
-            if (customCharacterController.pickupPosition.transform != holder)
-            {
-                holder = networkObject.gameObject.GetComponentInChildren<CustomCharacterController>().pickupPosition.transform;
-                rigidbody.isKinematic = true;
-                Physics.IgnoreCollision(collider, customCharacterController.collider, true);
-                Debug.Log("Set Hold:" + holder);
-            } else
-            {
-                Physics.IgnoreCollision(collider, customCharacterController.collider, false);
-                holder = null;
-                rigidbody.isKinematic = false;
-                Debug.Log("Let go");
-            }
-        } else
-        {
-            holder = null;
-            rigidbody.isKinematic = false;
-            Debug.Log("Is null");
-        }
-    }
+    // [Rpc(SendTo.Everyone)]
+    // protected virtual void SetPickUpRpc(NetworkObjectReference transform)
+    // {
+    //     NetworkObject networkObject;
+    //     if (transform.TryGet(out networkObject))
+    //     {
+    //         CustomCharacterController customCharacterController = networkObject.gameObject.GetComponentInChildren<CustomCharacterController>();
+    //         if (customCharacterController.pickupPosition.transform != holder)
+    //         {
+    //             holder = networkObject.gameObject.GetComponentInChildren<CustomCharacterController>().pickupPosition.transform;
+    //             rigidbody.isKinematic = true;
+    //             Physics.IgnoreCollision(collider, customCharacterController.collider, true);
+    //             Debug.Log("Set Hold:" + holder);
+    //         } else
+    //         {
+    //             Physics.IgnoreCollision(collider, customCharacterController.collider, false);
+    //             holder = null;
+    //             rigidbody.isKinematic = false;
+    //             Debug.Log("Let go");
+    //         }
+    //     } else
+    //     {
+    //         holder = null;
+    //         rigidbody.isKinematic = false;
+    //         Debug.Log("Is null");
+    //     }
+    // }
 }
