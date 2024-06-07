@@ -37,7 +37,6 @@ public class ThirdPersonController : NetworkBehaviour
     bool movementEnabled = true;
     float currentFallingTimer = 0.0f;
 
-
     [Header("~*// Interact system")]
     [SerializeField] float rangeToInteract = 5.0f;
 
@@ -57,14 +56,19 @@ public class ThirdPersonController : NetworkBehaviour
     ButtonPrompt currentButtonPrompt;
     Interactable closestInteractable = null;
 
-    // [Header("~* Combat")]
-    // [SerializeField] Gun gun;
+    [Header("~* Combat")]
+    [SerializeField] Weapon weapon;
+    [SerializeField] public Transform weaponHeldTransform;
+
+    [Header("///////// TESTING")]
+    [SerializeField] Weapon testWeapon;
+
     [field: Header("~* NETWORKING")]
     [field: SerializeField] public new NetworkObject NetworkObject { get; private set;}
     public NetworkPlayer controlPlayer;
     public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    public NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     #region Monobehaviour & NetworkBehaviour
     // Start is called before the first frame update
@@ -109,6 +113,16 @@ public class ThirdPersonController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+        //testing purposes only
+        if (IsOwner && IsHost) StartCoroutine(Testing());
+    }
+
+    IEnumerator Testing()
+    {
+        Weapon spawnedWeapon = Instantiate(testWeapon);
+        spawnedWeapon.NetworkObject.Spawn();
+        yield return new WaitUntil(() => spawnedWeapon.networkSpawned.Value);
+        spawnedWeapon.SetWielderRpc(this);
     }
 
     // Update is called once per frame
@@ -136,7 +150,7 @@ public class ThirdPersonController : NetworkBehaviour
     public void NetworkSpawnRpc(NetworkBehaviourReference networkBehaviourReference)
     {
         controlPlayerNetworkBehaviourReference.Value = networkBehaviourReference;
-        //networkSpawned.Value = true;
+        networkSpawned.Value = true;
     }
 
     [Rpc(SendTo.Everyone)]
@@ -144,6 +158,15 @@ public class ThirdPersonController : NetworkBehaviour
     {
         EnableRagdoll();
         if (IsServer) controlPlayer.KillRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void SetWieldWeaponRpc(NetworkBehaviourReference networkBehaviourReference)
+    {
+        if (networkBehaviourReference.TryGet(out Weapon weapon))
+        {
+            this.weapon = weapon;
+        }
     }
     #endregion RPCs
 
@@ -253,18 +276,23 @@ public class ThirdPersonController : NetworkBehaviour
 
     public void PlayerAttack()
     {
-        RaycastHit[] hits = Physics.RaycastAll(camera.transform.position, camera.transform.forward, Mathf.Infinity, ~ignoreRaycastMask);
-        foreach (RaycastHit hit in hits)
+        if (weapon != null)
         {
-            if (hit.collider != null && !hit.collider.isTrigger)
-            {
-                Debug.Log(hit.collider.gameObject.ToString());
-                Debug.DrawLine(this.transform.position, hit.point, Color.red, 0.5f);
-                return;
-            }
-            else continue;
+            weapon.AttemptAttackRpc();
+            animator.SetTrigger("Attack");
         }
-        Debug.DrawLine(this.transform.position, this.transform.position + transform.forward * 100f, Color.red, 0.5f);
+        // RaycastHit[] hits = Physics.RaycastAll(camera.transform.position, camera.transform.forward, Mathf.Infinity, ~ignoreRaycastMask);
+        // foreach (RaycastHit hit in hits)
+        // {
+        //     if (hit.collider != null && !hit.collider.isTrigger)
+        //     {
+        //         Debug.Log(hit.collider.gameObject.ToString());
+        //         Debug.DrawLine(this.transform.position, hit.point, Color.red, 0.5f);
+        //         return;
+        //     }
+        //     else continue;
+        // }
+        // Debug.DrawLine(this.transform.position, this.transform.position + transform.forward * 100f, Color.red, 0.5f);
     }
 
     void CheckForInteractables()
@@ -385,13 +413,15 @@ public class ThirdPersonController : NetworkBehaviour
         }
     }
 
-    public void AddImpulseForce(Vector3 force)
+    [Rpc(SendTo.Owner)]
+    public void AddImpulseForceRpc(Vector3 force)
     {
         externalForcesVelocity += force;
     }
 
     // EnableRagdoll() before use!
-    public void AddImpulseForceToRagdollPart(Vector3 force, string bodyPartName)
+    [Rpc(SendTo.Owner)]
+    public void AddImpulseForceToRagdollPartRpc(Vector3 force, string bodyPartName)
     {
         ragdoll.AddForceToBodyPart(force, bodyPartName);
     }
@@ -422,6 +452,8 @@ public class ThirdPersonController : NetworkBehaviour
 public class ThirdPersonControllerEditor : Editor
 {
     [SerializeField] Vector3 testForce;
+    ThirdPersonController ThirdPersonControllerTarget;
+    Weapon weapon;
 
     public override void OnInspectorGUI()
     {
@@ -432,7 +464,7 @@ public class ThirdPersonControllerEditor : Editor
 
         if (GUILayout.Button("Test Force"))
         {
-            ThirdPersonControllerTarget.AddImpulseForceToRagdollPart(testForce, "Spine");
+            ThirdPersonControllerTarget.AddImpulseForceRpc(testForce);
         }
 
         if (GUILayout.Button("Enable Ragdoll"))
@@ -444,6 +476,21 @@ public class ThirdPersonControllerEditor : Editor
         {
             ThirdPersonControllerTarget.DisableRagdoll();
         }
+
+        weapon = (Weapon)EditorGUILayout.ObjectField("Weapon", weapon, typeof(Weapon), true);
+        if (GUILayout.Button("Test Weapon"))
+        {
+            ThirdPersonControllerTarget.StartCoroutine(SpawnTestWeapon());
+        }
+    }
+
+    IEnumerator SpawnTestWeapon()
+    {
+        ThirdPersonControllerTarget = (ThirdPersonController)target;
+        Weapon spawnedWeapon = Instantiate(weapon);
+        spawnedWeapon.NetworkObject.Spawn();
+        yield return new WaitUntil(() => spawnedWeapon.networkSpawned.Value);
+        spawnedWeapon.SetWielderRpc(ThirdPersonControllerTarget);
     }
 }
 #endif

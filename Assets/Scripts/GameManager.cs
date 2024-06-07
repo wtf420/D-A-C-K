@@ -25,6 +25,15 @@ public class GameManager : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Debug.Log("Connected clients: ");
+            foreach (NetworkClient networkClient in NetworkManager.Singleton.ConnectedClientsList)
+            {
+                Debug.Log("Client ID: " + networkClient.ClientId);
+            }
+        }
+        
         if (NetworkSpawned.Value)
         {
             int currentAlivePlayer = 0;

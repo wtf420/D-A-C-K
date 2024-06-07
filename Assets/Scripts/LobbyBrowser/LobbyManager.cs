@@ -56,8 +56,8 @@ public class LobbyManager : MonoBehaviour
     {
         try
         {
-            string lobbyName = "new lobby";
-            int maxPlayers = 4;
+            string lobbyName = "New lobby";
+            int maxPlayers = 8;
             CreateLobbyOptions options = new CreateLobbyOptions
             {
                 // Ensure you sign-in before calling Authentication Instance.

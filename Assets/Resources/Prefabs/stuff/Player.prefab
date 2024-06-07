@@ -717,7 +717,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3757217874
+  GlobalObjectIdHash: 2638472768
   InScenePlacedSourceGlobalObjectIdHash: 1734975255
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -789,6 +789,10 @@ MonoBehaviour:
   playerInput: {fileID: 8940947999746283133}
   screenCanvas: {fileID: 4371215151111452275}
   buttonPromptPrefab: {fileID: 7962680770915283319, guid: b70038d361ac3af40823e79bf9283974,
+    type: 3}
+  weapon: {fileID: 0}
+  weaponHeldTransform: {fileID: 8136014136987554166}
+  testWeapon: {fileID: 3706916799845983500, guid: ecb480d87c36ac242bc4b2eb395d9904,
     type: 3}
   <NetworkObject>k__BackingField: {fileID: 5862384184944065004}
   controlPlayer: {fileID: 0}
