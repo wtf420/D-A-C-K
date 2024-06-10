@@ -7,6 +7,8 @@ using UnityEngine;
 public class NetworkPlayer : NetworkBehaviour
 {
     [SerializeField] ThirdPersonController thirdPersonControllerPrefab;
+    [SerializeField] FlexibleColorPicker flexibleColorPicker;
+    [SerializeField] GameObject playerJoinCanvas;
 
     public NetworkVariable<NetworkBehaviourReference> currentCharacterNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<FixedString32Bytes> playerColor = new NetworkVariable<FixedString32Bytes>("123456", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
@@ -27,20 +29,8 @@ public class NetworkPlayer : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        if (IsOwner) NetworkSpawnRpc();
-    }
-
-    [Rpc(SendTo.Server)]
-    public void NetworkSpawnRpc()
-    {
-        playerColor.Value = "#" + ColorUtility.ToHtmlStringRGBA(Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f));
-        currentCharacter = null;
-        //StartCoroutine(NetworkSpawn());
-    }
-
-    IEnumerator NetworkSpawn()
-    {
-        yield return new WaitUntil(() => GameManager.Instance.NetworkSpawned.Value);
+        if (IsOwner) playerJoinCanvas.SetActive(true);
+        else playerJoinCanvas.SetActive(false);
     }
 
     [Rpc(SendTo.Server)]
@@ -62,6 +52,8 @@ public class NetworkPlayer : NetworkBehaviour
 
     IEnumerator SpawnServer()
     {
+        Debug.Log(flexibleColorPicker.color);
+        playerColor.Value = "#" + ColorUtility.ToHtmlStringRGBA(flexibleColorPicker.color);
         currentCharacter = Instantiate(thirdPersonControllerPrefab, null);
         currentCharacter.NetworkObject.SpawnWithOwnership(this.OwnerClientId, true);
         currentCharacterNetworkBehaviourReference.Value = currentCharacter;

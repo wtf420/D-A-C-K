@@ -45,6 +45,7 @@ public class ThirdPersonController : NetworkBehaviour
     [SerializeField] Ragdoll ragdoll;
     [SerializeField] Material shirtMaterial;
     [SerializeField] new Renderer renderer;
+    [SerializeField] Color playerColor;
 
     [Header("~*// Player Input")]
     [SerializeField] PlayerInput playerInput;

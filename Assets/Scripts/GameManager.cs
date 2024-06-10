@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -19,7 +20,18 @@ public class GameManager : NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        NetworkManager.OnClientDisconnectCallback += OnDisconnection;
+    }
 
+    private void OnDisconnection(ulong ID)
+    {
+        if (IsClient)
+        {
+            Debug.Log("Disconnected!");
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        NetworkManager.OnClientDisconnectCallback -= OnDisconnection;
     }
 
     // Update is called once per frame
