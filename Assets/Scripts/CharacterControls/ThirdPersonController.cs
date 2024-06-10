@@ -66,9 +66,11 @@ public class ThirdPersonController : NetworkBehaviour
     [field: Header("~* NETWORKING")]
     [field: SerializeField] public new NetworkObject NetworkObject { get; private set;}
     public NetworkPlayer controlPlayer;
+    public NetworkVariable<NetworkBehaviourReference> weaponNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     public NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<float> healthPoint = new NetworkVariable<float>(100, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     #region Monobehaviour & NetworkBehaviour
     // Start is called before the first frame update
@@ -98,7 +100,6 @@ public class ThirdPersonController : NetworkBehaviour
             Cursor.visible = false;
 
             //reenable outline so it will render properly
-            networkSpawned.Value = true;
             ragdoll.outline.enabled = false;
             ragdoll.outline.enabled = true;
             ragdoll.outline.OutlineColor = Color.green;
@@ -106,23 +107,28 @@ public class ThirdPersonController : NetworkBehaviour
             playerThirdPersonAimController.enabled = true;
             playerInput.enabled = true;
         }
-        StartCoroutine(InitializeData());
     }
 
     //sync or create network data
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        //testing purposes only
-        if (IsOwner && IsHost) StartCoroutine(Testing());
+        if (IsServer) 
+        {
+            networkSpawned.Value = true;
+            if (IsOwner) StartCoroutine(Testing());
+        } else if (networkSpawned.Value)
+        {
+            SyncData();
+        }
     }
 
     IEnumerator Testing()
     {
-        Weapon spawnedWeapon = Instantiate(testWeapon);
-        spawnedWeapon.NetworkObject.Spawn();
-        yield return new WaitUntil(() => spawnedWeapon.networkSpawned.Value);
-        spawnedWeapon.SetWielderRpc(this);
+        weapon = Instantiate(testWeapon);
+        weapon.NetworkObject.Spawn();
+        yield return new WaitUntil(() => weapon.networkSpawned.Value);
+        weapon.SetWielderRpc(this);
     }
 
     // Update is called once per frame
@@ -147,17 +153,48 @@ public class ThirdPersonController : NetworkBehaviour
 
     #region RPCs
     [Rpc(SendTo.Server)] //Server mark complete server spawn process
-    public void NetworkSpawnRpc(NetworkBehaviourReference networkBehaviourReference)
+    public void TakeDamageRpc(float damage)
     {
-        controlPlayerNetworkBehaviourReference.Value = networkBehaviourReference;
-        networkSpawned.Value = true;
+        healthPoint.Value -= damage;
+        if (healthPoint.Value <= 0)
+        {
+            KillRpc();
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    public void SyncDataRpc()
+    {
+        Debug.Log("Syncing begun");
+        SyncData();
+    }
+
+    public void SyncData()
+    {
+        if (controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer player))
+        {
+            Debug.Log("player found, syncing");
+            this.controlPlayer = player;
+            player.currentCharacter = this;
+            if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
+            {
+                shirtMaterial.color = color;
+            }
+        }
     }
 
     [Rpc(SendTo.Everyone)]
     public void KillRpc()
     {
         EnableRagdoll();
-        if (IsServer) controlPlayer.KillRpc();
+        if (IsServer) 
+        {
+            if (weapon)
+            {
+                weapon.NetworkObject.Despawn(true);
+            }
+            if (IsOwner) controlPlayer.KillRpc();
+        }
     }
 
     [Rpc(SendTo.Server)]
@@ -228,7 +265,7 @@ public class ThirdPersonController : NetworkBehaviour
             currentFallingTimer += Time.deltaTime;
             if (currentFallingTimer > maxFallingTime && distanceToGround == Mathf.Infinity && controlPlayer != null)
             {
-                controlPlayer.KillRpc();
+                KillRpc();
                 return;
             }
         }
@@ -341,19 +378,6 @@ public class ThirdPersonController : NetworkBehaviour
     #endregion
 
     #region Methods
-    // Set controlPlayer before use!
-    IEnumerator InitializeData()
-    {
-        yield return new WaitUntil(() => networkSpawned.Value);
-        // if (controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer player))
-        // {
-        //     this.controlPlayer = player;
-        //     if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
-        //     {
-        //         shirtMaterial.color = color;
-        //     }
-        // }
-    }
 
     bool GroundCheck(float maxDistance = 0.05f)
     {
@@ -430,7 +454,7 @@ public class ThirdPersonController : NetworkBehaviour
     {
         animator.enabled = false;
         movementEnabled = false;
-        ragdollEnabled.Value = true;
+        if (IsOwner) ragdollEnabled.Value = true;
         characterController.detectCollisions = false;
         ragdoll.EnableRagdoll();
     }
@@ -440,7 +464,7 @@ public class ThirdPersonController : NetworkBehaviour
         animator.enabled = true;
         movementEnabled = true;
         ragdollEnabled.Value = false;
-        characterController.detectCollisions = true;
+        if (IsOwner) characterController.detectCollisions = true;
         ragdoll.DisableRagdoll();
     }
     #endregion Methods

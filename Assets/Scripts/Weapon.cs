@@ -11,9 +11,11 @@ public class Weapon : NetworkBehaviour
     public ParentConstraint parentConstraint;
     public float range, attackAngle, minDistance;
     public float coolDown, timing;
+    public float damage;
     private bool isAttackable = true;
 
-    public NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<NetworkBehaviourReference> wielderNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     // Vector3 constPositionOffset = new Vector3(0.25f, -0.25f, 0.01f);
     // Vector3 constRotationOffset = new Vector3(0f, 0f, 90f);
@@ -25,23 +27,37 @@ public class Weapon : NetworkBehaviour
         if (IsServer)
         {
             networkSpawned.Value = true;
+        } else if (networkSpawned.Value)
+        {
+            //sync late joiner data
+            if (wielderNetworkBehaviourReference.Value.TryGet(out ThirdPersonController player))
+            {
+                wielder = player;
+                DoStuff(player);
+            }
         }
     }
 
-    [Rpc(SendTo.Everyone)]
+    public void DoStuff(ThirdPersonController player)
+    {
+        ConstraintSource constraintSource = new ConstraintSource
+        {
+            sourceTransform = player.weaponHeldTransform,
+            weight = 1,
+        };
+        parentConstraint.SetSource(0, constraintSource);
+    }
+
+    [Rpc(SendTo.Server)]
     public void SetWielderRpc(NetworkBehaviourReference networkBehaviourReference)
     {
         if (networkBehaviourReference.TryGet(out ThirdPersonController player))
         {
-            ConstraintSource constraintSource = new ConstraintSource
-            {
-                sourceTransform = player.weaponHeldTransform,
-                weight = 1,
-            };
-            parentConstraint.SetSource(0, constraintSource);
+            wielder = player;
+            wielderNetworkBehaviourReference.Value = player;
+            player.SetWieldWeaponRpc(this);
+            DoStuff(player);
         }
-        wielder = player;
-        player.SetWieldWeaponRpc(this);
     }
 
     [Rpc(SendTo.Server)]
@@ -68,7 +84,7 @@ public class Weapon : NetworkBehaviour
     private void Hit()
     {
         RaycastHit[] info = Physics.SphereCastAll(wielder.transform.position, range, Vector3.up, 0, ~LayerMask.GetMask("PlayerRagdoll"));
-        Debug.Log(info.Length);
+        Debug.Log("Hit objects: " + info.Length);
         foreach (RaycastHit hit in info)
         {
             //check if theres a wall between
@@ -89,10 +105,12 @@ public class Weapon : NetworkBehaviour
             }
             if (c) continue; else Debug.Log("Considered: " + hit.collider.gameObject + " has no gameobject in between!");
 
-            if (hit.collider.gameObject.GetComponent<ThirdPersonController>() != null)
+            ThirdPersonController hitCharacter = hit.collider.gameObject.GetComponent<ThirdPersonController>();
+            if (hitCharacter != null)
             {
                 //handle hit
-                hit.collider.gameObject.GetComponent<ThirdPersonController>().AddImpulseForceRpc(wielder.transform.forward * 10f);
+                hitCharacter.AddImpulseForceRpc(wielder.transform.forward * 10f);
+                hitCharacter.TakeDamageRpc(damage);
             }
             //Debug.DrawLine(this.transform.position, hitlocation, Color.green, 5f);
         }

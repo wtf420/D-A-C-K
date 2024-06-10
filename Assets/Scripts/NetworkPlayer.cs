@@ -57,11 +57,17 @@ public class NetworkPlayer : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void SpawnServerRpc()
     {
-        ThirdPersonController thirdPersonController = Instantiate(thirdPersonControllerPrefab, null);
-        thirdPersonController.NetworkObject.SpawnWithOwnership(this.OwnerClientId);
-        currentCharacterNetworkBehaviourReference.Value = thirdPersonController;
-        thirdPersonController.controlPlayerNetworkBehaviourReference.Value = this;
-        thirdPersonController.NetworkSpawnRpc(this);
+        StartCoroutine(SpawnServer());
+    }
+
+    IEnumerator SpawnServer()
+    {
+        currentCharacter = Instantiate(thirdPersonControllerPrefab, null);
+        currentCharacter.NetworkObject.SpawnWithOwnership(this.OwnerClientId, true);
+        currentCharacterNetworkBehaviourReference.Value = currentCharacter;
+        currentCharacter.controlPlayerNetworkBehaviourReference.Value = this;
+        yield return new WaitUntil(() => currentCharacter.networkSpawned.Value);
+        currentCharacter.SyncDataRpc();
         GameManager.Instance.playerAliveDict[this] = true;
     }
 
