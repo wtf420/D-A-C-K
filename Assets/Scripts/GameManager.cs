@@ -1,16 +1,28 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
+
+public enum GamePhase
+{
+    WaitingForPlayers,
+    InProgress,
+    Done
+}
 
 public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance;
-    public NetworkVariable<bool> NetworkSpawned = new NetworkVariable<bool>(false);
-    //public NetworkList<NetworkBehaviourReference> players = new NetworkList<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkManager networkManager;
+    public NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false);
+    public List<NetworkPlayer> players = new List<NetworkPlayer>();
 
-    [SerializeField] public Dictionary<NetworkPlayer, bool> playerAliveDict = new Dictionary<NetworkPlayer, bool>();
+    [SerializeField] public Dictionary<NetworkPlayer, int> playerScoreDict = new Dictionary<NetworkPlayer, int>();
+    [SerializeField] public int miniumPlayerToStart = 4;
+
+    [SerializeField] GamePhase currentGamePhase;
 
     void Awake()
     {
@@ -20,53 +32,77 @@ public class GameManager : NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        NetworkManager.OnClientDisconnectCallback += OnDisconnection;
-    }
-
-    private void OnDisconnection(ulong ID)
-    {
-        if (IsClient)
-        {
-            Debug.Log("Disconnected!");
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-        NetworkManager.OnClientDisconnectCallback -= OnDisconnection;
+        networkManager = NetworkManager.Singleton;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (NetworkSpawned.Value)
+        if (!IsServer) return;
+        if (networkSpawned.Value)
         {
-            int currentAlivePlayer = 0;
-            NetworkPlayer winner = null;
-            foreach (KeyValuePair<NetworkPlayer, bool> entry in playerAliveDict)
-            {
-                currentAlivePlayer++;
-                if (currentAlivePlayer == 1)
-                    winner = entry.Key;
-                else if (currentAlivePlayer > 1)
-                    break;
-            }
-            //if (currentAlivePlayer == 1) Debug.Log("Winner: " + winner.NetworkObject.GetInstanceID());
+
         }
     }
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        Debug.Log("GameManager OnNetworkSpawn");
-        NetworkSpawned.Value = true;
+        networkSpawned.Value = true;
+        if (IsServer) StartCoroutine(GameLoop());
     }
 
-    public void AddPlayer(NetworkBehaviourReference player)
+    IEnumerator GameLoop()
     {
-        // players.Add(player);
-        // NetworkPlayer p;
-        // if (player.TryGet(out p))
-        // {
-        //     playerAliveDict.Add(p, true);
-        // }
+        Debug.Log("Awaiting Players...");
+        currentGamePhase = GamePhase.WaitingForPlayers;
+        yield return new WaitUntil(() => players.Count >= miniumPlayerToStart);
+
+        Debug.Log("Begining game!");
+        currentGamePhase = GamePhase.InProgress;
+        yield return new WaitUntil(() => GameOver());
+
+        Debug.Log("Game Over!");
+        currentGamePhase = GamePhase.Done;
+        yield return new WaitForSeconds(5f);
+
+        networkManager.SceneManager.LoadScene("LobbyScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+    }
+
+    public void AddPlayer(NetworkPlayer player)
+    {
+        players.Add(player);
+        playerScoreDict.Add(player, 1);
+
+        player.OnDeath.AddListener(OnPlayerDeath);
+    }
+
+    public void RemovePlayer(NetworkPlayer player)
+    {
+        players.Remove(player);
+        playerScoreDict.Remove(player);
+
+        player.OnDeath.RemoveAllListeners();
+    }
+
+    public void OnPlayerSpawn(NetworkPlayer player)
+    {
+
+    }
+
+    public void OnPlayerDeath(NetworkPlayer player)
+    {
+        playerScoreDict[player] -= 1;
+    }
+
+    public bool GameOver()
+    {
+        int currentAlivePlayer = 0;
+        foreach (KeyValuePair<NetworkPlayer, int> entry in playerScoreDict)
+        {
+            if (entry.Value > 0) currentAlivePlayer++;
+            if (currentAlivePlayer > 1) return false;
+        }
+        return true;
     }
 }

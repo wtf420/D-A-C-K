@@ -16,9 +16,9 @@ public class SessionManager : MonoBehaviour
 
     private void OnDisconnection(ulong ID)
     {
-        NetworkManager.Singleton.OnClientDisconnectCallback -= OnDisconnection;
-        if (NetworkManager.Singleton.IsClient)
+        if (NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
         {
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnDisconnection;
             Debug.Log("Disconnected!");
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;

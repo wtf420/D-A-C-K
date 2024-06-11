@@ -751,16 +751,19 @@ MonoBehaviour:
   maxFallingTime: 3
   rangeToInteract: 5
   animator: {fileID: 4885513983431928102}
+  defaultAnimatorController: {fileID: 9100000, guid: 34fdfd034ea01524ab9501e09b9a64fe,
+    type: 2}
   ragdoll: {fileID: 3505399903176981747}
   shirtMaterial: {fileID: 2100000, guid: ae116c532a8899e44a78171cb0de0d3d, type: 2}
   renderer: {fileID: 7724685924857804189}
+  playerColor: {r: 0, g: 0, b: 0, a: 0}
   playerInput: {fileID: 8940947999746283133}
   screenCanvas: {fileID: 4371215151111452275}
   buttonPromptPrefab: {fileID: 7962680770915283319, guid: b70038d361ac3af40823e79bf9283974,
     type: 3}
   weapon: {fileID: 0}
   weaponHeldTransform: {fileID: 8136014136987554166}
-  testWeapon: {fileID: 3706916799845983500, guid: ecb480d87c36ac242bc4b2eb395d9904,
+  testWeapon: {fileID: 8861618190684403599, guid: ecb480d87c36ac242bc4b2eb395d9904,
     type: 3}
   <NetworkObject>k__BackingField: {fileID: 5862384184944065004}
   controlPlayer: {fileID: 0}
@@ -768,6 +771,8 @@ MonoBehaviour:
     m_InternalValue: 0
   networkSpawned:
     m_InternalValue: 0
+  healthPoint:
+    m_InternalValue: 100
 --- !u!114 &8940947999746283133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1133,7 +1138,7 @@ Animator:
   m_GameObject: {fileID: 3184655465574907151}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 34fdfd034ea01524ab9501e09b9a64fe, type: 2}
+  m_Controller: {fileID: 22100000, guid: 28729c093f3c0ef4a871e003bf65831b, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -1156,14 +1161,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 553b8e7777f189b43b4e1c93d6f66671, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TransitionStateInfoList:
-  - IsCrossFadeExit: 0
-    Layer: 1
-    OriginatingState: 2081823275
-    DestinationState: 1080829965
-    TransitionDuration: 0
-    TriggerNameHash: 1080829965
-    TransitionIndex: 0
+  TransitionStateInfoList: []
   m_Animator: {fileID: 4885513983431928102}
 --- !u!114 &2468251565647515663
 MonoBehaviour:

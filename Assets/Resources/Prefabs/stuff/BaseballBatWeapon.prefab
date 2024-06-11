@@ -10,9 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2572292489116858478}
   - component: {fileID: -7609268020328496242}
-  - component: {fileID: 3706916799845983500}
-  - component: {fileID: 8859823959846416736}
   - component: {fileID: 3295155591562747927}
+  - component: {fileID: 8861618190684403599}
   m_Layer: 0
   m_Name: BaseballBatWeapon
   m_TagString: Untagged
@@ -48,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3207006609
+  GlobalObjectIdHash: 3323016966
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -57,59 +56,6 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &3706916799845983500
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6812531860756211609}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0b32e63e9324d50488e18b50703e50c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  wielder: {fileID: 0}
-  parentConstraint: {fileID: 3295155591562747927}
-  range: 3
-  attackAngle: 60
-  minDistance: 0.5
-  coolDown: 1
-  timing: 0.1
-  damage: 40
-  networkSpawned:
-    m_InternalValue: 0
---- !u!114 &8859823959846416736
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6812531860756211609}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4908c1573f5d4f6479a54f08f7fc3253, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UseUnreliableDeltas: 0
-  SyncPositionX: 1
-  SyncPositionY: 1
-  SyncPositionZ: 1
-  SyncRotAngleX: 1
-  SyncRotAngleY: 1
-  SyncRotAngleZ: 1
-  SyncScaleX: 0
-  SyncScaleY: 0
-  SyncScaleZ: 0
-  PositionThreshold: 0.001
-  RotAngleThreshold: 0.01
-  ScaleThreshold: 0.01
-  UseQuaternionSynchronization: 0
-  UseQuaternionCompression: 0
-  UseHalfFloatPrecision: 0
-  InLocalSpace: 0
-  Interpolate: 1
-  SlerpPosition: 0
 --- !u!1773428102 &3295155591562747927
 ParentConstraint:
   m_ObjectHideFlags: 0
@@ -137,6 +83,28 @@ ParentConstraint:
   m_Sources:
   - sourceTransform: {fileID: 0}
     weight: 1
+--- !u!114 &8861618190684403599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6812531860756211609}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02459378191872048b1a6adc53dfdb29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  parentConstraint: {fileID: 3295155591562747927}
+  <wielder>k__BackingField: {fileID: 0}
+  <animatorOverrideController>k__BackingField: {fileID: 22100000, guid: 28729c093f3c0ef4a871e003bf65831b,
+    type: 2}
+  delayBetweenAttacks: 1.5
+  range: 3
+  attackAngle: 90
+  minDistance: 0
+  timing: 0.5
+  damage: 100
 --- !u!1 &8437853814842740681
 GameObject:
   m_ObjectHideFlags: 0
