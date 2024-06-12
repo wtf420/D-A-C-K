@@ -114,8 +114,10 @@ public class ThirdPersonController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        InitializeData();
+
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
+        controlPlayerNetworkBehaviourReference.OnValueChanged += OnCurrentCharacterChanged;
+        weaponNetworkBehaviourReference.OnValueChanged += OnWeaponChanged;
         Debug.Log(NetworkObjectId + " has spawned ");
     }
 
@@ -123,6 +125,29 @@ public class ThirdPersonController : NetworkBehaviour
     {
         base.OnNetworkDespawn();
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
+        controlPlayerNetworkBehaviourReference.OnValueChanged -= OnCurrentCharacterChanged;
+        weaponNetworkBehaviourReference.OnValueChanged -= OnWeaponChanged;
+    }
+
+    public void OnCurrentCharacterChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current)
+    {
+        if (current.TryGet(out NetworkPlayer player))
+        {
+            this.controlPlayer = player;
+            if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
+            {
+                shirtMaterial.color = color;
+            }
+        }
+    }
+
+    public void OnWeaponChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current)
+    {
+        if (weaponNetworkBehaviourReference.Value.TryGet(out Weapon weapon))
+        { 
+            this.weapon = weapon; 
+        }
+        SetWeapon();
     }
 
     public void SyncDataAsLateJoiner(ulong clientID)
@@ -132,9 +157,9 @@ public class ThirdPersonController : NetworkBehaviour
             Debug.Log("SyncDataAsLateJoiner");
             if (IsClient && !IsHost)
             {
-                weaponNetworkBehaviourReference.Value.TryGet(out Weapon dataweapon);
-                Debug.Log(NetworkObjectId + " | " + dataweapon);
-                SetWeapon(dataweapon);
+                weaponNetworkBehaviourReference.Value.TryGet(out Weapon weapon);
+                this.weapon = weapon;
+                SetWeapon();
 
                 if (controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer player))
                 {
@@ -149,27 +174,29 @@ public class ThirdPersonController : NetworkBehaviour
         }
     }
 
-    void Testing()
-    {
-        weapon = Instantiate(testWeapon);
-        weapon.NetworkObject.Spawn(true);
-        SetWeaponRpc(weapon);
-    }
-
     // Update is called once per frame
     void Update()
     {
         isGrounded = GroundCheck(maxGroundCheckRadius);
         if (!IsOwner) return;
-        if (Input.GetKeyDown(KeyCode.UpArrow)) Testing();
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        if (IsServer) // testing purposes
         {
-            if (weapon)
-            {
-                weapon.NetworkObject.Despawn();
-                this.SetWeaponRpc(default);
+            if (Input.GetKeyDown(KeyCode.UpArrow)) {
+                weapon = Instantiate(testWeapon);
+                weapon.NetworkObject.Spawn(true);
+                weapon.wielderNetworkBehaviourReference.Value = this;
+                weaponNetworkBehaviourReference.Value = weapon;
             }
-        };
+            if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                if (weapon)
+                {
+                    weapon.wielderNetworkBehaviourReference.Value = default;
+                    weapon.NetworkObject.Despawn();
+                    weaponNetworkBehaviourReference.Value =  default;
+                }
+            }
+        }
 
         if (movementEnabled) PlayerMovement();
         CheckForInteractables();
@@ -185,13 +212,6 @@ public class ThirdPersonController : NetworkBehaviour
     #endregion MonoBehaviourMethods
 
     #region RPCs
-    [Rpc(SendTo.Everyone)]
-    public void SetWeaponRpc(NetworkBehaviourReference networkBehaviourReference)
-    {
-        networkBehaviourReference.TryGet(out Weapon weapon);
-        SetWeapon(weapon);
-    }
-
     [Rpc(SendTo.Server)] //Server mark complete server spawn process
     public void TakeDamageRpc(float damage)
     {
@@ -200,15 +220,6 @@ public class ThirdPersonController : NetworkBehaviour
         {
             KillRpc();
         }
-    }
-
-    [Rpc(SendTo.Everyone)]
-    public void InitializeDataRpc(NetworkBehaviourReference networkBehaviourReference)
-    {
-        Debug.Log("InitializeDataRpc");
-        networkBehaviourReference.TryGet(out NetworkPlayer player);
-        if (player != null) controlPlayer = player;
-        InitializeData();
     }
 
     [Rpc(SendTo.Everyone)]
@@ -412,34 +423,15 @@ public class ThirdPersonController : NetworkBehaviour
     #endregion
 
     #region Methods
-    public void InitializeData()
-    {
-        if (controlPlayer)
-        {
-            if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
-            {
-                shirtMaterial.color = color;
-            }
-        }
-    }
-
-    public void SetWeapon(Weapon weapon)
+    public void SetWeapon()
     {
         if (weapon)
         {
-            this.weapon = weapon;
-            if (IsServer) weaponNetworkBehaviourReference.Value = weapon;
-
             animator.SetLayerWeight(animator.GetLayerIndex("Weapon"), 1);
             animator.runtimeAnimatorController = weapon.animatorOverrideController;
-
-            weapon.SetWielder(this);
         }
         else
         {
-            this.weapon = null;
-            if (IsServer) weaponNetworkBehaviourReference.Value = default;
-
             animator.SetLayerWeight(animator.GetLayerIndex("Weapon"), 0);
             animator.Rebind();
         }

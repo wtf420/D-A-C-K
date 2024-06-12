@@ -39,14 +39,18 @@ public class NetworkPlayer : NetworkBehaviour
         if (IsOwner) playerJoinCanvas.SetActive(true);
         else playerJoinCanvas.SetActive(false);
         if (IsServer) StartCoroutine(InitializeOnServer());
+        
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
+        currentCharacterNetworkBehaviourReference.OnValueChanged += OnCurrentCharacterChanged;
     }
 
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
-        NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
         spawnButton.onClick.RemoveAllListeners();
+
+        NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
+        currentCharacterNetworkBehaviourReference.OnValueChanged -= OnCurrentCharacterChanged;
 
         if (IsServer)
         {
@@ -70,6 +74,14 @@ public class NetworkPlayer : NetworkBehaviour
         }
 
     }
+
+    public void OnCurrentCharacterChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current)
+    {
+        if (current.TryGet(out ThirdPersonController character))
+        {
+            this.currentCharacter = character;
+        }
+    }
     #endregion
 
     IEnumerator InitializeOnServer()
@@ -91,36 +103,19 @@ public class NetworkPlayer : NetworkBehaviour
         {
             spawnButton.gameObject.SetActive(false);
             OnSpawn?.Invoke(this);
-            StartCoroutine(SpawnCharacterOnServer());
+            currentCharacter = Instantiate(thirdPersonControllerPrefab, null);
+            currentCharacter.NetworkObject.SpawnWithOwnership(this.OwnerClientId, true);
+
+            // Initialize data
+            currentCharacterNetworkBehaviourReference.Value = currentCharacter;
+            currentCharacter.controlPlayerNetworkBehaviourReference.Value = this;
         }
-    }
-
-    [Rpc(SendTo.NotServer)]
-    public void SpawnCharacterOnClientRpc(NetworkBehaviourReference networkBehaviourReference)
-    {
-        if (networkBehaviourReference.TryGet(out ThirdPersonController character))
-        {
-            this.currentCharacter = character;
-        }
-    }
-
-    IEnumerator SpawnCharacterOnServer()
-    {
-        currentCharacter = Instantiate(thirdPersonControllerPrefab, null);
-        currentCharacter.NetworkObject.SpawnWithOwnership(this.OwnerClientId, true);
-        
-        // Initialize data
-        currentCharacterNetworkBehaviourReference.Value = currentCharacter;
-        currentCharacter.controlPlayerNetworkBehaviourReference.Value = this;
-
-        yield return new WaitUntil(() => currentCharacter.IsSpawned);
-        SpawnCharacterOnClientRpc(currentCharacter);
-        currentCharacter.InitializeDataRpc(this);
     }
 
     [Rpc(SendTo.Server)]
     public void KillCharacterRpc()
     {
+        currentCharacterNetworkBehaviourReference.Value = default;
         //currentCharacter.NetworkObject.Despawn(true);
         StartCoroutine(RespawnCharacter());
         OnDeath?.Invoke(this);

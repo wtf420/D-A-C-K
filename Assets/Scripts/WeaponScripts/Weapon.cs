@@ -20,11 +20,14 @@ public class Weapon : NetworkBehaviour
     {
         base.OnNetworkSpawn();
         networkSpawned = true;
+
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
+        wielderNetworkBehaviourReference.OnValueChanged += OnWielderChanged;
+
         Debug.Log(NetworkManager.LocalClientId + " has spawned ");
     }
 
-    public void SyncDataAsLateJoiner(ulong clientID)
+    public virtual void SyncDataAsLateJoiner(ulong clientID)
     {
         Debug.Log(this + "SyncDataAsLateJoiner: " + NetworkObjectId);
         if (clientID == NetworkManager.LocalClientId)
@@ -32,8 +35,7 @@ public class Weapon : NetworkBehaviour
             if (IsClient && !IsHost)
             {
                 wielderNetworkBehaviourReference.Value.TryGet(out ThirdPersonController player);
-                Debug.Log(player);
-                SetWielder(player);
+                wielder = player;
             }
             NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
         }
@@ -43,12 +45,15 @@ public class Weapon : NetworkBehaviour
     {
         base.OnNetworkDespawn();
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
+        wielderNetworkBehaviourReference.OnValueChanged -= OnWielderChanged;
     }
 
-    public virtual void SetWielder(ThirdPersonController player)
+    public virtual void OnWielderChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current)
     {
-        wielder = player;
-        if (IsServer && player != null) wielderNetworkBehaviourReference.Value = player;
+        if (current.TryGet(out ThirdPersonController character))
+        {
+            wielder = character;
+        }
     }
 
     [Rpc(SendTo.Server)]

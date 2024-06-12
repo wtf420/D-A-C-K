@@ -9,13 +9,19 @@ public class BaseballBat : Weapon
     public float timing;
     public float damage;
 
-    public void SetConstraint(ThirdPersonController player)
+    public override void SyncDataAsLateJoiner(ulong clientID)
     {
-        if (player)
+        base.SyncDataAsLateJoiner(clientID);
+        SetConstraint();
+    }
+
+    public void SetConstraint()
+    {
+        if (wielder)
         {
             ConstraintSource constraintSource = new ConstraintSource
             {
-                sourceTransform = player.weaponHeldTransform,
+                sourceTransform = wielder.weaponHeldTransform,
                 weight = 1,
             };
             parentConstraint.SetSource(0, constraintSource);
@@ -25,10 +31,10 @@ public class BaseballBat : Weapon
         }
     }
 
-    public override void SetWielder(ThirdPersonController player)
+    public override void OnWielderChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current)
     {
-        base.SetWielder(player);
-        SetConstraint(player);
+        base.OnWielderChanged(previous, current);
+        SetConstraint();
     }
 
     [Rpc(SendTo.Server)]
