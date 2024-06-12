@@ -352,6 +352,7 @@ MonoBehaviour:
     type: 3}
   flexibleColorPicker: {fileID: 7640571938176062679}
   playerJoinCanvas: {fileID: 8393479684578092374}
+  spawnButton: {fileID: 5723560246650173346}
   playerColor:
     m_InternalValue:
       utf8LengthInBytes: 6
@@ -388,6 +389,12 @@ MonoBehaviour:
         byte0028: 0
         byte0029: 0
   currentCharacter: {fileID: 0}
+  OnSpawn:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDeath:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &8393479684578092374
 GameObject:
   m_ObjectHideFlags: 0

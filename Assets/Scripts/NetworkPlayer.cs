@@ -4,12 +4,15 @@ using Unity.Netcode;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class NetworkPlayer : NetworkBehaviour
 {
     [SerializeField] ThirdPersonController thirdPersonControllerPrefab;
     [SerializeField] FlexibleColorPicker flexibleColorPicker;
     [SerializeField] GameObject playerJoinCanvas;
+
+    [SerializeField] Button spawnButton;
 
     public NetworkVariable<NetworkBehaviourReference> currentCharacterNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<FixedString32Bytes> playerColor = new NetworkVariable<FixedString32Bytes>("123456", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
@@ -20,7 +23,7 @@ public class NetworkPlayer : NetworkBehaviour
     #region Monobehaviour & NetworkBehaviour
     void Awake()
     {
-        
+        spawnButton.onClick.AddListener(SpawnCharacterOnServerRpc);
     }
 
     //Late join data handle here
@@ -36,22 +39,42 @@ public class NetworkPlayer : NetworkBehaviour
         if (IsOwner) playerJoinCanvas.SetActive(true);
         else playerJoinCanvas.SetActive(false);
         if (IsServer) StartCoroutine(InitializeOnServer());
+        NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
     }
 
-    public void SyncDataAsLateJoiner()
+    public override void OnNetworkDespawn()
     {
-        
+        base.OnNetworkDespawn();
+        NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
+        spawnButton.onClick.RemoveAllListeners();
+
+        if (IsServer)
+        {
+            GameManager.Instance.RemovePlayer(this);
+        }
     }
 
-    public override void OnDestroy()
+    public void SyncDataAsLateJoiner(ulong clientID)
     {
-        base.OnDestroy();
+        if (clientID == NetworkManager.LocalClientId)
+        {
+            Debug.Log("SyncDataAsLateJoiner");
+            if (IsClient && !IsHost)
+            {
+                if (currentCharacterNetworkBehaviourReference.Value.TryGet(out ThirdPersonController character))
+                {
+                    this.currentCharacter = character;
+                }
+                NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
+            }
+        }
+
     }
     #endregion
 
     IEnumerator InitializeOnServer()
     {
-        yield return new WaitUntil(() => GameManager.Instance.networkSpawned.Value);
+        yield return new WaitUntil(() => GameManager.Instance.IsSpawned);
         GameManager.Instance.AddPlayer(this);
     }
 
@@ -62,12 +85,22 @@ public class NetworkPlayer : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    public void SpawnServerRpc()
+    public void SpawnCharacterOnServerRpc()
     {
         if (GameManager.Instance.playerScoreDict[this] > 0)
         {
+            spawnButton.gameObject.SetActive(false);
             OnSpawn?.Invoke(this);
             StartCoroutine(SpawnCharacterOnServer());
+        }
+    }
+
+    [Rpc(SendTo.NotServer)]
+    public void SpawnCharacterOnClientRpc(NetworkBehaviourReference networkBehaviourReference)
+    {
+        if (networkBehaviourReference.TryGet(out ThirdPersonController character))
+        {
+            this.currentCharacter = character;
         }
     }
 
@@ -79,10 +112,10 @@ public class NetworkPlayer : NetworkBehaviour
         // Initialize data
         currentCharacterNetworkBehaviourReference.Value = currentCharacter;
         currentCharacter.controlPlayerNetworkBehaviourReference.Value = this;
-        currentCharacter.InitializeDataRpc(this);
 
-        // Start syncing data to client
-        yield return new WaitUntil(() => currentCharacter.networkSpawned);
+        yield return new WaitUntil(() => currentCharacter.IsSpawned);
+        SpawnCharacterOnClientRpc(currentCharacter);
+        currentCharacter.InitializeDataRpc(this);
     }
 
     [Rpc(SendTo.Server)]
@@ -97,7 +130,7 @@ public class NetworkPlayer : NetworkBehaviour
     {
         yield return new WaitForSeconds(1f);
         currentCharacter.NetworkObject.Despawn(true);
-        SpawnServerRpc();
+        SpawnCharacterOnServerRpc();
     }
 }
 

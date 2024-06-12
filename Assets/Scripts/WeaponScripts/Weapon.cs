@@ -19,15 +19,30 @@ public class Weapon : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        if (IsClient && !IsHost) SyncDataAsLateJoiner();
         networkSpawned = true;
+        NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
+        Debug.Log(NetworkManager.LocalClientId + " has spawned ");
     }
 
-    public void SyncDataAsLateJoiner()
+    public void SyncDataAsLateJoiner(ulong clientID)
     {
-        wielderNetworkBehaviourReference.Value.TryGet(out ThirdPersonController player);
-        Debug.Log(player);
-        SetWielder(player);
+        Debug.Log(this + "SyncDataAsLateJoiner: " + NetworkObjectId);
+        if (clientID == NetworkManager.LocalClientId)
+        {
+            if (IsClient && !IsHost)
+            {
+                wielderNetworkBehaviourReference.Value.TryGet(out ThirdPersonController player);
+                Debug.Log(player);
+                SetWielder(player);
+            }
+            NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+        NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
     }
 
     public virtual void SetWielder(ThirdPersonController player)

@@ -16,7 +16,6 @@ public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance;
     public NetworkManager networkManager;
-    public NetworkVariable<bool> networkSpawned = new NetworkVariable<bool>(false);
     public List<NetworkPlayer> players = new List<NetworkPlayer>();
 
     [SerializeField] public Dictionary<NetworkPlayer, int> playerScoreDict = new Dictionary<NetworkPlayer, int>();
@@ -39,16 +38,11 @@ public class GameManager : NetworkBehaviour
     void Update()
     {
         if (!IsServer) return;
-        if (networkSpawned.Value)
-        {
-
-        }
     }
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        networkSpawned.Value = true;
         if (IsServer) StartCoroutine(GameLoop());
     }
 
@@ -66,7 +60,7 @@ public class GameManager : NetworkBehaviour
         currentGamePhase = GamePhase.Done;
         yield return new WaitForSeconds(5f);
 
-        networkManager.SceneManager.LoadScene("LobbyScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        // networkManager.SceneManager.LoadScene("LobbyScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
     public void AddPlayer(NetworkPlayer player)
