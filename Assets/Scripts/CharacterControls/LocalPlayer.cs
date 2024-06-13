@@ -23,22 +23,21 @@ public class LocalPlayer : MonoBehaviour
     void Awake()
     {
         DontDestroyOnLoad(this);
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnDisconnectedCallback;
-        NetworkManager.Singleton.OnClientConnectedCallback += OnConnectedCallback;
-
         if (Instance) Destroy(Instance.gameObject);
         Instance = this;
     }
 
     void Start()
     {
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnDisconnectedCallback;
+        NetworkManager.Singleton.OnClientConnectedCallback += OnConnectedCallback;
         StartCoroutine(Initialize());
     }
 
     IEnumerator Initialize()
     {
         yield return new WaitUntil(() => NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsHost);
-        networkPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject().GetComponent<NetworkPlayer>();
+        networkPlayer = NetworkManager.Singleton.LocalClient.PlayerObject.gameObject.GetComponent<NetworkPlayer>();
         // use the player object existance as a check for if the networkmanager has connected or not
         // yield return new WaitUntil(() => networkPlayer != null);
         yield return new WaitUntil(() => LevelManager.Instance.IsSpawned);

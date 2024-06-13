@@ -67,17 +67,5 @@ public class NetworkPlayer : NetworkBehaviour
         }
     }
     #endregion
-
-    IEnumerator InitializeOnServer()
-    {
-        yield return new WaitUntil(() => LevelManager.Instance.IsSpawned);
-        LevelManager.Instance.AddPlayer(this);
-    }
-
-    [Rpc(SendTo.Server)]
-    public void NewPlayerOnServerRpc()
-    {
-        LevelManager.Instance.AddPlayer(this);
-    }
 }
 

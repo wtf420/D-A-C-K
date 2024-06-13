@@ -12,11 +12,20 @@ public class Test : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        startButton.onClick.AddListener(() => {
+        startButton.onClick.AddListener(() =>
+        {
             NetworkManager.Singleton.StartHost();
-            NetworkManager.Singleton.SceneManager.LoadScene("TestingScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+
         });
         joinButton.onClick.AddListener(() => NetworkManager.Singleton.StartClient());
+    }
+
+    void Update()
+    {
+        if (NetworkManager.Singleton.IsHost && Input.GetKeyDown(KeyCode.Space))
+        {
+            NetworkManager.Singleton.SceneManager.LoadScene("TestingScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        }
     }
 
     void OnDestroy()

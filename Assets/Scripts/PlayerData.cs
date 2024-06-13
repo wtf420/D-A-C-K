@@ -10,6 +10,6 @@ public class PlayerData : MonoBehaviour
 
     public void Start()
     {
-        DontDestroyOnLoad(this);
+        //DontDestroyOnLoad(this);
     }
 }
