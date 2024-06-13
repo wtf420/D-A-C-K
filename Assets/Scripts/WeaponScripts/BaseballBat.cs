@@ -9,9 +9,9 @@ public class BaseballBat : Weapon
     public float timing;
     public float damage;
 
-    public override void SyncDataAsLateJoiner(ulong clientID)
+    public override void SyncDataAsLateJoiner(ulong clientId)
     {
-        base.SyncDataAsLateJoiner(clientID);
+        base.SyncDataAsLateJoiner(clientId);
         SetConstraint();
     }
 

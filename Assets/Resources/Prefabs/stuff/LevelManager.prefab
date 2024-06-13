@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2893268896889095416}
   - component: {fileID: 5134851880547136676}
-  - component: {fileID: 8493391406145698108}
+  - component: {fileID: 675882572066338128}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: LevelManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,8 +45,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1785503949
-  InScenePlacedSourceGlobalObjectIdHash: 799454900
+  GlobalObjectIdHash: 4070832214
+  InScenePlacedSourceGlobalObjectIdHash: 1303071838
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
@@ -54,7 +54,7 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &8493391406145698108
+--- !u!114 &675882572066338128
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -63,8 +63,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1038630611186786801}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3d12801beb99aa41a53359759fb748e, type: 3}
+  m_Script: {fileID: 11500000, guid: 2b0591bc52fd2024da9f824e1afec4ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NetworkSpawned:
-    m_InternalValue: 0
+  networkManager: {fileID: 0}
+  players: []
+  miniumPlayerToStart: 2
+  currentLevelPhase: 0

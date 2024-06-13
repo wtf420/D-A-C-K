@@ -751,8 +751,6 @@ MonoBehaviour:
   maxFallingTime: 3
   rangeToInteract: 5
   animator: {fileID: 4885513983431928102}
-  defaultAnimatorController: {fileID: 9100000, guid: 34fdfd034ea01524ab9501e09b9a64fe,
-    type: 2}
   ragdoll: {fileID: 3505399903176981747}
   shirtMaterial: {fileID: 2100000, guid: ae116c532a8899e44a78171cb0de0d3d, type: 2}
   renderer: {fileID: 7724685924857804189}
@@ -768,8 +766,6 @@ MonoBehaviour:
   <NetworkObject>k__BackingField: {fileID: 5862384184944065004}
   controlPlayer: {fileID: 0}
   ragdollEnabled:
-    m_InternalValue: 0
-  networkSpawned:
     m_InternalValue: 0
   healthPoint:
     m_InternalValue: 100
@@ -895,9 +891,13 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 66f5972b-4d52-4789-a92b-1f0afb932dd8
     m_ActionName: New action map/Aim[/Mouse/rightButton]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 6d68a316-8a38-47b9-8c7f-80cfdf941f28
+    m_ActionName: UI/Return[/Keyboard/escape]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: New action map
+  m_DefaultActionMap: Character
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
 --- !u!114 &2062671228488013058

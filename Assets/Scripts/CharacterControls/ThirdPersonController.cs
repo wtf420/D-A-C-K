@@ -1,11 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
 using System.Linq;
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -114,7 +111,6 @@ public class ThirdPersonController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
         controlPlayerNetworkBehaviourReference.OnValueChanged += OnCurrentCharacterChanged;
         weaponNetworkBehaviourReference.OnValueChanged += OnWeaponChanged;
@@ -232,7 +228,7 @@ public class ThirdPersonController : NetworkBehaviour
             {
                 weapon.NetworkObject.Despawn(true);
             }
-            controlPlayer.KillCharacterRpc();
+            LevelManager.Instance.KillCharacterRpc(this, false);
         }
     }
 

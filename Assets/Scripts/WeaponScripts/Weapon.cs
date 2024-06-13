@@ -27,10 +27,10 @@ public class Weapon : NetworkBehaviour
         Debug.Log(NetworkManager.LocalClientId + " has spawned ");
     }
 
-    public virtual void SyncDataAsLateJoiner(ulong clientID)
+    public virtual void SyncDataAsLateJoiner(ulong clientId)
     {
         Debug.Log(this + "SyncDataAsLateJoiner: " + NetworkObjectId);
-        if (clientID == NetworkManager.LocalClientId)
+        if (clientId == NetworkManager.LocalClientId)
         {
             if (IsClient && !IsHost)
             {

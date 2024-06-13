@@ -2,7 +2,7 @@
     "name": "PlayerInput",
     "maps": [
         {
-            "name": "New action map",
+            "name": "Character",
             "id": "1c001cf7-2f06-4ccc-ab3b-fdcb9c740467",
             "actions": [
                 {
@@ -168,6 +168,34 @@
                     "processors": "",
                     "groups": "",
                     "action": "Aim",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "UI",
+            "id": "50579852-c5ce-4898-9599-da707ba2b7dc",
+            "actions": [
+                {
+                    "name": "Return",
+                    "type": "Button",
+                    "id": "6d68a316-8a38-47b9-8c7f-80cfdf941f28",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "0b01e1e8-aff2-40bd-bc44-2707fc96da09",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Return",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

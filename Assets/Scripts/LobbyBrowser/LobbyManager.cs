@@ -20,7 +20,8 @@ public class LobbyManager : MonoBehaviour
     {
         if (Instance == null)
         {
-            Instance = this;
+            if (Instance) Destroy(Instance.gameObject);
+        Instance = this;
         } else
         {
             Destroy(gameObject);
