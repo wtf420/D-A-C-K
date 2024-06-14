@@ -31,11 +31,6 @@ public class NetworkPlayer : NetworkBehaviour
         base.OnNetworkDespawn();
 
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
-
-        if (IsServer)
-        {
-            LevelManager.Instance.RemovePlayer(this);
-        }
     }
 
     public void SyncDataAsLateJoiner(ulong clientId)

@@ -64,14 +64,15 @@ public class LevelManager : NetworkBehaviour
     [SerializeField] public int miniumPlayerToStart = 4;
     [SerializeField] LevelStatus currentLevelPhase;
 
-    [SerializeField] NetworkList<PlayerLevelInfo> PlayerLevelInfoNetworkList = new NetworkList<PlayerLevelInfo>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    [SerializeField] List<PlayerLevelInfo> PlayerLevelInfoLocalList;
+    [SerializeField] NetworkList<PlayerLevelInfo> PlayerLevelInfoNetworkList;
+    [SerializeField] List<PlayerLevelInfo> PlayerLevelInfoLocalList = new List<PlayerLevelInfo>();
     // public UnityEvent<ThirdPersonController> OnPlayerSpawn, OnPlayerDeath;
 
     void Awake()
     {
         if (Instance) Destroy(Instance.gameObject);
         Instance = this;
+        PlayerLevelInfoNetworkList = new NetworkList<PlayerLevelInfo>();
     }
 
     // Start is called before the first frame update
@@ -99,10 +100,10 @@ public class LevelManager : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        base.OnNetworkDespawn();
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnDisconnectedCallback;
         NetworkManager.Singleton.OnClientConnectedCallback -= OnConnectedCallback;
         PlayerLevelInfoNetworkList.OnListChanged -= OnListChanged;
-        base.OnNetworkDespawn();
     }
 
     private void OnListChanged(NetworkListEvent<PlayerLevelInfo> changeEvent)
@@ -124,12 +125,23 @@ public class LevelManager : NetworkBehaviour
         else
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
-            OnListChanged(default);
+            // since this does not require any external data, you can SyncDataAsLateJoiner here instead of NetworkManager.Singleton.SceneManager.OnSynchronizeComplete
+            SyncDataAsLateJoiner();
         }
+    }
+
+    private void SyncDataAsLateJoiner()
+    {
+        // manually refresh list
+        OnListChanged(default);
     }
 
     private void OnDisconnectedCallback(ulong clientId)
     {
+        if (IsServer && PlayerLevelInfoLocalList.Any(x => x.clientId == clientId))
+        {
+            RemovePlayer(clientId);
+        }
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             Debug.Log("Player " + clientId + " disconnected.");
@@ -176,6 +188,12 @@ public class LevelManager : NetworkBehaviour
     public void RemovePlayer(NetworkPlayer player)
     {
         PlayerLevelInfo info = PlayerLevelInfoLocalList.Find(x => x.networkPlayer == player);
+        PlayerLevelInfoNetworkList.Remove(info);
+    }
+
+    public void RemovePlayer(ulong clientId)
+    {
+        PlayerLevelInfo info = PlayerLevelInfoLocalList.Find(x => x.clientId == clientId);
         PlayerLevelInfoNetworkList.Remove(info);
     }
 
