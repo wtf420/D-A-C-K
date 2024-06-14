@@ -3,6 +3,7 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LocalPlayer : MonoBehaviour
@@ -14,6 +15,7 @@ public class LocalPlayer : MonoBehaviour
     [field: SerializeField] PlayerData playerData;
     [field: SerializeField] PlayerInput playerInput;
     [field: SerializeField] Button spawnButton;
+    [field: SerializeField] Button exitToMainMenuButton;
 
     [field: SerializeField] GameObject spawnCanvas;
     [field: SerializeField] GameObject networkCanvas;
@@ -34,6 +36,12 @@ public class LocalPlayer : MonoBehaviour
         StartCoroutine(Initialize());
     }
 
+    private void ExitToMainMenu()
+    {
+        NetworkManager.Singleton.Shutdown();
+        SceneManager.LoadScene("LobbyScene");
+    }
+
     IEnumerator Initialize()
     {
         yield return new WaitUntil(() => NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsHost);
@@ -43,6 +51,7 @@ public class LocalPlayer : MonoBehaviour
         yield return new WaitUntil(() => LevelManager.Instance.IsSpawned);
         spawnCanvas.SetActive(true);
         spawnButton.onClick.AddListener(() => LevelManager.Instance.SpawnCharacterRpc(networkPlayer));
+        exitToMainMenuButton.onClick.AddListener(ExitToMainMenu);
     }
 
     private void OnConnectedCallback(ulong clientId)
@@ -59,7 +68,9 @@ public class LocalPlayer : MonoBehaviour
     {
         if (NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
         {
+            exitToMainMenuButton.onClick.RemoveAllListeners();
             spawnButton.onClick.RemoveAllListeners();
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnConnectedCallback;
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnDisconnectedCallback;
             Debug.Log("Disconnected!");
             Cursor.lockState = CursorLockMode.None;

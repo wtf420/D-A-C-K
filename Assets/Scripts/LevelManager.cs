@@ -172,6 +172,7 @@ public class LevelManager : NetworkBehaviour
         // level is loaded after begin host, get players
         foreach (NetworkPlayer networkPlayer in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.InstanceID))
         {
+            if (!PlayerLevelInfoList.SomeDataToSynchronize.Any(x => x.clientId == networkPlayer.OwnerClientId))
             AddPlayer(networkPlayer);
         }
 
@@ -222,7 +223,7 @@ public class LevelManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void SpawnCharacterRpc(NetworkBehaviourReference playerReference)
     {
-        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.Single(x => x.networkPlayer.Equals(playerReference));
+        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.First(x => x.networkPlayer.Equals(playerReference));
         ThirdPersonController character = Instantiate(characterPlayerPrefab, null);
         character.NetworkObject.SpawnWithOwnership(info.clientId, true);
 
@@ -234,7 +235,7 @@ public class LevelManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void KillCharacterRpc(NetworkBehaviourReference playerReference, bool destroy = true)
     {
-        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.Where(x => x.networkPlayer.Equals(playerReference)).FirstOrDefault();
+        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.First(x => x.networkPlayer.Equals(playerReference));
         if (info.character.TryGet(out ThirdPersonController character))
         {
             character.NetworkObject.Despawn(destroy);
@@ -246,7 +247,7 @@ public class LevelManager : NetworkBehaviour
     public void RespawnCharacterRpc(NetworkBehaviourReference playerReference, float respawnTime = 1f, bool destroy = true)
     {
         Debug.Log("RespawnCharacterRpc");
-        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.Where(x => x.networkPlayer.Equals(playerReference)).FirstOrDefault();
+        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.First(x => x.networkPlayer.Equals(playerReference));
         if (info.character.TryGet(out ThirdPersonController character))
         {
             character.NetworkObject.Despawn(destroy);
