@@ -9,15 +9,15 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
-public enum LevelPhase
+public enum LevelStatus
 {
     WaitingForPlayers,
     InProgress,
     Done
 }
 
+#region PlayerLevelInfo
 [Serializable]
-[HideInInspector]
 public struct PlayerLevelInfo : INetworkSerializable, IEquatable<PlayerLevelInfo>
 {
     public ulong clientId;
@@ -30,6 +30,7 @@ public struct PlayerLevelInfo : INetworkSerializable, IEquatable<PlayerLevelInfo
         if (serializer.IsReader)
         {
             var reader = serializer.GetFastBufferReader();
+            reader.ReadValueSafe(out clientId);
             reader.ReadValueSafe(out networkPlayer);
             reader.ReadValueSafe(out character);
             reader.ReadValueSafe(out playerScore);
@@ -37,6 +38,7 @@ public struct PlayerLevelInfo : INetworkSerializable, IEquatable<PlayerLevelInfo
         else
         {
             var writer = serializer.GetFastBufferWriter();
+            writer.WriteValueSafe(clientId);
             writer.WriteValueSafe(networkPlayer);
             writer.WriteValueSafe(character);
             writer.WriteValueSafe(playerScore);
@@ -45,63 +47,10 @@ public struct PlayerLevelInfo : INetworkSerializable, IEquatable<PlayerLevelInfo
 
     public bool Equals(PlayerLevelInfo other)
     {
-        return false;
+        return clientId == other.clientId;
     }
 }
-
-/// Bare minimum example of generic NetworkVariableBase derived class
-[Serializable]
-[GenerateSerializationForGenericParameter(0)]
-public class MyCustomGenericNetworkVariable<T> : NetworkVariableBase
-{
-    /// Managed list of class instances
-    public List<T> SomeDataToSynchronize = new List<T>();
-
-    /// <summary>
-    /// Writes the complete state of the variable to the writer
-    /// </summary>
-    /// <param name="writer">The stream to write the state to</param>
-    public override void WriteField(FastBufferWriter writer)
-    {
-        // Serialize the data we need to synchronize
-        writer.WriteValueSafe(SomeDataToSynchronize.Count);
-        for (var i = 0; i < SomeDataToSynchronize.Count; ++i)
-        {
-            var dataEntry = SomeDataToSynchronize[i];
-            // NetworkVariableSerialization<T> is used for serializing generic types
-            NetworkVariableSerialization<T>.Write(writer, ref dataEntry);
-        }
-    }
-
-    /// <summary>
-    /// Reads the complete state from the reader and applies it
-    /// </summary>
-    /// <param name="reader">The stream to read the state from</param>
-    public override void ReadField(FastBufferReader reader)
-    {
-        // De-Serialize the data being synchronized
-        var itemsToUpdate = (int)0;
-        reader.ReadValueSafe(out itemsToUpdate);
-        SomeDataToSynchronize.Clear();
-        for (int i = 0; i < itemsToUpdate; i++)
-        {
-            T newEntry = default;
-            // NetworkVariableSerialization<T> is used for serializing generic types
-            NetworkVariableSerialization<T>.Read(reader, ref newEntry);
-            SomeDataToSynchronize.Add(newEntry);
-        }
-    }
-
-    public override void ReadDelta(FastBufferReader reader, bool keepDirtyDelta)
-    {
-        // Do nothing for this example
-    }
-
-    public override void WriteDelta(FastBufferWriter writer)
-    {
-        // Do nothing for this example
-    }
-}
+#endregion
 
 // this will only update on the server
 public class LevelManager : NetworkBehaviour
@@ -113,10 +62,10 @@ public class LevelManager : NetworkBehaviour
     public ThirdPersonController characterPlayerPrefab;
 
     [SerializeField] public int miniumPlayerToStart = 4;
-    [SerializeField] LevelPhase currentLevelPhase;
+    [SerializeField] LevelStatus currentLevelPhase;
 
-    [SerializeField] MyCustomGenericNetworkVariable<PlayerLevelInfo> PlayerLevelInfoList;
-
+    [SerializeField] NetworkList<PlayerLevelInfo> PlayerLevelInfoNetworkList = new NetworkList<PlayerLevelInfo>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    [SerializeField] List<PlayerLevelInfo> PlayerLevelInfoLocalList;
     // public UnityEvent<ThirdPersonController> OnPlayerSpawn, OnPlayerDeath;
 
     void Awake()
@@ -129,29 +78,6 @@ public class LevelManager : NetworkBehaviour
     void Start()
     {
         networkManager = NetworkManager.Singleton;
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnDisconnectedCallback;
-        NetworkManager.Singleton.OnClientConnectedCallback += OnConnectedCallback;
-    }
-
-    private void OnConnectedCallback(ulong clientId)
-    {
-        if (IsServer && !PlayerLevelInfoList.SomeDataToSynchronize.Any(x => x.clientId == clientId))
-        {
-            AddPlayer(NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId).GetComponent<NetworkPlayer>());
-        }
-        else
-        if (clientId == NetworkManager.Singleton.LocalClientId)
-        {
-
-        }
-    }
-
-    private void OnDisconnectedCallback(ulong clientId)
-    {
-        if (clientId == NetworkManager.Singleton.LocalClientId)
-        {
-            Debug.Log("Player " + clientId + " disconnected.");
-        }
     }
 
     // Update is called once per frame
@@ -163,7 +89,51 @@ public class LevelManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnDisconnectedCallback;
+        NetworkManager.Singleton.OnClientConnectedCallback += OnConnectedCallback;
+        PlayerLevelInfoNetworkList.OnListChanged += OnListChanged;
+
         if (IsServer) StartCoroutine(GameLoop());
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        NetworkManager.Singleton.OnClientDisconnectCallback -= OnDisconnectedCallback;
+        NetworkManager.Singleton.OnClientConnectedCallback -= OnConnectedCallback;
+        PlayerLevelInfoNetworkList.OnListChanged -= OnListChanged;
+        base.OnNetworkDespawn();
+    }
+
+    private void OnListChanged(NetworkListEvent<PlayerLevelInfo> changeEvent)
+    {
+        Debug.Log("OnListChanged");
+        PlayerLevelInfoLocalList.Clear();
+        foreach (PlayerLevelInfo info in PlayerLevelInfoNetworkList)
+        {
+            PlayerLevelInfoLocalList.Add(info);
+        }
+    }
+
+    private void OnConnectedCallback(ulong clientId)
+    {
+        if (IsServer && !PlayerLevelInfoLocalList.Any(x => x.clientId == clientId))
+        {
+            AddPlayer(NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId).GetComponent<NetworkPlayer>());
+        }
+        else
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            OnListChanged(default);
+        }
+    }
+
+    private void OnDisconnectedCallback(ulong clientId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            Debug.Log("Player " + clientId + " disconnected.");
+        }
     }
 
     IEnumerator GameLoop()
@@ -172,20 +142,20 @@ public class LevelManager : NetworkBehaviour
         // level is loaded after begin host, get players
         foreach (NetworkPlayer networkPlayer in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.InstanceID))
         {
-            if (!PlayerLevelInfoList.SomeDataToSynchronize.Any(x => x.clientId == networkPlayer.OwnerClientId))
+            if (!PlayerLevelInfoLocalList.Any(x => x.clientId == networkPlayer.OwnerClientId))
             AddPlayer(networkPlayer);
         }
 
         Debug.Log("Awaiting Players...");
-        currentLevelPhase = LevelPhase.WaitingForPlayers;
-        yield return new WaitUntil(() => PlayerLevelInfoList.SomeDataToSynchronize.Count >= miniumPlayerToStart);
+        currentLevelPhase = LevelStatus.WaitingForPlayers;
+        yield return new WaitUntil(() => PlayerLevelInfoLocalList.Count >= miniumPlayerToStart);
 
         Debug.Log("Begining game!");
-        currentLevelPhase = LevelPhase.InProgress;
+        currentLevelPhase = LevelStatus.InProgress;
         yield return new WaitUntil(() => GameOver());
 
         Debug.Log("Game Over!");
-        currentLevelPhase = LevelPhase.Done;
+        currentLevelPhase = LevelStatus.Done;
         yield return new WaitForSeconds(5f);
 
         // networkManager.SceneManager.LoadScene("LobbyScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
@@ -200,13 +170,13 @@ public class LevelManager : NetworkBehaviour
             character = default,
             playerScore = 1
         };
-        PlayerLevelInfoList.SomeDataToSynchronize.Add(playerLevelInfo);
+        PlayerLevelInfoNetworkList.Add(playerLevelInfo);
     }
 
     public void RemovePlayer(NetworkPlayer player)
     {
-        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.Find(x => x.networkPlayer == player);
-        PlayerLevelInfoList.SomeDataToSynchronize.Remove(info);
+        PlayerLevelInfo info = PlayerLevelInfoLocalList.Find(x => x.networkPlayer == player);
+        PlayerLevelInfoNetworkList.Remove(info);
     }
 
     public void OnPlayerSpawn(NetworkPlayer player)
@@ -216,26 +186,28 @@ public class LevelManager : NetworkBehaviour
 
     public void OnPlayerDeath(NetworkPlayer player)
     {
-        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.Where(x => x.networkPlayer == player).FirstOrDefault();
+        PlayerLevelInfo info = PlayerLevelInfoLocalList.Where(x => x.networkPlayer == player).FirstOrDefault();
         info.playerScore--;
     }
 
     [Rpc(SendTo.Server)]
     public void SpawnCharacterRpc(NetworkBehaviourReference playerReference)
     {
-        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.First(x => x.networkPlayer.Equals(playerReference));
+        PlayerLevelInfo info = PlayerLevelInfoLocalList.First(x => x.networkPlayer.Equals(playerReference));
         ThirdPersonController character = Instantiate(characterPlayerPrefab, null);
         character.NetworkObject.SpawnWithOwnership(info.clientId, true);
 
         info.character = character;
         info.networkPlayer = character;
         info.character = playerReference;
+
+        character.controlPlayerNetworkBehaviourReference.Value = playerReference;
     }
 
     [Rpc(SendTo.Server)]
     public void KillCharacterRpc(NetworkBehaviourReference playerReference, bool destroy = true)
     {
-        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.First(x => x.networkPlayer.Equals(playerReference));
+        PlayerLevelInfo info = PlayerLevelInfoLocalList.First(x => x.networkPlayer.Equals(playerReference));
         if (info.character.TryGet(out ThirdPersonController character))
         {
             character.NetworkObject.Despawn(destroy);
@@ -247,7 +219,7 @@ public class LevelManager : NetworkBehaviour
     public void RespawnCharacterRpc(NetworkBehaviourReference playerReference, float respawnTime = 1f, bool destroy = true)
     {
         Debug.Log("RespawnCharacterRpc");
-        PlayerLevelInfo info = PlayerLevelInfoList.SomeDataToSynchronize.First(x => x.networkPlayer.Equals(playerReference));
+        PlayerLevelInfo info = PlayerLevelInfoLocalList.First(x => x.networkPlayer.Equals(playerReference));
         if (info.character.TryGet(out ThirdPersonController character))
         {
             character.NetworkObject.Despawn(destroy);
@@ -264,7 +236,7 @@ public class LevelManager : NetworkBehaviour
     public bool GameOver()
     {
         int currentAlivePlayer = 0;
-        foreach (PlayerLevelInfo info in PlayerLevelInfoList.SomeDataToSynchronize)
+        foreach (PlayerLevelInfo info in PlayerLevelInfoLocalList)
         {
             if (info.playerScore > 0) currentAlivePlayer++;
             if (currentAlivePlayer > 1) return false;

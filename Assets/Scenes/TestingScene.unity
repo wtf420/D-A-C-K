@@ -874,6 +874,7 @@ MonoBehaviour:
   playerData: {fileID: 0}
   playerInput: {fileID: 1297385806}
   spawnButton: {fileID: 8570015170564115097}
+  exitToMainMenuButton: {fileID: 1404513000}
   spawnCanvas: {fileID: 517748565}
   networkCanvas: {fileID: 4289912990698149603}
   connected: 0

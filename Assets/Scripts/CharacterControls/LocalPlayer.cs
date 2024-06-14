@@ -44,7 +44,8 @@ public class LocalPlayer : MonoBehaviour
 
     IEnumerator Initialize()
     {
-        yield return new WaitUntil(() => NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsHost);
+        yield return new WaitUntil(() => NetworkManager.Singleton.LocalClient.PlayerObject);
+        Debug.Log("Initialize");
         networkPlayer = NetworkManager.Singleton.LocalClient.PlayerObject.gameObject.GetComponent<NetworkPlayer>();
         // use the player object existance as a check for if the networkmanager has connected or not
         // yield return new WaitUntil(() => networkPlayer != null);
