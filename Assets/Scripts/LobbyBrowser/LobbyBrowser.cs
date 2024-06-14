@@ -17,7 +17,7 @@ public class LobbyBrowser : MonoBehaviour
     void Start()
     {
         RefreshButton.onClick.AddListener(UpdateLobbbyList);
-        CreateLobbyButton.onClick.AddListener(() => { _ = LobbyManager.Instance.CreateAndHostLobby(); UpdateLobbbyList(); });
+        CreateLobbyButton.onClick.AddListener(HostNewLobby);
         lobbyInfoUIItemList = new List<LobbyInfoUIItem>();
         lobbies = new List<Lobby>();
     }
@@ -32,6 +32,12 @@ public class LobbyBrowser : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void HostNewLobby()
+    {
+        Test.Instance.HostLobby();
+        UpdateLobbbyList();
     }
 
     public async void UpdateLobbbyList()

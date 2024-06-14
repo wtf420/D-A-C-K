@@ -19,7 +19,7 @@ public class LobbyInfoUIItem : MonoBehaviour
         LobbyPlayerCountText.text = lobby.Players.Count.ToString() + "/" + lobby.MaxPlayers.ToString();
         LobbyStatusText.text = lobby.Id;
         LobbyTypeText.text = lobby.IsPrivate.ToString();
-        joinLobbyButton.onClick.AddListener(() => LobbyManager.Instance.JoinGameFromLobby(lobby));
+        joinLobbyButton.onClick.AddListener(() => Test.Instance.JoinLobby(lobby));
     }
 
     // Start is called before the first frame update
