@@ -5,10 +5,12 @@ using UnityEngine;
 
 public class NetworkPlayer : NetworkBehaviour
 {
-    [SerializeField] ThirdPersonController thirdPersonControllerPrefab;
+    [field: SerializeField] ThirdPersonController thirdPersonControllerPrefab;
 
-    public NetworkVariable<FixedString32Bytes> playerName = new NetworkVariable<FixedString32Bytes>("SauceMaster", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<FixedString32Bytes> playerColor = new NetworkVariable<FixedString32Bytes>("123456", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    [field: SerializeField] public PlayerData playerData { get; private set; }
+
+    public NetworkVariable<FixedString32Bytes> playerName = new NetworkVariable<FixedString32Bytes>("playerName", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<FixedString32Bytes> playerColor = new NetworkVariable<FixedString32Bytes>("playerColor", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     #region Monobehaviour & NetworkBehaviour
     void Awake()
@@ -19,11 +21,16 @@ public class NetworkPlayer : NetworkBehaviour
     //sync or create network data
     public override void OnNetworkSpawn()
     {
+        if (IsOwner)
+        {
+            playerData = PersistentPlayer.Instance.playerData;
+            playerName.Value = playerData.PlayerName;
+            playerColor.Value = new string("#" + ColorUtility.ToHtmlStringRGBA(playerData.PlayerColor));
+        }
         base.OnNetworkSpawn();
         // if (IsServer) StartCoroutine(InitializeOnServer());
         
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
-
         NetworkBehaviourReference reference = this;
     }
 

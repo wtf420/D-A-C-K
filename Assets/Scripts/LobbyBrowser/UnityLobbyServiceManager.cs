@@ -8,13 +8,17 @@ using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using Unity.Netcode.Transports.UTP;
-using UnityEngine.UI;
+using UnityEngine.Events;
+using System;
 
 // For managing Lobby from Unity Lobby Package
 public class UnityLobbyServiceManager : MonoBehaviour
 {
     public static UnityLobbyServiceManager Instance;
+
     public Lobby joinedLobby = null;
+
+    public UnityEvent OnLobbyChangedEvent, OnLobbyDeletedEvent, OnKickedFromLobbyEvent;
 
     void Awake()
     {
@@ -27,22 +31,13 @@ public class UnityLobbyServiceManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        InnitializeUnityAuthentication();
     }
 
     // Start is called before the first frame update
     void Start()
     {
         DontDestroyOnLoad(this);
-
-        InnitializeUnityAuthentication();
-    }
-
-    void OnDestroy()
-    {
-        if (joinedLobby != null)
-        {
-            DeleteLobby();
-        }
     }
 
     async void InnitializeUnityAuthentication()
@@ -50,7 +45,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
         if (UnityServices.State != ServicesInitializationState.Initialized)
         {
             InitializationOptions initializationOptions = new InitializationOptions();
-            initializationOptions.SetProfile(Random.Range(0, 10000).ToString());
+            initializationOptions.SetProfile(UnityEngine.Random.Range(0, 10000).ToString());
             await UnityServices.InitializeAsync(initializationOptions);
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
             Debug.Log("Unity Authentication Successful");
@@ -72,10 +67,15 @@ public class UnityLobbyServiceManager : MonoBehaviour
                     data: new Dictionary<string, PlayerDataObject>()
                     {
                         {
-                            "ExampleMemberPlayerData", new PlayerDataObject(
+                            "Name", new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
-                                value: "ExampleMemberPlayerData")
-                        }
+                                value: "TestValue")
+                        },
+                        {
+                            "Status", new PlayerDataObject(
+                                visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
+                                value: "InLobby")
+                        },
                 }),
                 Data = new Dictionary<string, DataObject>()
                 {
@@ -94,9 +94,10 @@ public class UnityLobbyServiceManager : MonoBehaviour
             };
 
             Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, options);
-            joinedLobby = lobby;
-            //NetworkManager.Singleton.StartHost();
-            //NetworkManager.Singleton.SceneManager.LoadScene("TestingLevel", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            var callbacks = new LobbyEventCallbacks();
+            callbacks.LobbyChanged += OnLobbyChanged;
+            callbacks.KickedFromLobby += OnKickedFromLobby;
+            AddListenerToLobby(lobby, callbacks);
             Debug.Log("Lobby created successfully!");
             return lobby;
         }
@@ -136,18 +137,80 @@ public class UnityLobbyServiceManager : MonoBehaviour
         }
     }
 
-    public async void JoinLobby(Lobby lobby)
+    public async Task<Lobby> JoinLobby(Lobby lobby)
     {
-        if (joinedLobby == null && lobby == null)
+        try
         {
-            try
+            JoinLobbyByIdOptions options = new JoinLobbyByIdOptions
             {
-                await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id);
-            }
-            catch (LobbyServiceException e)
+                // Ensure you sign-in before calling Authentication Instance.
+                // See IAuthenticationService interface.
+                Player = new Player(
+                    id: AuthenticationService.Instance.PlayerId,
+                    data: new Dictionary<string, PlayerDataObject>()
+                    {
+                        {
+                            "Name", new PlayerDataObject(
+                                visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
+                                value: "TestValue")
+                        },
+                        {
+                            "Status", new PlayerDataObject(
+                                visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
+                                value: "InLobby")
+                        },
+                    })
+            };
+            Lobby resultLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id, options);
+
+            var callbacks = new LobbyEventCallbacks();
+            callbacks.LobbyChanged += OnLobbyChanged;
+            callbacks.KickedFromLobby += OnKickedFromLobby;
+            AddListenerToLobby(lobby, callbacks);
+            return resultLobby;
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.Log(e);
+            return null;
+        }
+    }
+
+    public async Task<Lobby> JoinLobbyViaLobbyCode(string lobbyCode)
+    {
+        try
+        {
+            JoinLobbyByCodeOptions options = new JoinLobbyByCodeOptions
             {
-                Debug.Log(e);
-            }
+                // Ensure you sign-in before calling Authentication Instance.
+                // See IAuthenticationService interface.
+                Player = new Player(
+                    id: AuthenticationService.Instance.PlayerId,
+                    data: new Dictionary<string, PlayerDataObject>()
+                    {
+                        {
+                            "Name", new PlayerDataObject(
+                                visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
+                                value: "TestValue")
+                        },
+                        {
+                            "Status", new PlayerDataObject(
+                                visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
+                                value: "InLobby")
+                        },
+                    })
+            };
+            Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, options);
+            var callbacks = new LobbyEventCallbacks();
+            callbacks.LobbyChanged += OnLobbyChanged;
+            callbacks.KickedFromLobby += OnKickedFromLobby;
+            AddListenerToLobby(lobby, callbacks);
+            return lobby;
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.Log(e);
+            return null;
         }
     }
 
@@ -175,19 +238,28 @@ public class UnityLobbyServiceManager : MonoBehaviour
     //     NetworkManager.Singleton.SceneManager.LoadScene("TestingLevel", UnityEngine.SceneManagement.LoadSceneMode.Single);
     // }
 
-    public async void JoinLobbyViaLobbyCode(string lobbyCode)
+    public async void AddListenerToLobby(Lobby lobby, LobbyEventCallbacks lobbyEventCallbacks)
     {
-        if (joinedLobby == null)
+        try
         {
-            try
+            await Lobbies.Instance.SubscribeToLobbyEventsAsync(lobby.Id, lobbyEventCallbacks);
+        }
+        catch (LobbyServiceException ex)
+        {
+            switch (ex.Reason)
             {
-                await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode);
-            }
-            catch (LobbyServiceException e)
-            {
-                Debug.Log(e);
+                case LobbyExceptionReason.AlreadySubscribedToLobby: Debug.LogWarning($"Already subscribed to lobby[{lobby.Id}]. We did not need to try and subscribe again. Exception Message: {ex.Message}"); break;
+                case LobbyExceptionReason.SubscriptionToLobbyLostWhileBusy: Debug.LogError($"Subscription to lobby events was lost while it was busy trying to subscribe. Exception Message: {ex.Message}"); throw;
+                case LobbyExceptionReason.LobbyEventServiceConnectionError: Debug.LogError($"Failed to connect to lobby events. Exception Message: {ex.Message}"); throw;
+                default: throw;
             }
         }
+    }
+
+    public async Task LeaveLobby()
+    {
+        string playerId = AuthenticationService.Instance.PlayerId;
+        await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
     }
 
     public IEnumerator HeartbeatLobbyCoroutine(float waitTimeSeconds)
@@ -197,9 +269,52 @@ public class UnityLobbyServiceManager : MonoBehaviour
 
         while (true)
         {
+            yield return PollForLobbyUpdates();
             LobbyService.Instance.SendHeartbeatPingAsync(joinedLobby.Id);
             Debug.Log("HeartbeatLobby");
             yield return delay;
         }
+    }
+
+    public async Task PollForLobbyUpdates()
+    {
+        try
+        {
+            joinedLobby = await LobbyService.Instance.GetLobbyAsync(joinedLobby.Id);
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.Log(e);
+        }
+    }
+
+    private void OnKickedFromLobby()
+    {
+        OnKickedFromLobbyEvent?.Invoke();
+    }
+
+    private void OnLobbyChanged(ILobbyChanges changes)
+    {
+        if (changes.LobbyDeleted)
+        {
+            joinedLobby = null;
+            OnLobbyDeletedEvent.Invoke();
+        }
+        else
+        {
+            changes.ApplyToLobby(joinedLobby);
+            OnLobbyChangedEvent.Invoke();
+        }
+    }
+
+    public string GetClientId()
+    {
+        return AuthenticationService.Instance.PlayerId;
+    }
+
+    public async Task<bool> IsHost()
+    {
+        await PollForLobbyUpdates();
+        return GetClientId() == joinedLobby.HostId;
     }
 }

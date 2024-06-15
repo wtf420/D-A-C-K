@@ -68,9 +68,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   thirdPersonControllerPrefab: {fileID: 6141844111371457217, guid: e50c5109bdcf0e14a8daf818a1833218,
     type: 3}
-  flexibleColorPicker: {fileID: 0}
-  playerJoinCanvas: {fileID: 0}
-  spawnButton: {fileID: 0}
+  playerName:
+    m_InternalValue:
+      utf8LengthInBytes: 11
+      bytes:
+        offset0000:
+          byte0000: 83
+          byte0001: 97
+          byte0002: 117
+          byte0003: 99
+          byte0004: 101
+          byte0005: 77
+          byte0006: 97
+          byte0007: 115
+          byte0008: 116
+          byte0009: 101
+          byte0010: 114
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
   playerColor:
     m_InternalValue:
       utf8LengthInBytes: 6
@@ -106,10 +138,3 @@ MonoBehaviour:
         byte0027: 0
         byte0028: 0
         byte0029: 0
-  currentCharacter: {fileID: 0}
-  OnSpawn:
-    m_PersistentCalls:
-      m_Calls: []
-  OnDeath:
-    m_PersistentCalls:
-      m_Calls: []

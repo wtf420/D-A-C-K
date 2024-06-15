@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,7 +17,10 @@ public class LobbyInfoUI : MonoBehaviour
     [field: SerializeField] GameObject playerLobbyInfoScrollviewContent;
     [field: SerializeField] PlayerLobbyInfoUIItem playerLobbyInfoUIItemPrefab;
 
-    CurrentLobbyInfo currentLobbyInfo;
+    public Lobby joinedLobby {
+        get { return UnityLobbyServiceManager.Instance.joinedLobby; }
+        set { UnityLobbyServiceManager.Instance.joinedLobby = value; }
+    }
     List<PlayerLobbyInfoUIItem> playerLobbyInfoUIItemList = new List<PlayerLobbyInfoUIItem>();
 
     void Awake()
@@ -25,6 +29,11 @@ public class LobbyInfoUI : MonoBehaviour
             Destroy(this.gameObject);
         else
             Instance = this;
+    }
+
+    void OnEnable()
+    {
+        UpdateLobby();
     }
 
     // Start is called before the first frame update
@@ -43,30 +52,31 @@ public class LobbyInfoUI : MonoBehaviour
 
     void Update()
     {
-        if (NetworkManager.Singleton.IsHost && Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            NetworkManager.Singleton.SceneManager.LoadScene("TestingScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            UpdateLobby();
         }
     }
 
     void OnDestroy()
     {
+        UnityLobbyServiceManager.Instance.LeaveLobby();
         startButton.onClick.RemoveAllListeners();
         joinButton.onClick.RemoveAllListeners();
         exitButton.onClick.RemoveAllListeners();
     }
 
-    public void UpdateLobby(CurrentLobbyInfo currentLobbyInfo)
+    public void UpdateLobby()
     {
-        this.currentLobbyInfo = currentLobbyInfo;
+        Debug.Log("UpdateLobby: " + joinedLobby.Players.Count);
         foreach (PlayerLobbyInfoUIItem item in playerLobbyInfoUIItemList)
         {
-            Destroy(item);
+            Destroy(item.gameObject);
         }
         playerLobbyInfoUIItemList.Clear();
 
-        if (currentLobbyInfo.PlayerLobbyInfoLocalList.Count == 0) return;
-        foreach (PlayerLobbyInfo player in currentLobbyInfo.PlayerLobbyInfoLocalList)
+        if (joinedLobby.Players.Count == 0) return;
+        foreach (Player player in joinedLobby.Players)
         {
             PlayerLobbyInfoUIItem InstantiateItem = Instantiate(playerLobbyInfoUIItemPrefab, playerLobbyInfoScrollviewContent.transform, false);
             InstantiateItem.Initialize(player);
@@ -76,10 +86,6 @@ public class LobbyInfoUI : MonoBehaviour
 
     public void ExitLobby()
     {
-        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
-            UnityLobbyServiceManager.Instance.DeleteLobby();
-        NetworkManager.Singleton.Shutdown();
-
-        Test.Instance.NavigateToLobbyBrowser();
+        Test.Instance.ExitLobby();
     }
 }

@@ -28,13 +28,12 @@ public class LobbyBrowser : MonoBehaviour
         CreateLobbyButton.onClick.RemoveAllListeners();
     }
 
-    // Update is called once per frame
-    void Update()
+    void OnEnable()
     {
-        
+        //UpdateLobbbyList();
     }
 
-    public void HostNewLobby()
+    private void HostNewLobby()
     {
         Test.Instance.HostLobby();
     }
