@@ -11,9 +11,9 @@ using Unity.Netcode.Transports.UTP;
 using UnityEngine.UI;
 
 // For managing Lobby from Unity Lobby Package
-public class LobbyManager : MonoBehaviour
+public class UnityLobbyServiceManager : MonoBehaviour
 {
-    public static LobbyManager Instance;
+    public static UnityLobbyServiceManager Instance;
     public Lobby joinedLobby = null;
 
     void Awake()

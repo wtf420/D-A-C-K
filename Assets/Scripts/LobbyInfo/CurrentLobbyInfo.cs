@@ -26,6 +26,13 @@ public struct PlayerLobbyInfo : INetworkSerializable, IEquatable<PlayerLobbyInfo
     public ulong clientId;
     public NetworkBehaviourReference networkPlayer;
     public PlayerLobbyStatus playerLobbyStatus;
+    public bool IsHost;
+
+    public NetworkPlayer GetNetworkPlayer()
+    {
+        networkPlayer.TryGet(out NetworkPlayer player);
+        return player;
+    }
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
@@ -58,9 +65,8 @@ public class CurrentLobbyInfo : NetworkBehaviour
     public NetworkManager networkManager;
 
     [SerializeField] LobbyStatus currentLobbyStatus;
-
-    [SerializeField] NetworkList<PlayerLobbyInfo> PlayerLobbyInfoNetworkList;
-    [SerializeField] List<PlayerLobbyInfo> PlayerLobbyInfoLocalList = new List<PlayerLobbyInfo>();
+    [SerializeField] public NetworkList<PlayerLobbyInfo> PlayerLobbyInfoNetworkList;
+    [SerializeField] public List<PlayerLobbyInfo> PlayerLobbyInfoLocalList = new List<PlayerLobbyInfo>();
     // public UnityEvent<ThirdPersonController> OnPlayerSpawn, OnPlayerDeath;
 
     void Awake()
@@ -92,7 +98,7 @@ public class CurrentLobbyInfo : NetworkBehaviour
         NetworkManager.Singleton.OnClientConnectedCallback += OnConnectedCallback;
         PlayerLobbyInfoNetworkList.OnListChanged += OnListChanged;
 
-        if (IsServer) StartCoroutine(LobbyManager.Instance.HeartbeatLobbyCoroutine(1f));
+        if (IsServer) StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine(1f));
     }
 
     public override void OnNetworkDespawn()
@@ -153,7 +159,8 @@ public class CurrentLobbyInfo : NetworkBehaviour
         {
             clientId = player.OwnerClientId,
             networkPlayer = player,
-            playerLobbyStatus = currentLobbyStatus == LobbyStatus.InLobby ? PlayerLobbyStatus.NotReady : PlayerLobbyStatus.InGame
+            playerLobbyStatus = currentLobbyStatus == LobbyStatus.InLobby ? PlayerLobbyStatus.NotReady : PlayerLobbyStatus.InGame,
+            IsHost = player.OwnerClientId == NetworkManager.ServerClientId ? true : false
         };
         PlayerLobbyInfoNetworkList.Add(PlayerLobbyInfo);
     }

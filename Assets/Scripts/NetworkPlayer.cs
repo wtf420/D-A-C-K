@@ -7,6 +7,7 @@ public class NetworkPlayer : NetworkBehaviour
 {
     [SerializeField] ThirdPersonController thirdPersonControllerPrefab;
 
+    public NetworkVariable<FixedString32Bytes> playerName = new NetworkVariable<FixedString32Bytes>("SauceMaster", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<FixedString32Bytes> playerColor = new NetworkVariable<FixedString32Bytes>("123456", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     #region Monobehaviour & NetworkBehaviour

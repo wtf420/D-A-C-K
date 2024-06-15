@@ -10,11 +10,8 @@ public class LobbyInfoUIItem : MonoBehaviour
     [SerializeField] TextMeshProUGUI LobbyNameText, LobbyPlayerCountText, LobbyStatusText, LobbyTypeText;
     [SerializeField] Button joinLobbyButton;
 
-    Lobby lobby;
-
     public void Initialize(Lobby lobby)
     {
-        this.lobby = lobby;
         LobbyNameText.text = lobby.Name;
         LobbyPlayerCountText.text = lobby.Players.Count.ToString() + "/" + lobby.MaxPlayers.ToString();
         LobbyStatusText.text = lobby.Id;

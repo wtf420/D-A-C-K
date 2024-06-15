@@ -9,10 +9,6 @@ public class Test : MonoBehaviour
 {
     public static Test Instance;
 
-    [field: SerializeField] Button startButton;
-    [field: SerializeField] Button joinButton;
-    [field: SerializeField] Button exitButton;
-
     [field: SerializeField] GameObject lobbyBrowser;
     [field: SerializeField] GameObject lobbyInfo;
 
@@ -24,60 +20,33 @@ public class Test : MonoBehaviour
             Instance = this;
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        startButton.onClick.AddListener(async () => {
-            await LobbyManager.Instance.CreateAndHostLobby();
-            NetworkManager.Singleton.StartHost();
-        });
-        
-        joinButton.onClick.AddListener(() => NetworkManager.Singleton.StartClient());
-
-        exitButton.onClick.AddListener(ExitLobby);
-    }
-
-    void Update()
-    {
-        if (NetworkManager.Singleton.IsHost && Input.GetKeyDown(KeyCode.Space))
-        {
-            NetworkManager.Singleton.SceneManager.LoadScene("TestingScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
-        }
-    }
-
-    void OnDestroy()
-    {
-        startButton.onClick.RemoveAllListeners();
-        joinButton.onClick.RemoveAllListeners();
-        exitButton.onClick.RemoveAllListeners();
-    }
-
     public void JoinLobby(Lobby lobby)
     {
         if (lobby != null)
-            LobbyManager.Instance.JoinLobby(lobby);
+            UnityLobbyServiceManager.Instance.JoinLobby(lobby);
         NetworkManager.Singleton.StartClient();
-
-        lobbyBrowser.SetActive(false);
-        lobbyInfo.SetActive(true);
+        NavigateToLobbyInfo();
     }
 
     public async void HostLobby()
     {
         NetworkManager.Singleton.StartHost();
-        await LobbyManager.Instance.CreateAndHostLobby();
-
-        lobbyBrowser.SetActive(false);
-        lobbyInfo.SetActive(true);
+        await UnityLobbyServiceManager.Instance.CreateAndHostLobby();
+        NavigateToLobbyInfo();
     }
 
-    public void ExitLobby()
+    // Placeholder for testing, redesign this flow later
+    public void NavigateToLobbyBrowser()
     {
-        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer) 
-            LobbyManager.Instance.DeleteLobby();
-        NetworkManager.Singleton.Shutdown();
-
         lobbyBrowser.SetActive(true);
         lobbyInfo.SetActive(false);
+    }
+
+    // Placeholder for testing, redesign this flow later
+    public void NavigateToLobbyInfo()
+    {
+        lobbyBrowser.SetActive(false);
+        lobbyInfo.SetActive(true);
+        LobbyInfoUI.Instance.UpdateLobby(CurrentLobbyInfo.Instance);
     }
 }

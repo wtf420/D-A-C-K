@@ -37,12 +37,11 @@ public class LobbyBrowser : MonoBehaviour
     public void HostNewLobby()
     {
         Test.Instance.HostLobby();
-        UpdateLobbbyList();
     }
 
     public async void UpdateLobbbyList()
     {
-        lobbies = await LobbyManager.Instance.GetAllLobbies();
+        lobbies = await UnityLobbyServiceManager.Instance.GetAllLobbies();
         foreach (LobbyInfoUIItem lobbyInfoUIItem in lobbyInfoUIItemList)
         {
             Destroy(lobbyInfoUIItem.gameObject);
