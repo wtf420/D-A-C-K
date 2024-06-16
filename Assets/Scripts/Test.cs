@@ -1,8 +1,5 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+
 using Unity.Netcode;
-using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,17 +8,16 @@ public class Test : MonoBehaviour
 {
     public static Test Instance;
 
+    [field: SerializeField] PlayerDataInitializer playerDataInitializer;
     [field: SerializeField] LobbyBrowser lobbyBrowser;
     [field: SerializeField] LobbyInfoUI lobbyInfo;
 
-    public Lobby joinedLobby { 
-        get {
-            return UnityLobbyServiceManager.Instance.joinedLobby;
-        }
-        set {
-            UnityLobbyServiceManager.Instance.joinedLobby = value;
-        }
+    public Lobby joinedLobby
+    {
+        get { return UnityLobbyServiceManager.Instance.joinedLobby; }
+        set { UnityLobbyServiceManager.Instance.joinedLobby = value; }
     }
+    public bool isHost => UnityLobbyServiceManager.Instance.isHost;
 
     void Awake()
     {
@@ -54,21 +50,40 @@ public class Test : MonoBehaviour
 
     public async void ExitLobby()
     {
+        if (isHost) StopCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine(5f));
         await UnityLobbyServiceManager.Instance.LeaveLobby();
         NavigateToLobbyBrowser();
+    }
+
+    public void StartGame()
+    {
+        NetworkManager.Singleton.StartHost();
+        NetworkManager.Singleton.SceneManager.LoadScene("TestingScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+    }
+
+    public void JoinGame()
+    {
+        NetworkManager.Singleton.StartClient();
+    }
+
+    public void HideAllMenu()
+    {
+        playerDataInitializer.gameObject.SetActive(false);
+        lobbyBrowser.gameObject.SetActive(false);
+        lobbyInfo.gameObject.SetActive(false);
     }
 
     // Placeholder for testing, redesign this flow later
     public void NavigateToLobbyBrowser()
     {
+        HideAllMenu();
         lobbyBrowser.gameObject.SetActive(true);
-        lobbyInfo.gameObject.SetActive(false);
     }
 
     // Placeholder for testing, redesign this flow later
     public void NavigateToLobbyInfo()
     {
-        lobbyBrowser.gameObject.SetActive(false);
+        HideAllMenu();
         lobbyInfo.gameObject.SetActive(true);
     }
 
@@ -91,8 +106,9 @@ public class Test : MonoBehaviour
         NavigateToLobbyBrowser();
     }
 
-    void OnLobbyChanged()
+    async void OnLobbyChanged()
     {
-        lobbyInfo.UpdateLobby();
+        await lobbyInfo.UpdateLobbyAsync();
+        if (isHost) StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine(5f));
     }
 }

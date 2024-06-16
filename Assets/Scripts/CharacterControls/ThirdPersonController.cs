@@ -43,7 +43,6 @@ public class ThirdPersonController : NetworkBehaviour
     [SerializeField] Ragdoll ragdoll;
     [SerializeField] Material shirtMaterial;
     [SerializeField] new Renderer renderer;
-    [SerializeField] Color playerColor;
 
     [Header("~*// Player Input")]
     [SerializeField] PlayerInput playerInput;
@@ -114,7 +113,6 @@ public class ThirdPersonController : NetworkBehaviour
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
         controlPlayerNetworkBehaviourReference.OnValueChanged += OnCurrentCharacterChanged;
         weaponNetworkBehaviourReference.OnValueChanged += OnWeaponChanged;
-        Debug.Log(NetworkObjectId + " has spawned ");
     }
 
     public override void OnNetworkDespawn()
@@ -123,21 +121,23 @@ public class ThirdPersonController : NetworkBehaviour
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
         controlPlayerNetworkBehaviourReference.OnValueChanged -= OnCurrentCharacterChanged;
         weaponNetworkBehaviourReference.OnValueChanged -= OnWeaponChanged;
+        controlPlayer.OnAnyDataChanged.RemoveListener(OnNetworkPlayerDataChanged);
     }
 
-    public void OnCurrentCharacterChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current)
+    public void OnCurrentCharacterChanged(NetworkBehaviourReference previous = default, NetworkBehaviourReference current = default)
     {
         if (current.TryGet(out NetworkPlayer player))
         {
-            this.controlPlayer = player;
-            if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
+            controlPlayer = player;
+            controlPlayer.OnAnyDataChanged.AddListener(OnNetworkPlayerDataChanged);
+            if (shirtMaterial != null && ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
             {
                 shirtMaterial.color = color;
             }
         }
     }
 
-    public void OnWeaponChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current)
+    public void OnWeaponChanged(NetworkBehaviourReference previous = default, NetworkBehaviourReference current = default)
     {
         if (weaponNetworkBehaviourReference.Value.TryGet(out Weapon weapon))
         { 
@@ -146,28 +146,33 @@ public class ThirdPersonController : NetworkBehaviour
         SetWeapon();
     }
 
-    public void SyncDataAsLateJoiner(ulong clientID)
+    public void OnNetworkPlayerDataChanged()
     {
-        if (clientID == NetworkManager.LocalClientId)
+        if (shirtMaterial != null && ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
         {
-            Debug.Log("SyncDataAsLateJoiner");
-            if (IsClient && !IsHost)
-            {
-                weaponNetworkBehaviourReference.Value.TryGet(out Weapon weapon);
-                this.weapon = weapon;
-                SetWeapon();
+            shirtMaterial.color = color;
+        }
+    }
 
-                if (controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer player))
+    public void SyncDataAsLateJoiner(ulong clientId)
+    {
+        if (clientId != NetworkManager.LocalClientId) return;
+        if (IsClient && !IsHost)
+        {
+            weaponNetworkBehaviourReference.Value.TryGet(out Weapon weapon);
+            this.weapon = weapon;
+            SetWeapon();
+
+            if (controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer player))
+            {
+                controlPlayer = player;
+                if (shirtMaterial != null && ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
                 {
-                    this.controlPlayer = player;
-                    if (shirtMaterial != null && UnityEngine.ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
-                    {
-                        shirtMaterial.color = color;
-                    }
+                    shirtMaterial.color = color;
                 }
             }
-            NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
         }
+        NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
     }
 
     // Update is called once per frame
@@ -228,7 +233,7 @@ public class ThirdPersonController : NetworkBehaviour
             {
                 weapon.NetworkObject.Despawn(true);
             }
-            LevelManager.Instance.KillCharacterRpc(this, false);
+            LevelManager.Instance.KillCharacterRpc(this.controlPlayer.OwnerClientId, false);
         }
     }
 
@@ -523,7 +528,7 @@ public class ThirdPersonControllerEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        ThirdPersonController ThirdPersonControllerTarget = (ThirdPersonController)target;
+        ThirdPersonControllerTarget = (ThirdPersonController)target;
         DrawDefaultInspector();
 
         testForce = EditorGUILayout.Vector3Field("Test Force", testForce);

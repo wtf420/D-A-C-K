@@ -11,7 +11,6 @@ public class Weapon : NetworkBehaviour
 
     public float delayBetweenAttacks;
     public bool isAttackable { get; protected set; } = true;
-    public bool networkSpawned { get; protected set; } = false;
 
     public NetworkVariable<NetworkBehaviourReference> wielderNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
@@ -19,7 +18,6 @@ public class Weapon : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        networkSpawned = true;
 
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
         wielderNetworkBehaviourReference.OnValueChanged += OnWielderChanged;
@@ -29,16 +27,14 @@ public class Weapon : NetworkBehaviour
 
     public virtual void SyncDataAsLateJoiner(ulong clientId)
     {
+        if (clientId != NetworkManager.LocalClientId) return;
         Debug.Log(this + "SyncDataAsLateJoiner: " + NetworkObjectId);
-        if (clientId == NetworkManager.LocalClientId)
+        if (IsClient && !IsHost)
         {
-            if (IsClient && !IsHost)
-            {
-                wielderNetworkBehaviourReference.Value.TryGet(out ThirdPersonController player);
-                wielder = player;
-            }
-            NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
+            wielderNetworkBehaviourReference.Value.TryGet(out ThirdPersonController player);
+            wielder = player;
         }
+        NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
     }
 
     public override void OnNetworkDespawn()

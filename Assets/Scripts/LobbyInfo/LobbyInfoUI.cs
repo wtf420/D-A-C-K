@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
 using Unity.VisualScripting;
@@ -33,7 +34,7 @@ public class LobbyInfoUI : MonoBehaviour
 
     void OnEnable()
     {
-        UpdateLobby();
+        _ = UpdateLobbyAsync();
     }
 
     // Start is called before the first frame update
@@ -45,8 +46,8 @@ public class LobbyInfoUI : MonoBehaviour
             NetworkManager.Singleton.StartHost();
         });
 
-        joinButton.onClick.AddListener(() => NetworkManager.Singleton.StartClient());
-
+        joinButton.onClick.AddListener(() => Test.Instance.JoinGame());
+        startButton.onClick.AddListener(() => Test.Instance.StartGame());
         exitButton.onClick.AddListener(ExitLobby);
     }
 
@@ -54,20 +55,21 @@ public class LobbyInfoUI : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            UpdateLobby();
+            _ = UpdateLobbyAsync();
         }
     }
 
     void OnDestroy()
     {
-        UnityLobbyServiceManager.Instance.LeaveLobby();
+        _ = UnityLobbyServiceManager.Instance.LeaveLobby();
         startButton.onClick.RemoveAllListeners();
         joinButton.onClick.RemoveAllListeners();
         exitButton.onClick.RemoveAllListeners();
     }
 
-    public void UpdateLobby()
+    public async Task UpdateLobbyAsync()
     {
+        await UnityLobbyServiceManager.Instance.PollForLobbyUpdates();
         Debug.Log("UpdateLobby: " + joinedLobby.Players.Count);
         foreach (PlayerLobbyInfoUIItem item in playerLobbyInfoUIItemList)
         {

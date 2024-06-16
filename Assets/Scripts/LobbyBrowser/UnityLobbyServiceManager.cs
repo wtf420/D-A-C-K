@@ -15,9 +15,8 @@ using System;
 public class UnityLobbyServiceManager : MonoBehaviour
 {
     public static UnityLobbyServiceManager Instance;
-
+    public bool isHost = false;
     public Lobby joinedLobby = null;
-
     public UnityEvent OnLobbyChangedEvent, OnLobbyDeletedEvent, OnKickedFromLobbyEvent;
 
     void Awake()
@@ -69,7 +68,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
                         {
                             "Name", new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
-                                value: "TestValue")
+                                value: PersistentPlayer.Instance.playerData.PlayerName)
                         },
                         {
                             "Status", new PlayerDataObject(
@@ -152,7 +151,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
                         {
                             "Name", new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
-                                value: "TestValue")
+                                value: PersistentPlayer.Instance.playerData.PlayerName)
                         },
                         {
                             "Status", new PlayerDataObject(
@@ -191,7 +190,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
                         {
                             "Name", new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
-                                value: "TestValue")
+                                value: PersistentPlayer.Instance.playerData.PlayerName)
                         },
                         {
                             "Status", new PlayerDataObject(
@@ -230,14 +229,6 @@ public class UnityLobbyServiceManager : MonoBehaviour
         }
     }
 
-    // public void JoinGameFromLobby(Lobby lobby)
-    // {
-    //     //THIS IS PLACE HOLDER
-    //     joinedLobby = lobby;
-    //     NetworkManager.Singleton.StartHost();
-    //     NetworkManager.Singleton.SceneManager.LoadScene("TestingLevel", UnityEngine.SceneManagement.LoadSceneMode.Single);
-    // }
-
     public async void AddListenerToLobby(Lobby lobby, LobbyEventCallbacks lobbyEventCallbacks)
     {
         try
@@ -262,6 +253,12 @@ public class UnityLobbyServiceManager : MonoBehaviour
         await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
     }
 
+    public async Task RemovePlayerFromLobby(string playerId)
+    {
+        if (isHost)
+            await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
+    }
+
     public IEnumerator HeartbeatLobbyCoroutine(float waitTimeSeconds)
     {
         yield return new WaitUntil(() => joinedLobby != null);
@@ -281,6 +278,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
         try
         {
             joinedLobby = await LobbyService.Instance.GetLobbyAsync(joinedLobby.Id);
+            isHost = GetClientId() == joinedLobby.HostId;
         }
         catch (LobbyServiceException e)
         {
@@ -312,9 +310,9 @@ public class UnityLobbyServiceManager : MonoBehaviour
         return AuthenticationService.Instance.PlayerId;
     }
 
-    public async Task<bool> IsHost()
+    public bool GetIsHost(string playerId)
     {
-        await PollForLobbyUpdates();
-        return GetClientId() == joinedLobby.HostId;
+        isHost = playerId == joinedLobby.HostId;
+        return isHost;
     }
 }

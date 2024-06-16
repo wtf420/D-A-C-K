@@ -20,11 +20,19 @@ public class PlayerLobbyInfoUIItem : MonoBehaviour
         player.Data.TryGetValue("Status", out playerDataObject);
         PlayerLobbyStatusText.text = playerDataObject.Value;
 
-        //kickFromLobbyButton.onClick.AddListener(() => UnityLobbyServiceManager.Instance.KickPlayer(player));
+        if (UnityLobbyServiceManager.Instance.isHost && !UnityLobbyServiceManager.Instance.GetIsHost(player.Id))
+        {
+            kickFromLobbyButton.gameObject.SetActive(true);
+            kickFromLobbyButton.onClick.AddListener(() => UnityLobbyServiceManager.Instance.RemovePlayerFromLobby(player.Id));
+        } else
+        {
+            kickFromLobbyButton.gameObject.SetActive(false);
+        }
     }
 
-    // void OnDestroy()
-    // {
-    //     kickFromLobbyButton.onClick.RemoveAllListeners();
-    // }
+    void OnDestroy()
+    {
+        if (kickFromLobbyButton.gameObject.activeInHierarchy)
+        kickFromLobbyButton.onClick.RemoveAllListeners();
+    }
 }

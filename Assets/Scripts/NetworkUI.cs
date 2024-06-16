@@ -42,6 +42,7 @@ public class NetworkUI : MonoBehaviour
         NetworkManager.Singleton.StartHost();
         Debug.Log(NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address);
         Input.text = NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address;
+        gameObject.SetActive(false);
     }
 
     public void StartClient()
@@ -50,6 +51,7 @@ public class NetworkUI : MonoBehaviour
         else NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address = Input.text;
         NetworkManager.Singleton.StartClient();
         Debug.Log(NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address);
+        gameObject.SetActive(false);
     }
 
     public void StartServer()
@@ -57,6 +59,7 @@ public class NetworkUI : MonoBehaviour
         NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address = GetIpAddress();
         NetworkManager.Singleton.StartServer();
         Debug.Log(NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address);
+        gameObject.SetActive(false);
     }
 
     public string GetIpAddress()
