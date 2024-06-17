@@ -1,4 +1,5 @@
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
@@ -55,6 +56,27 @@ public class LobbyManager : MonoBehaviour
     {
         NetworkManager.Singleton.StartHost();
         NetworkManager.Singleton.SceneManager.LoadScene("TestingScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+
+        Dictionary<string, DataObject> lobbyData = new Dictionary<string, DataObject>()
+        {
+            {
+                "Status", new DataObject(
+                    visibility: DataObject.VisibilityOptions.Public,
+                    value: "InGame",
+                    index: DataObject.IndexOptions.S1)
+            },
+        };
+        _ = UnityLobbyServiceManager.Instance.UpdateLobbyData(lobbyData);
+
+        Dictionary<string, PlayerDataObject> playerData = new Dictionary<string, PlayerDataObject>()
+        {
+            {
+                "Status", new PlayerDataObject(
+                    visibility: PlayerDataObject.VisibilityOptions.Public,
+                    value: "InGame")
+            },
+        };
+        _ = UnityLobbyServiceManager.Instance.UpdatePlayerData(playerData);
     }
 
     public void JoinGame()

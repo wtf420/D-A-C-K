@@ -9,7 +9,6 @@ using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine.Events;
-using System;
 
 // For managing Lobby from Unity Lobby Package
 public class UnityLobbyServiceManager : MonoBehaviour
@@ -44,7 +43,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
         if (UnityServices.State != ServicesInitializationState.Initialized)
         {
             InitializationOptions initializationOptions = new InitializationOptions();
-            initializationOptions.SetProfile(UnityEngine.Random.Range(0, 10000).ToString());
+            initializationOptions.SetProfile(Random.Range(0, 10000).ToString());
             await UnityServices.InitializeAsync(initializationOptions);
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
             Debug.Log("Unity Authentication Successful");
@@ -257,6 +256,43 @@ public class UnityLobbyServiceManager : MonoBehaviour
     {
         if (isHost)
             await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
+    }
+
+    public async Task UpdatePlayerData(Dictionary<string, PlayerDataObject> data)
+    {
+        try
+        {
+            UpdatePlayerOptions options = new UpdatePlayerOptions
+            {
+                Data = data
+            };
+
+            var lobby = await LobbyService.Instance.UpdatePlayerAsync(joinedLobby.Id, GetClientId(), options);
+
+            //...
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.Log(e);
+        }
+    }
+
+    public async Task UpdateLobbyData(Dictionary<string, DataObject> data)
+    {
+        try
+        {
+            UpdateLobbyOptions options = new UpdateLobbyOptions
+            {
+                Data = data
+            };
+
+            var lobby = await LobbyService.Instance.UpdateLobbyAsync(joinedLobby.Id, options);
+            //...
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.Log(e);
+        }
     }
 
     public IEnumerator HeartbeatLobbyCoroutine(float waitTimeSeconds)

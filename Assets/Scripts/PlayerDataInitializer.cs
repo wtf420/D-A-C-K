@@ -1,10 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System;
-using System.Threading.Tasks;
 
 public class PlayerDataInitializer : MonoBehaviour
 {
@@ -25,7 +21,7 @@ public class PlayerDataInitializer : MonoBehaviour
         PersistentPlayer.Instance.playerData.PlayerName = playerNameInput.text;
         PersistentPlayer.Instance.playerData.PlayerColor = playerColorPicker.color;
         gameObject.SetActive(false);
-        NetworkingUI?.SetActive(true);
+        // NetworkingUI?.SetActive(true);
         MainMenuUI.Instance?.NavigateToLobbyBrowser();
     }
 
