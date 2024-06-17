@@ -30,12 +30,12 @@ public class LobbyBrowser : MonoBehaviour
 
     void OnEnable()
     {
-        //UpdateLobbbyList();
+        UpdateLobbbyList();
     }
 
     private void HostNewLobby()
     {
-        Test.Instance.HostLobby();
+        MainMenuUI.Instance.HostLobby();
     }
 
     public async void UpdateLobbbyList()

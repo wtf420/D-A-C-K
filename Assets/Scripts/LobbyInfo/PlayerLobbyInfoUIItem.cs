@@ -15,7 +15,7 @@ public class PlayerLobbyInfoUIItem : MonoBehaviour
         player.Data.TryGetValue("Name", out PlayerDataObject playerDataObject);
         LobbyNameText.text = playerDataObject.Value;
 
-        PlayerHostStatusText.text = player.Id == Test.Instance.joinedLobby.HostId ? "Host" : "Client";
+        PlayerHostStatusText.text = player.Id == LobbyManager.Instance.joinedLobby.HostId ? "Host" : "Client";
 
         player.Data.TryGetValue("Status", out playerDataObject);
         PlayerLobbyStatusText.text = playerDataObject.Value;

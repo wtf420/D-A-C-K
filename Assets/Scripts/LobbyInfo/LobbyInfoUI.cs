@@ -46,8 +46,8 @@ public class LobbyInfoUI : MonoBehaviour
             NetworkManager.Singleton.StartHost();
         });
 
-        joinButton.onClick.AddListener(() => Test.Instance.JoinGame());
-        startButton.onClick.AddListener(() => Test.Instance.StartGame());
+        joinButton.onClick.AddListener(() => LobbyManager.Instance.JoinGame());
+        startButton.onClick.AddListener(() => LobbyManager.Instance.StartGame());
         exitButton.onClick.AddListener(ExitLobby);
     }
 
@@ -88,6 +88,6 @@ public class LobbyInfoUI : MonoBehaviour
 
     public void ExitLobby()
     {
-        Test.Instance.ExitLobby();
+        MainMenuUI.Instance.ExitLobby();
     }
 }
