@@ -16,6 +16,8 @@ public class NetworkUI : MonoBehaviour
     [SerializeField] private Button StartServerButton;
     [SerializeField] private Button StartClientButton;
 
+    [SerializeField] private NetworkPlayer NetworkPlayerPrefab;
+
     [SerializeField] private TMP_InputField Input;
 
     // Start is called before the first frame update

@@ -41,13 +41,13 @@ public class LobbyManager : MonoBehaviour
     public async Task HostLobby()
     {
         joinedLobby = await UnityLobbyServiceManager.Instance.CreateAndHostLobby();
-        StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine(10f));
+        StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
         AddListenerToLobby();
     }
 
     public async Task ExitLobby()
     {
-        if (isHost) StopCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine(5f));
+        if (isHost) StopCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
         await UnityLobbyServiceManager.Instance.LeaveLobby();
         RemoveListenerFromLobby();
     }
@@ -97,6 +97,6 @@ public class LobbyManager : MonoBehaviour
     async void OnLobbyChanged()
     {
         await UnityLobbyServiceManager.Instance.PollForLobbyUpdates();
-        if (isHost) StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine(5f));
+        if (isHost) StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
     }
 }

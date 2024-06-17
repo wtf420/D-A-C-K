@@ -228,13 +228,13 @@ public class ThirdPersonController : NetworkBehaviour
     public void KillRpc()
     {
         EnableRagdoll();
-        if (IsServer)
+        if (IsServer || IsHost)
         {
             if (weapon)
             {
                 weapon.NetworkObject.Despawn(true);
             }
-            LevelManager.Instance.KillCharacterRpc(this.controlPlayer.OwnerClientId, false);
+            LevelManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId, false);
         }
     }
 

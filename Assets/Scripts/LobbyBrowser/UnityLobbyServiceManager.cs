@@ -295,10 +295,10 @@ public class UnityLobbyServiceManager : MonoBehaviour
         }
     }
 
-    public IEnumerator HeartbeatLobbyCoroutine(float waitTimeSeconds)
+    public IEnumerator HeartbeatLobbyCoroutine()
     {
         yield return new WaitUntil(() => joinedLobby != null);
-        var delay = new WaitForSecondsRealtime(waitTimeSeconds);
+        var delay = new WaitForSecondsRealtime(10f);
 
         while (true)
         {

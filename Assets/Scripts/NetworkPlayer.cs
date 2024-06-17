@@ -7,10 +7,10 @@ using UnityEngine.Events;
 
 public class NetworkPlayer : NetworkBehaviour
 {
-    [field: SerializeField] public PlayerData playerData { get; private set; }
+    [field: SerializeField] public PlayerData playerData;
 
-    public NetworkVariable<FixedString32Bytes> playerName = new NetworkVariable<FixedString32Bytes>("Ayo", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    public NetworkVariable<FixedString32Bytes> playerColor = new NetworkVariable<FixedString32Bytes>("Wtf", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<FixedString32Bytes> playerName = new NetworkVariable<FixedString32Bytes>("Ayo", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<FixedString32Bytes> playerColor = new NetworkVariable<FixedString32Bytes>("Wtf", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public UnityEvent OnAnyDataChanged;
     
     #region Monobehaviour & NetworkBehaviour
@@ -22,14 +22,11 @@ public class NetworkPlayer : NetworkBehaviour
     //sync or create network data
     public override void OnNetworkSpawn()
     {
-        if (IsOwner)
+        if (IsServer)
         {
-            playerData = PersistentPlayer.Instance.playerData;
             playerName.Value = playerData.PlayerName;
             playerColor.Value = new string("#" + ColorUtility.ToHtmlStringRGBA(playerData.PlayerColor));
         }
-        base.OnNetworkSpawn();
-        RefreshPlayerData(default, default);
         playerName.OnValueChanged += RefreshPlayerData;
         playerColor.OnValueChanged += RefreshPlayerData;
         // if (IsServer) StartCoroutine(InitializeOnServer());
