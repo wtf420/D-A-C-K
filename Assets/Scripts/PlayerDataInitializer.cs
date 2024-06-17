@@ -25,8 +25,8 @@ public class PlayerDataInitializer : MonoBehaviour
         PersistentPlayer.Instance.playerData.PlayerName = playerNameInput.text;
         PersistentPlayer.Instance.playerData.PlayerColor = playerColorPicker.color;
         gameObject.SetActive(false);
-        //NetworkingUI.SetActive(true);
-        MainMenuUI.Instance.NavigateToLobbyBrowser();
+        NetworkingUI?.SetActive(true);
+        MainMenuUI.Instance?.NavigateToLobbyBrowser();
     }
 
     // Update is called once per frame

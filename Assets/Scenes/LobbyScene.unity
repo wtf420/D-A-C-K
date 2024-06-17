@@ -3110,7 +3110,7 @@ GameObject:
   - component: {fileID: 827821156}
   - component: {fileID: 827821155}
   m_Layer: 0
-  m_Name: TestScript
+  m_Name: LobbyManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

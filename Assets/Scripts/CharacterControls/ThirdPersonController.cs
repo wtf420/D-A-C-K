@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
 using System.Linq;
+using TMPro;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -50,7 +52,9 @@ public class ThirdPersonController : NetworkBehaviour
 
     [Header("~*// UI")]
     [SerializeField] Canvas screenCanvas;
+    [SerializeField] Canvas worldCanvas;
     [SerializeField] ButtonPrompt buttonPromptPrefab;
+    [SerializeField] TMP_Text playerNameDisplay;
     ButtonPrompt currentButtonPrompt;
     Interactable closestInteractable = null;
 
@@ -128,12 +132,10 @@ public class ThirdPersonController : NetworkBehaviour
     {
         if (current.TryGet(out NetworkPlayer player))
         {
+            if (player != controlPlayer) controlPlayer?.OnAnyDataChanged.RemoveListener(OnNetworkPlayerDataChanged);
             controlPlayer = player;
             controlPlayer.OnAnyDataChanged.AddListener(OnNetworkPlayerDataChanged);
-            if (shirtMaterial != null && ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
-            {
-                shirtMaterial.color = color;
-            }
+            OnNetworkPlayerDataChanged();
         }
     }
 
@@ -148,6 +150,7 @@ public class ThirdPersonController : NetworkBehaviour
 
     public void OnNetworkPlayerDataChanged()
     {
+        playerNameDisplay.text = controlPlayer.playerName.Value.ToString();
         if (shirtMaterial != null && ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
         {
             shirtMaterial.color = color;
@@ -166,10 +169,7 @@ public class ThirdPersonController : NetworkBehaviour
             if (controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer player))
             {
                 controlPlayer = player;
-                if (shirtMaterial != null && ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
-                {
-                    shirtMaterial.color = color;
-                }
+                OnNetworkPlayerDataChanged();
             }
         }
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
@@ -179,6 +179,7 @@ public class ThirdPersonController : NetworkBehaviour
     void Update()
     {
         isGrounded = GroundCheck(maxGroundCheckRadius);
+        playerNameDisplay.transform.forward = camera.transform.forward;
         if (!IsOwner) return;
         if (IsServer) // testing purposes
         {
