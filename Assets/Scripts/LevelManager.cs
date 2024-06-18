@@ -105,7 +105,7 @@ public class LevelManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        base.OnNetworkSpawn();
+        networkManager = NetworkManager.Singleton;
 
         networkManager.OnClientDisconnectCallback += OnDisconnectedCallback;
         networkManager.OnClientConnectedCallback += OnConnectedCallback;
@@ -329,15 +329,21 @@ public class LevelManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    public void KillCharacterRpc(ulong clientId, bool destroy = true)
+    public void KillCharacterRpc(ulong clientId, float time = 3f)
     {
         PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
         if (info.character.TryGet(out ThirdPersonController character))
         {
-            character.NetworkObject.Despawn(destroy);
             info.character = default;
             OnPlayerDeath(clientId);
+            StartCoroutine(KillAndDespawnAfter(character, time));
         }
+    }
+
+    IEnumerator KillAndDespawnAfter(ThirdPersonController character, float time)
+    {
+        yield return new WaitForSeconds(time);
+        character.NetworkObject.Despawn();
     }
 
     [Rpc(SendTo.Server)]

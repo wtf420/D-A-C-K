@@ -69,14 +69,16 @@ public class MainMenuUI : MonoBehaviour
 
     void AddListenerToLobby()
     {
-        UnityLobbyServiceManager.Instance.OnKickedFromLobbyEvent.RemoveListener(OnKickedFromLobby);
-        UnityLobbyServiceManager.Instance.OnLobbyDeletedEvent.RemoveListener(OnKickedFromLobby);
+        UnityLobbyServiceManager.Instance.OnKickedFromLobbyEvent.AddListener(OnKickedFromLobby);
+        UnityLobbyServiceManager.Instance.OnLobbyDeletedEvent.AddListener(OnKickedFromLobby);
+        UnityLobbyServiceManager.Instance.OnLobbyChangedEvent.AddListener(() => { if (lobbyInfo) lobbyInfo.UpdateLobbyAsync(); } );
     }
 
     void RemoveListenerFromLobby()
     {
         UnityLobbyServiceManager.Instance.OnKickedFromLobbyEvent.RemoveListener(OnKickedFromLobby);
         UnityLobbyServiceManager.Instance.OnLobbyDeletedEvent.RemoveListener(OnKickedFromLobby);
+        UnityLobbyServiceManager.Instance.OnLobbyChangedEvent.RemoveListener(() => { if (lobbyInfo) lobbyInfo.UpdateLobbyAsync(); });
     }
 
     void OnKickedFromLobby()

@@ -2752,7 +2752,7 @@ MonoBehaviour:
   playerColorPicker: {fileID: 2016432790}
   playerNameInput: {fileID: 1733464878}
   saveButton: {fileID: 795342098}
-  NetworkingUI: {fileID: 1286278242}
+  NetworkingUI: {fileID: 0}
 --- !u!114 &773973521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3655,6 +3655,10 @@ MonoBehaviour:
   startButton: {fileID: 870037533}
   joinButton: {fileID: 50912833}
   exitButton: {fileID: 159761728}
+  lobbyIdDisplayText: {fileID: 43090078}
+  lobbyNameTitleText: {fileID: 1521995170}
+  lobbyNameDisplayInputField: {fileID: 1177779946}
+  lobbyIsPrivateToggle: {fileID: 276699111}
   playerLobbyInfoScrollviewContent: {fileID: 1013922161}
   playerLobbyInfoUIItemPrefab: {fileID: 7966225992702544940, guid: 80679668bb535b349a52b60f49db103e,
     type: 3}

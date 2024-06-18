@@ -16,5 +16,6 @@ public class PersistentPlayer : MonoBehaviour
             Destroy(this.gameObject);
         else
             Instance = this;
+        DontDestroyOnLoad(this);
     }
 }

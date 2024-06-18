@@ -29,13 +29,8 @@ public class UnityLobbyServiceManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        InnitializeUnityAuthentication();
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
         DontDestroyOnLoad(this);
+        InnitializeUnityAuthentication();
     }
 
     async void InnitializeUnityAuthentication()
@@ -96,7 +91,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
             callbacks.LobbyChanged += OnLobbyChanged;
             callbacks.KickedFromLobby += OnKickedFromLobby;
             AddListenerToLobby(lobby, callbacks);
-            Debug.Log("Lobby created successfully!");
+            Debug.Log(PersistentPlayer.Instance.playerData.PlayerName);
             return lobby;
         }
         catch (LobbyServiceException e)
@@ -232,7 +227,8 @@ public class UnityLobbyServiceManager : MonoBehaviour
     {
         try
         {
-            await Lobbies.Instance.SubscribeToLobbyEventsAsync(lobby.Id, lobbyEventCallbacks);
+            ILobbyEvents lobbyChanges = await Lobbies.Instance.SubscribeToLobbyEventsAsync(lobby.Id, lobbyEventCallbacks);
+            Debug.Log("Added callback successful");
         }
         catch (LobbyServiceException ex)
         {
@@ -250,6 +246,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
     {
         string playerId = AuthenticationService.Instance.PlayerId;
         await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
+        joinedLobby = null;
     }
 
     public async Task RemovePlayerFromLobby(string playerId)
@@ -258,15 +255,10 @@ public class UnityLobbyServiceManager : MonoBehaviour
             await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
     }
 
-    public async Task UpdatePlayerData(Dictionary<string, PlayerDataObject> data)
+    public async Task UpdatePlayerData(UpdatePlayerOptions options)
     {
         try
         {
-            UpdatePlayerOptions options = new UpdatePlayerOptions
-            {
-                Data = data
-            };
-
             var lobby = await LobbyService.Instance.UpdatePlayerAsync(joinedLobby.Id, GetClientId(), options);
 
             //...
@@ -277,15 +269,10 @@ public class UnityLobbyServiceManager : MonoBehaviour
         }
     }
 
-    public async Task UpdateLobbyData(Dictionary<string, DataObject> data)
+    public async Task UpdateLobbyData(UpdateLobbyOptions options)
     {
         try
         {
-            UpdateLobbyOptions options = new UpdateLobbyOptions
-            {
-                Data = data
-            };
-
             var lobby = await LobbyService.Instance.UpdateLobbyAsync(joinedLobby.Id, options);
             //...
         }
@@ -302,10 +289,10 @@ public class UnityLobbyServiceManager : MonoBehaviour
 
         while (true)
         {
-            yield return PollForLobbyUpdates();
+            yield return delay;
+            //yield return PollForLobbyUpdates();
             LobbyService.Instance.SendHeartbeatPingAsync(joinedLobby.Id);
             Debug.Log("HeartbeatLobby");
-            yield return delay;
         }
     }
 
@@ -313,7 +300,8 @@ public class UnityLobbyServiceManager : MonoBehaviour
     {
         try
         {
-            joinedLobby = await LobbyService.Instance.GetLobbyAsync(joinedLobby.Id);
+            Lobby lobby = await LobbyService.Instance.GetLobbyAsync(joinedLobby.Id);
+            joinedLobby = lobby;
             isHost = GetClientId() == joinedLobby.HostId;
         }
         catch (LobbyServiceException e)
@@ -324,11 +312,13 @@ public class UnityLobbyServiceManager : MonoBehaviour
 
     private void OnKickedFromLobby()
     {
+        Debug.Log("OnKickedFromLobby");
         OnKickedFromLobbyEvent?.Invoke();
     }
 
     private void OnLobbyChanged(ILobbyChanges changes)
     {
+        Debug.Log("OnLobbyChanged: " + changes);
         if (changes.LobbyDeleted)
         {
             joinedLobby = null;

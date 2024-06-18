@@ -241,7 +241,7 @@ public class ThirdPersonController : NetworkBehaviour
             {
                 weapon.NetworkObject.Despawn(true);
             }
-            LevelManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId, false);
+            LevelManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId);
         }
     }
 

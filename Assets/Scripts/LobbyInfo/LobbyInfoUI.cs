@@ -1,7 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TMPro;
 using Unity.Netcode;
+using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -15,6 +18,11 @@ public class LobbyInfoUI : MonoBehaviour
     [field: SerializeField] Button joinButton;
     [field: SerializeField] Button exitButton;
 
+    [field: SerializeField] TMP_Text lobbyIdDisplayText;
+    [field: SerializeField] TMP_Text lobbyNameTitleText;
+    [field: SerializeField] TMP_InputField lobbyNameDisplayInputField;
+    [field: SerializeField] Toggle lobbyIsPrivateToggle;
+
     [field: SerializeField] GameObject playerLobbyInfoScrollviewContent;
     [field: SerializeField] PlayerLobbyInfoUIItem playerLobbyInfoUIItemPrefab;
 
@@ -22,7 +30,7 @@ public class LobbyInfoUI : MonoBehaviour
         get { return UnityLobbyServiceManager.Instance.joinedLobby; }
         set { UnityLobbyServiceManager.Instance.joinedLobby = value; }
     }
-    List<PlayerLobbyInfoUIItem> playerLobbyInfoUIItemList = new List<PlayerLobbyInfoUIItem>();
+    List<PlayerLobbyInfoUIItem> playerLobbyInfoUIItemList;
 
     void Awake()
     {
@@ -30,32 +38,53 @@ public class LobbyInfoUI : MonoBehaviour
             Destroy(this.gameObject);
         else
             Instance = this;
-    }
 
-    void OnEnable()
-    {
-        _ = UpdateLobbyAsync();
-    }
+        playerLobbyInfoUIItemList = new List<PlayerLobbyInfoUIItem>();
 
-    // Start is called before the first frame update
-    void Start()
-    {
         startButton.onClick.AddListener(async () =>
         {
             await UnityLobbyServiceManager.Instance.CreateAndHostLobby();
             NetworkManager.Singleton.StartHost();
         });
-
         joinButton.onClick.AddListener(() => LobbyManager.Instance.JoinGame());
         startButton.onClick.AddListener(() => LobbyManager.Instance.StartGame());
         exitButton.onClick.AddListener(ExitLobby);
+
+        lobbyNameDisplayInputField.onSubmit.AddListener(OnLobbyNameSubmit);
+        lobbyIsPrivateToggle.onValueChanged.AddListener(OnLobbyIsPrivateToggle);
+    }
+
+    private void OnLobbyIsPrivateToggle(bool arg0)
+    {
+        if (!UnityLobbyServiceManager.Instance.isHost) return;
+        UpdateLobbyOptions options = new UpdateLobbyOptions()
+        {
+            IsPrivate = arg0
+        };
+        _ = UnityLobbyServiceManager.Instance.UpdateLobbyData(options);
+        UpdateLobbyAsync();
+    }
+
+    private void OnLobbyNameSubmit(string arg0)
+    {
+        if (!UnityLobbyServiceManager.Instance.isHost) return;
+        UpdateLobbyOptions options = new UpdateLobbyOptions(){
+            Name = arg0
+        };
+        _ = UnityLobbyServiceManager.Instance.UpdateLobbyData(options);
+        UpdateLobbyAsync();
+    }
+
+    void OnEnable()
+    {
+        UpdateLobbyAsync();
     }
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            _ = UpdateLobbyAsync();
+            UpdateLobbyAsync();
         }
     }
 
@@ -67,7 +96,7 @@ public class LobbyInfoUI : MonoBehaviour
         exitButton.onClick.RemoveAllListeners();
     }
 
-    public async Task UpdateLobbyAsync()
+    public async void UpdateLobbyAsync()
     {
         await UnityLobbyServiceManager.Instance.PollForLobbyUpdates();
         Debug.Log("UpdateLobby: " + joinedLobby.Players.Count);
@@ -77,6 +106,12 @@ public class LobbyInfoUI : MonoBehaviour
         }
         playerLobbyInfoUIItemList.Clear();
 
+        lobbyIdDisplayText.text = joinedLobby.Id;
+        lobbyNameDisplayInputField.text = joinedLobby.Name;
+        if (UnityLobbyServiceManager.Instance.isHost) lobbyNameDisplayInputField.interactable = true; else lobbyNameDisplayInputField.interactable = false;
+        lobbyNameTitleText.text = joinedLobby.Name;
+        lobbyIsPrivateToggle.isOn = joinedLobby.IsPrivate;
+        if (UnityLobbyServiceManager.Instance.isHost) lobbyIsPrivateToggle.interactable = true; else lobbyIsPrivateToggle.interactable = false;
         if (joinedLobby.Players.Count == 0) return;
         foreach (Player player in joinedLobby.Players)
         {

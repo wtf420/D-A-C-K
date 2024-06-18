@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.UI;
@@ -57,7 +58,9 @@ public class LobbyManager : MonoBehaviour
         NetworkManager.Singleton.StartHost();
         NetworkManager.Singleton.SceneManager.LoadScene("TestingScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
 
-        Dictionary<string, DataObject> lobbyData = new Dictionary<string, DataObject>()
+        UpdateLobbyOptions lobbyoptions = new UpdateLobbyOptions
+        {
+            Data = new Dictionary<string, DataObject>()
         {
             {
                 "Status", new DataObject(
@@ -65,18 +68,22 @@ public class LobbyManager : MonoBehaviour
                     value: "InGame",
                     index: DataObject.IndexOptions.S1)
             },
+        }
         };
-        _ = UnityLobbyServiceManager.Instance.UpdateLobbyData(lobbyData);
+        _ = UnityLobbyServiceManager.Instance.UpdateLobbyData(lobbyoptions);
 
-        Dictionary<string, PlayerDataObject> playerData = new Dictionary<string, PlayerDataObject>()
+        UpdatePlayerOptions updatePlayerOptions = new UpdatePlayerOptions
+        {
+            Data = new Dictionary<string, PlayerDataObject>()
         {
             {
                 "Status", new PlayerDataObject(
-                    visibility: PlayerDataObject.VisibilityOptions.Public,
+                    visibility: PlayerDataObject.VisibilityOptions.Member,
                     value: "InGame")
             },
+        }
         };
-        _ = UnityLobbyServiceManager.Instance.UpdatePlayerData(playerData);
+        _ = UnityLobbyServiceManager.Instance.UpdatePlayerData(updatePlayerOptions);
     }
 
     public void JoinGame()
@@ -96,6 +103,7 @@ public class LobbyManager : MonoBehaviour
 
     async void OnLobbyChanged()
     {
+        Debug.Log("OnLobbyChanged");
         await UnityLobbyServiceManager.Instance.PollForLobbyUpdates();
         if (isHost) StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
     }
