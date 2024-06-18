@@ -263,10 +263,10 @@ public class LevelManager : NetworkBehaviour
         yield return new WaitUntil(() => GameOver());
 
         Debug.Log("Game Over!");
-        foreach (PlayerLevelInfo info in PlayerNetworkListToNormalList().ToList())
-        {
-            KillCharacterRpc(info.clientId);
-        }
+        // foreach (PlayerLevelInfo info in PlayerNetworkListToNormalList().ToList())
+        // {
+        //     KillCharacterRpc(info.clientId);
+        // }
         waitingForPlayersText.text = "Waiting for players. (" + PlayerNetworkListToNormalList().Count + "/" + miniumPlayerToStart + ")";
         currentNetworkLevelStatus.Value = (short)LevelStatus.Done;
         yield return new WaitForSeconds(5f);

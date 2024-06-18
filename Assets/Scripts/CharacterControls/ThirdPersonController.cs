@@ -4,6 +4,8 @@ using UnityEngine.InputSystem;
 using Unity.Netcode;
 using System.Linq;
 using TMPro;
+using System;
+
 
 
 #if UNITY_EDITOR
@@ -53,8 +55,10 @@ public class ThirdPersonController : NetworkBehaviour
     [Header("~*// UI")]
     [SerializeField] Canvas screenCanvas;
     [SerializeField] Canvas worldCanvas;
+    [SerializeField] GameObject UIOverlay;
     [SerializeField] ButtonPrompt buttonPromptPrefab;
     [SerializeField] TMP_Text playerNameDisplay;
+    [SerializeField] TMP_Text HealthDisplayText;
     ButtonPrompt currentButtonPrompt;
     Interactable closestInteractable = null;
 
@@ -92,6 +96,7 @@ public class ThirdPersonController : NetworkBehaviour
 
             playerThirdPersonAimController.enabled = false;
             playerInput.enabled = false;
+            screenCanvas.gameObject.SetActive(false);
             return;
         }
         else
@@ -107,6 +112,7 @@ public class ThirdPersonController : NetworkBehaviour
 
             playerThirdPersonAimController.enabled = true;
             playerInput.enabled = true;
+            screenCanvas.gameObject.SetActive(true);
         }
     }
 
@@ -116,7 +122,13 @@ public class ThirdPersonController : NetworkBehaviour
         base.OnNetworkSpawn();
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
         weaponNetworkBehaviourReference.OnValueChanged += OnWeaponChanged;
+        healthPoint.OnValueChanged += OnHealthPointChanged;
         OnNetworkPlayerDataChanged();
+    }
+
+    private void OnHealthPointChanged(float previousValue, float newValue)
+    {
+        HealthDisplayText.text = newValue.ToString();
     }
 
     public override void OnNetworkDespawn()
@@ -124,6 +136,7 @@ public class ThirdPersonController : NetworkBehaviour
         base.OnNetworkDespawn();
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
         weaponNetworkBehaviourReference.OnValueChanged -= OnWeaponChanged;
+        healthPoint.OnValueChanged -= OnHealthPointChanged;
     }
 
     public void OnWeaponChanged(NetworkBehaviourReference previous = default, NetworkBehaviourReference current = default)

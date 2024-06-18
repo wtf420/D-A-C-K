@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3323016966
+  GlobalObjectIdHash: 3207006609
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -104,7 +104,7 @@ MonoBehaviour:
   attackAngle: 90
   minDistance: 0
   timing: 0.5
-  damage: 100
+  damage: 50
 --- !u!1 &8437853814842740681
 GameObject:
   m_ObjectHideFlags: 0
