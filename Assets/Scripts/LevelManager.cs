@@ -71,6 +71,8 @@ public class LevelManager : NetworkBehaviour
     public TMP_Text waitingForPlayersText;
     public TMP_Text gameOverText;
 
+    [SerializeField] public List<GameObject> spawnPointList;
+
     [SerializeField] public int miniumPlayerToStart = 4;
     [SerializeField] public LevelStatus currentLevelStatus = LevelStatus.None;
 
@@ -314,7 +316,8 @@ public class LevelManager : NetworkBehaviour
     {
         Debug.Log("RespawnCharacter3");
         PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
-        ThirdPersonController character = Instantiate(characterPlayerPrefab, null);
+        Transform spawn = spawnPointList[UnityEngine.Random.Range(0, spawnPointList.Count -1)].transform;
+        ThirdPersonController character = Instantiate(characterPlayerPrefab, spawn.position, spawn.rotation, null);
         character.controlPlayerNetworkBehaviourReference.Value = info.networkPlayer;
         character.NetworkObject.SpawnWithOwnership(info.clientId, true);
 
