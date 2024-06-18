@@ -70,14 +70,15 @@ public class LevelManager : NetworkBehaviour
 
     public TMP_Text waitingForPlayersText;
     public TMP_Text gameOverText;
+    public ScoreBoard scoreBoard;
 
     [SerializeField] public List<GameObject> spawnPointList;
 
     [SerializeField] public int miniumPlayerToStart = 4;
     [SerializeField] public LevelStatus currentLevelStatus = LevelStatus.None;
 
-    [SerializeField] NetworkVariable<short> currentNetworkLevelStatus = new NetworkVariable<short>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    [SerializeField] NetworkList<PlayerLevelInfo> PlayerLevelInfoNetworkList;
+    [SerializeField] public NetworkVariable<short> currentNetworkLevelStatus = new NetworkVariable<short>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    [SerializeField] public NetworkList<PlayerLevelInfo> PlayerLevelInfoNetworkList;
     // public UnityEvent<ThirdPersonController> OnPlayerSpawn, OnPlayerDeath;
 
     public bool GameStarted = false;
@@ -98,6 +99,7 @@ public class LevelManager : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKey(KeyCode.Tab)) scoreBoard.gameObject.SetActive(true); else scoreBoard.gameObject.SetActive(false);
         if (!IsServer) return;
     }
 

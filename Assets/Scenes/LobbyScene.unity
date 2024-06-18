@@ -4955,6 +4955,7 @@ MonoBehaviour:
   StartHostButton: {fileID: 1466726286}
   StartServerButton: {fileID: 608836415}
   StartClientButton: {fileID: 1669654326}
+  NetworkPlayerPrefab: {fileID: 0}
   Input: {fileID: 1869963333}
 --- !u!114 &1286278245
 MonoBehaviour:
