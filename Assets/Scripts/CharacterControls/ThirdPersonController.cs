@@ -115,28 +115,15 @@ public class ThirdPersonController : NetworkBehaviour
     {
         base.OnNetworkSpawn();
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
-        controlPlayerNetworkBehaviourReference.OnValueChanged += OnCurrentCharacterChanged;
         weaponNetworkBehaviourReference.OnValueChanged += OnWeaponChanged;
+        OnNetworkPlayerDataChanged();
     }
 
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
-        controlPlayerNetworkBehaviourReference.OnValueChanged -= OnCurrentCharacterChanged;
         weaponNetworkBehaviourReference.OnValueChanged -= OnWeaponChanged;
-        controlPlayer.OnAnyDataChanged.RemoveListener(OnNetworkPlayerDataChanged);
-    }
-
-    public void OnCurrentCharacterChanged(NetworkBehaviourReference previous = default, NetworkBehaviourReference current = default)
-    {
-        if (current.TryGet(out NetworkPlayer player))
-        {
-            if (player != controlPlayer) controlPlayer?.OnAnyDataChanged.RemoveListener(OnNetworkPlayerDataChanged);
-            controlPlayer = player;
-            controlPlayer.OnAnyDataChanged.AddListener(OnNetworkPlayerDataChanged);
-            OnNetworkPlayerDataChanged();
-        }
     }
 
     public void OnWeaponChanged(NetworkBehaviourReference previous = default, NetworkBehaviourReference current = default)
@@ -150,6 +137,9 @@ public class ThirdPersonController : NetworkBehaviour
 
     public void OnNetworkPlayerDataChanged()
     {
+        controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer networkPlayer);
+        controlPlayer = networkPlayer;
+        Debug.Log("shirtMaterial: " + OwnerClientId + " | " + controlPlayer.playerName.Value + " | " + controlPlayer.playerColor.Value);
         playerNameDisplay.text = controlPlayer.playerName.Value.ToString();
         if (shirtMaterial != null && ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
         {
@@ -197,6 +187,10 @@ public class ThirdPersonController : NetworkBehaviour
                     weapon.NetworkObject.Despawn();
                     weaponNetworkBehaviourReference.Value =  default;
                 }
+            }
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                shirtMaterial.color = Color.black;
             }
         }
 

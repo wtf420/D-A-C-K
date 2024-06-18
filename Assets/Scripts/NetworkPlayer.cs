@@ -19,6 +19,12 @@ public class NetworkPlayer : NetworkBehaviour
         DontDestroyOnLoad(this);
     }
 
+    void Update()
+    {
+        if (IsOwner && Input.GetKeyDown(KeyCode.Delete))
+            LevelManager.Instance.RespawnCharacterRpc(NetworkManager.LocalClientId);
+    }
+
     //sync or create network data
     public override void OnNetworkSpawn()
     {
@@ -27,6 +33,7 @@ public class NetworkPlayer : NetworkBehaviour
             playerName.Value = playerData.PlayerName;
             playerColor.Value = new string("#" + ColorUtility.ToHtmlStringRGBA(playerData.PlayerColor));
         }
+        RefreshPlayerData(default, default);
         playerName.OnValueChanged += RefreshPlayerData;
         playerColor.OnValueChanged += RefreshPlayerData;
         // if (IsServer) StartCoroutine(InitializeOnServer());
