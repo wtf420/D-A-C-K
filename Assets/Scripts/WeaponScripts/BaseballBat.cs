@@ -87,7 +87,7 @@ public class BaseballBat : Weapon
                 if (c) continue; else Debug.Log("Considered: " + hit.collider.gameObject + " has no gameobject in between!");
 
                 //no wall in between, process hit
-                hitCharacter.TakeDamageRpc(damage);
+                hitCharacter.TakeDamageRpc(damage, wielder.transform.position - hit.point);
             }
             // Debug.DrawLine(this.transform.position, hitlocation, Color.green, 5f);
             StartCoroutine(CoolDown());

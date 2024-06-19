@@ -131,7 +131,6 @@ public class LevelManager : NetworkBehaviour
         if (clientId != NetworkManager.LocalClientId) return;
         SpawnPlayerObjectRpc(clientId, PersistentPlayer.Instance.playerData);
         networkManager.SceneManager.OnLoadComplete -= OnSceneLoadComplete;
-        Debug.Log("OnSceneLoadComplete");
     }
 
     private void OnGamePhaseChanged(short previousValue, short newValue)
@@ -153,8 +152,6 @@ public class LevelManager : NetworkBehaviour
     {
         if (networkManager.LocalClientId == clientId)
         {
-            Debug.Log("OnConnectedCallback: " + clientId + " | " + IsClient);
-            Debug.Log("OnConnectedCallback: " + PersistentPlayer.Instance.playerData.PlayerName + " | " + PersistentPlayer.Instance.playerData.PlayerColor);
             SpawnPlayerObjectRpc(clientId, PersistentPlayer.Instance.playerData);
         }
     }
@@ -314,14 +311,20 @@ public class LevelManager : NetworkBehaviour
     public void OnPlayerDeath(ulong clientId)
     {
         PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
-        info.playerScore--;
-        UpdateNetworkList(info);
+        if (info.playerScore > 0)
+        {
+            info.playerScore--;
+            UpdateNetworkList(info);
+            RespawnCharacterRpc(clientId, 3f, false);
+        } else
+        {
+            UpdateNetworkList(info);
+        }
     }
 
     [Rpc(SendTo.Server)]
     public void SpawnCharacterRpc(ulong clientId)
     {
-        Debug.Log("RespawnCharacter3");
         PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
         Transform spawn = spawnPointList[UnityEngine.Random.Range(0, spawnPointList.Count -1)].transform;
         ThirdPersonController character = Instantiate(characterPlayerPrefab, spawn.position, spawn.rotation, null);
@@ -334,37 +337,43 @@ public class LevelManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    public void KillCharacterRpc(ulong clientId, float time = 3f)
+    public void KillCharacterRpc(ulong clientId)
     {
         PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
         if (info.character.TryGet(out ThirdPersonController character))
         {
             info.character = default;
             OnPlayerDeath(clientId);
-            StartCoroutine(KillAndDespawnAfter(character, time));
+            StartCoroutine(KillAndDespawnAfter(character, 3f));
         }
     }
 
     IEnumerator KillAndDespawnAfter(ThirdPersonController character, float time)
     {
         yield return new WaitForSeconds(time);
-        character.NetworkObject.Despawn();
+        if (character == null) yield break;
+        if (character.NetworkObject.IsSpawned)
+            character.NetworkObject.Despawn();
+        else
+            Destroy(character.gameObject);
     }
 
     [Rpc(SendTo.Server)]
     public void RespawnCharacterRpc(ulong clientId, float respawnTime = 1f, bool destroy = true)
     {
         PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
-        if (info.character.TryGet(out ThirdPersonController character))
+        if (info.character.TryGet(out ThirdPersonController character) && destroy)
         {
-            character.NetworkObject.Despawn(destroy);
+            if (character.NetworkObject.IsSpawned) 
+                character.NetworkObject.Despawn(); 
+            else
+                Destroy(character.gameObject);
         }
         StartCoroutine(RespawnCharacter(info.clientId, respawnTime));
     }
 
     IEnumerator RespawnCharacter(ulong clientId, float respawnTime = 1f)
     {
-        Debug.Log("RespawnCharacter2");
         yield return new WaitForSeconds(respawnTime);
         SpawnCharacterRpc(clientId);
     }
@@ -376,9 +385,12 @@ public class LevelManager : NetworkBehaviour
         PlayerLevelInfo winner = new PlayerLevelInfo();
         foreach (PlayerLevelInfo info in PlayerNetworkListToNormalList())
         {
-            if (info.playerScore > 0) currentAlivePlayer++;
+            if (info.playerScore > 0)
+            {
+                currentAlivePlayer++;
+                winner = info;
+            }
             if (currentAlivePlayer > 1) return false;
-            winner = info;
         }
         gameOverText.gameObject.SetActive(true);
         gameOverText.text = "Game is over!\nWinner is: " + winner.playerName.ToString() + winner.clientId.ToString();

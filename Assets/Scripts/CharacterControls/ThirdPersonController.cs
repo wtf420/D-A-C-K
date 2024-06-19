@@ -222,12 +222,12 @@ public class ThirdPersonController : NetworkBehaviour
 
     #region RPCs
     [Rpc(SendTo.Server)] //Server mark complete server spawn process
-    public void TakeDamageRpc(float damage)
+    public void TakeDamageRpc(float damage, Vector3 direction)
     {
         healthPoint.Value -= damage;
         if (healthPoint.Value <= 0)
         {
-            AddImpulseForceToRagdollPartRpc(Vector3.up * 10f, "Hips", true);
+            AddImpulseForceToRagdollPartRpc(direction.normalized * 5.0f, "Spine", true);
             KillRpc();
         }
     }
@@ -294,6 +294,7 @@ public class ThirdPersonController : NetworkBehaviour
             }
             else
             {
+                
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
