@@ -61,14 +61,8 @@ public class ThirdPersonAimController : NetworkBehaviour
     protected virtual void LateUpdate()
     {
         if (!IsOwner) return;
-        //Input to camera direction
-        Vector3 currentvirtualCameraLookTargetRotation = Camera.main.transform.eulerAngles;
-        currentvirtualCameraLookTargetRotation += inputAimDirection * lookSpeed * Time.deltaTime;
-        //Clamp viewing angle
-        if (currentvirtualCameraLookTargetRotation.x > 180 && currentvirtualCameraLookTargetRotation.x < 270 + bottomAngleClamp) currentvirtualCameraLookTargetRotation.x = 270 + bottomAngleClamp;
-        else if (currentvirtualCameraLookTargetRotation.x < 180 && currentvirtualCameraLookTargetRotation.x > 90 - topAngleClamp) currentvirtualCameraLookTargetRotation.x = 90 - topAngleClamp;
-        //Rotate cinemachineFollowTarget to direction in world coordinates
-        cameraDirection = currentvirtualCameraLookTargetRotation;
-        cinemachineFollowTarget.transform.eulerAngles = currentvirtualCameraLookTargetRotation;
+        cameraDirection += inputAimDirection * lookSpeed * Time.unscaledDeltaTime;
+        cameraDirection.x = Mathf.Clamp(cameraDirection.x, -90f + bottomAngleClamp, 90f - topAngleClamp);
+        cinemachineFollowTarget.transform.rotation = Quaternion.Euler(cameraDirection);
     }
 }

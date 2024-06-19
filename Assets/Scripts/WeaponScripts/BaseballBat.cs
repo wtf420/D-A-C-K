@@ -89,8 +89,15 @@ public class BaseballBat : Weapon
                 hitCharacter.AddImpulseForceRpc(wielder.transform.forward * 10f);
                 hitCharacter.TakeDamageRpc(damage);
             }
-            //Debug.DrawLine(this.transform.position, hitlocation, Color.green, 5f);
+            // Debug.DrawLine(this.transform.position, hitlocation, Color.green, 5f);
             StartCoroutine(CoolDown());
         }
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        // Display the explosion radius when selected
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(wielder.transform.position, range);
     }
 }

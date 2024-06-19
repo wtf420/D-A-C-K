@@ -33,7 +33,7 @@ public class ThirdPersonController : NetworkBehaviour
     [SerializeField] CinemachineVirtualCamera virtualCamera;
     [SerializeField] PlayerThirdPersonAimController playerThirdPersonAimController;
     [SerializeField] float maxFallingTime = 0.5f;
-    protected new Camera camera;
+    public new Camera camera;
     bool isAiming => playerThirdPersonAimController.isAiming;
     bool isGrounded = false;
     bool movementEnabled = true;
