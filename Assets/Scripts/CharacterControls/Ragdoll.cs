@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
+using Unity.Netcode.Components;
 using UnityEditor;
 using UnityEngine;
 
@@ -61,7 +63,7 @@ public class Ragdoll : MonoBehaviour
 
     public void AddForceToBodyPart(Vector3 force, string bodyPartName)
     {
-        BodyPart bodyPart = bodyParts.Find(x => x.name.Contains(bodyPartName));
+        BodyPart bodyPart = bodyParts.First(x => x.name.Contains(bodyPartName));
         if (bodyPart != null)
         {
             bodyPart.rigidbody.AddForce(force, ForceMode.Impulse);
@@ -104,9 +106,9 @@ public class RagdollEditor : Editor
             foreach (BodyPart bodyPart in targetRagdoll.bodyParts)
             {
                 bodyPart.rigidbody.mass = 0.1f;
-                if (bodyPart.gameObject.GetComponent<CharacterJoint>())
+                if (bodyPart.gameObject.GetComponent<Rigidbody>())
                 {
-                    bodyPart.gameObject.GetComponent<CharacterJoint>().enableProjection = true;
+                    bodyPart.gameObject.GetComponent<Rigidbody>().isKinematic = true;
                 }
             }
         }

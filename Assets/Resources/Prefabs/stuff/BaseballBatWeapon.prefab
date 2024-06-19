@@ -100,11 +100,11 @@ MonoBehaviour:
   <animatorOverrideController>k__BackingField: {fileID: 22100000, guid: 28729c093f3c0ef4a871e003bf65831b,
     type: 2}
   delayBetweenAttacks: 1.5
-  range: 1.2
+  range: 1.5
   attackAngle: 90
   minDistance: 0
   timing: 0.15
-  damage: 50
+  damage: 100
 --- !u!1 &8437853814842740681
 GameObject:
   m_ObjectHideFlags: 0

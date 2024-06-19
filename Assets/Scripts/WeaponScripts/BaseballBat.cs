@@ -64,29 +64,29 @@ public class BaseballBat : Weapon
         Debug.Log("Hit objects: " + info.Length);
         foreach (RaycastHit hit in info)
         {
-            //check if theres a wall between
             if (wielder.gameObject == hit.collider.gameObject) continue;
-            bool c = false;
-            Vector3 hitlocation = (hit.point == Vector3.zero) ? hit.transform.position : hit.point;
-            Debug.DrawLine(hitlocation, wielder.transform.position, Color.red, 1f);
-            RaycastHit[] info2 = Physics.RaycastAll(this.transform.position, hitlocation - this.transform.position, Vector3.Distance(this.transform.position, hit.transform.position), ~LayerMask.GetMask("PlayerRagdoll"));
-            Debug.Log("Considering: " + hit.collider.gameObject);
-            foreach (RaycastHit hit2 in info2)
-            {
-                if (hit2.collider.gameObject != hit.collider.gameObject && hit2.collider.gameObject != this.gameObject && hit.transform.tag == hit2.transform.tag)
-                {
-                    c = true;
-                    Debug.Log("break: " + hit2.collider.gameObject + " is in the way");
-                    break;
-                }
-            }
-            if (c) continue; else Debug.Log("Considered: " + hit.collider.gameObject + " has no gameobject in between!");
 
             ThirdPersonController hitCharacter = hit.collider.gameObject.GetComponent<ThirdPersonController>();
             if (hitCharacter != null)
             {
-                //handle hit
-                hitCharacter.AddImpulseForceRpc(wielder.transform.forward * 10f);
+                //check if theres a wall between
+                bool c = false;
+                Vector3 hitlocation = (hit.point == Vector3.zero) ? hit.transform.position : hit.point;
+                Debug.DrawLine(hitlocation, wielder.transform.position, Color.red, 1f);
+                RaycastHit[] info2 = Physics.RaycastAll(this.transform.position, hitlocation - this.transform.position, Vector3.Distance(this.transform.position, hit.transform.position), ~LayerMask.GetMask("PlayerRagdoll"));
+                Debug.Log("Considering: " + hit.collider.gameObject);
+                foreach (RaycastHit hit2 in info2)
+                {
+                    if (hit2.collider.gameObject != hit.collider.gameObject && hit2.collider.gameObject != this.gameObject && hit.transform.tag == hit2.transform.tag)
+                    {
+                        c = true;
+                        Debug.Log("break: " + hit2.collider.gameObject + " is in the way");
+                        break;
+                    }
+                }
+                if (c) continue; else Debug.Log("Considered: " + hit.collider.gameObject + " has no gameobject in between!");
+
+                //no wall in between, process hit
                 hitCharacter.TakeDamageRpc(damage);
             }
             // Debug.DrawLine(this.transform.position, hitlocation, Color.green, 5f);
@@ -96,7 +96,6 @@ public class BaseballBat : Weapon
 
     void OnDrawGizmosSelected()
     {
-        // Display the explosion radius when selected
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(wielder.transform.position, range);
     }

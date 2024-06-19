@@ -227,6 +227,7 @@ public class ThirdPersonController : NetworkBehaviour
         healthPoint.Value -= damage;
         if (healthPoint.Value <= 0)
         {
+            AddImpulseForceToRagdollPartRpc(Vector3.up * 10f, "Hips", true);
             KillRpc();
         }
     }
@@ -234,7 +235,7 @@ public class ThirdPersonController : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     public void KillRpc()
     {
-        EnableRagdoll();
+        if (!ragdollEnabled.Value) EnableRagdollRpc();
         if (IsServer || IsHost)
         {
             if (weapon)
@@ -245,7 +246,7 @@ public class ThirdPersonController : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.Owner)]
+    [Rpc(SendTo.Everyone)]
     public void AddImpulseForceRpc(Vector3 force)
     {
         externalForcesVelocity += force;
@@ -254,7 +255,7 @@ public class ThirdPersonController : NetworkBehaviour
     [Rpc(SendTo.Owner)]
     public void AddImpulseForceToRagdollPartRpc(Vector3 force, string bodyPartName, bool enableRagdoll)
     {
-        if (enableRagdoll) EnableRagdoll();
+        if (enableRagdoll) EnableRagdollRpc();
         ragdoll.AddForceToBodyPart(force, bodyPartName);
     }
     #endregion RPCs
@@ -505,7 +506,8 @@ public class ThirdPersonController : NetworkBehaviour
         }
     }
 
-    public void EnableRagdoll()
+    [Rpc(SendTo.Everyone)]
+    public void EnableRagdollRpc()
     {
         animator.enabled = false;
         movementEnabled = false;
@@ -514,12 +516,13 @@ public class ThirdPersonController : NetworkBehaviour
         ragdoll.EnableRagdoll();
     }
 
-    public void DisableRagdoll()
+    [Rpc(SendTo.Everyone)]
+    public void DisableRagdollRpc()
     {
         animator.enabled = true;
         movementEnabled = true;
-        ragdollEnabled.Value = false;
-        if (IsOwner) characterController.detectCollisions = true;
+        if (IsOwner) ragdollEnabled.Value = false;
+        characterController.detectCollisions = true;
         ragdoll.DisableRagdoll();
     }
     #endregion Methods
@@ -543,17 +546,17 @@ public class ThirdPersonControllerEditor : Editor
 
         if (GUILayout.Button("Test Force"))
         {
-            ThirdPersonControllerTarget.AddImpulseForceRpc(testForce);
+            ThirdPersonControllerTarget.AddImpulseForceToRagdollPartRpc(testForce, "Hips", true);
         }
 
         if (GUILayout.Button("Enable Ragdoll"))
         {
-            ThirdPersonControllerTarget.EnableRagdoll();
+            ThirdPersonControllerTarget.EnableRagdollRpc();
         }
 
         if (GUILayout.Button("Disable Ragdoll"))
         {
-            ThirdPersonControllerTarget.DisableRagdoll();
+            ThirdPersonControllerTarget.DisableRagdollRpc();
         }
     }
 }
