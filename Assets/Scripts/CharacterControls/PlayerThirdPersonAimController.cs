@@ -30,7 +30,6 @@ public class PlayerThirdPersonAimController : ThirdPersonAimController
             virtualCamera.Follow = cinemachineFollowTarget;
             aimVirtualCamera.gameObject.SetActive(false);
 
-            cinemachineFollowTarget.transform.forward = transform.forward;
             inputAimDirection = Vector3.zero;
             virtualCamera.m_Lens.FieldOfView = lookFOV;
         }

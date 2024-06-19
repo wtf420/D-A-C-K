@@ -12,7 +12,7 @@ using System;
 using UnityEditor;
 #endif
 
-public class ThirdPersonController : NetworkBehaviour
+public class ThirdPersonController : Playable
 {
     [Header("~*// Constants")]
     [SerializeField] LayerMask ignoreRaycastMask;
@@ -31,6 +31,7 @@ public class ThirdPersonController : NetworkBehaviour
 
     [Header("~*// Controls")]
     [SerializeField] CinemachineVirtualCamera virtualCamera;
+    [SerializeField] public GameObject cinemachineFollowTarget;
     [SerializeField] PlayerThirdPersonAimController playerThirdPersonAimController;
     [SerializeField] float maxFallingTime = 0.5f;
     public new Camera camera;
@@ -70,10 +71,8 @@ public class ThirdPersonController : NetworkBehaviour
     [SerializeField] Weapon testWeapon;
 
     [field: Header("~* NETWORKING")]
-    [field: SerializeField] public new NetworkObject NetworkObject { get; private set; }
     public NetworkPlayer controlPlayer;
     public NetworkVariable<NetworkBehaviourReference> weaponNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<NetworkBehaviourReference> controlPlayerNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     public NetworkVariable<float> healthPoint = new NetworkVariable<float>(100, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
@@ -95,6 +94,7 @@ public class ThirdPersonController : NetworkBehaviour
             ragdoll.outline.OutlineColor = Color.red;
 
             playerThirdPersonAimController.enabled = false;
+            playerThirdPersonAimController.SetFollowTarget(null);
             playerInput.enabled = false;
             screenCanvas.gameObject.SetActive(false);
             return;
@@ -111,6 +111,7 @@ public class ThirdPersonController : NetworkBehaviour
             ragdoll.outline.OutlineColor = Color.green;
 
             playerThirdPersonAimController.enabled = true;
+            playerThirdPersonAimController.SetFollowTarget(cinemachineFollowTarget.transform);
             playerInput.enabled = true;
             screenCanvas.gameObject.SetActive(true);
         }

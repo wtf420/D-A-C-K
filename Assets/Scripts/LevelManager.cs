@@ -67,6 +67,7 @@ public class LevelManager : NetworkBehaviour
 
     public NetworkPlayer networkPlayerPrefab;
     public ThirdPersonController characterPlayerPrefab;
+    public ThirdPersonSpectatorController spectatorPlayerPrefab;
 
     public TMP_Text waitingForPlayersText;
     public TMP_Text gameOverText;
@@ -175,7 +176,8 @@ public class LevelManager : NetworkBehaviour
         {
             AddPlayer(player);
         }
-        if (networkManager.IsHost) SpawnCharacterRpc(clientId);
+        if (clientId == NetworkManager.ServerClientId) SpawnSpectatorRpc(clientId);
+        else SpawnCharacterRpc(clientId);
     }
 
     private void OnDisconnectedCallback(ulong clientId)
@@ -196,21 +198,6 @@ public class LevelManager : NetworkBehaviour
         // manually refresh list
         OnListChanged(default);
         Debug.Log("SyncDataAsLateJoiner");
-    }
-
-    //player data synchronization complete
-    IEnumerator SyncDataAsLateJoinerCouroutine(ulong clientId)
-    {
-        //only run on client
-        if (clientId != NetworkManager.LocalClientId) yield return null;
-        // manually refresh list
-        OnListChanged(default);
-        yield return new WaitUntil(() => networkManager.SpawnManager.GetPlayerNetworkObject(clientId));
-        NetworkPlayer player = networkManager.SpawnManager.GetPlayerNetworkObject(clientId).GetComponent<NetworkPlayer>();
-        if (player)
-        {
-            SpawnCharacterRpc(clientId);
-        }
     }
 
     public void UpdateNetworkList(PlayerLevelInfo info)
@@ -328,6 +315,19 @@ public class LevelManager : NetworkBehaviour
         PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
         Transform spawn = spawnPointList[UnityEngine.Random.Range(0, spawnPointList.Count -1)].transform;
         ThirdPersonController character = Instantiate(characterPlayerPrefab, spawn.position, spawn.rotation, null);
+        character.controlPlayerNetworkBehaviourReference.Value = info.networkPlayer;
+        character.NetworkObject.SpawnWithOwnership(info.clientId, true);
+
+        OnPlayerSpawn(clientId);
+        info.character = character;
+        UpdateNetworkList(info);
+    }
+
+    [Rpc(SendTo.Server)]
+    public void SpawnSpectatorRpc(ulong clientId)
+    {
+        PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
+        ThirdPersonSpectatorController character = Instantiate(spectatorPlayerPrefab, null);
         character.controlPlayerNetworkBehaviourReference.Value = info.networkPlayer;
         character.NetworkObject.SpawnWithOwnership(info.clientId, true);
 

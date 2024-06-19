@@ -1031,6 +1031,7 @@ MonoBehaviour:
   drag: 1
   maxGroundCheckRadius: 0.2
   virtualCamera: {fileID: 1426581296847490612}
+  cinemachineFollowTarget: {fileID: 2249925223028741301}
   playerThirdPersonAimController: {fileID: 2062671228488013058}
   maxFallingTime: 3
   camera: {fileID: 0}
@@ -1051,7 +1052,6 @@ MonoBehaviour:
   weaponHeldTransform: {fileID: 8136014136987554166}
   testWeapon: {fileID: 8861618190684403599, guid: ecb480d87c36ac242bc4b2eb395d9904,
     type: 3}
-  <NetworkObject>k__BackingField: {fileID: 5862384184944065004}
   controlPlayer: {fileID: 0}
   ragdollEnabled:
     m_InternalValue: 0
@@ -1200,7 +1200,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3a0d8961f7307f4b8a74c00f6c2d286, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cinemachineFollowTarget: {fileID: 4992723414008930448}
+  cinemachineFollowTarget: {fileID: 0}
   virtualCamera: {fileID: 1426581296847490612}
   lookSpeed: 3
   lookFOV: 60

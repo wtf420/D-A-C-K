@@ -3852,6 +3852,11 @@ PrefabInstance:
       objectReference: {fileID: 190447320}
     - target: {fileID: 675882572066338128, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
+      propertyPath: miniumPlayerToStart
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 675882572066338128, guid: 04862a6d0cca0b14383b18be7f5628cc,
+        type: 3}
       propertyPath: networkPlayerPrefab
       value: 
       objectReference: {fileID: 1978224290941114677, guid: 3332d105322da704f8652b8681b9f967,
@@ -3861,6 +3866,12 @@ PrefabInstance:
       propertyPath: characterPlayerPrefab
       value: 
       objectReference: {fileID: 6141844111371457217, guid: e50c5109bdcf0e14a8daf818a1833218,
+        type: 3}
+    - target: {fileID: 675882572066338128, guid: 04862a6d0cca0b14383b18be7f5628cc,
+        type: 3}
+      propertyPath: spectatorPlayerPrefab
+      value: 
+      objectReference: {fileID: 4539101640096715793, guid: b7fea081873e44a46b434e5ecf732897,
         type: 3}
     - target: {fileID: 675882572066338128, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}

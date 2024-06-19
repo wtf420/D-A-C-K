@@ -32,13 +32,12 @@ public class ThirdPersonAimController : NetworkBehaviour
         {
             virtualCamera.Follow = cinemachineFollowTarget;
             virtualCamera.gameObject.SetActive(true);
-            cinemachineFollowTarget.transform.forward = transform.forward;
             inputAimDirection = Vector3.zero;
             virtualCamera.m_Lens.FieldOfView = lookFOV;
         } 
     }
 
-    public virtual void UpdateFollowTarget(Transform target)
+    public virtual void SetFollowTarget(Transform target)
     {
         cinemachineFollowTarget = target;
         virtualCamera.Follow = cinemachineFollowTarget;
@@ -61,6 +60,7 @@ public class ThirdPersonAimController : NetworkBehaviour
     protected virtual void LateUpdate()
     {
         if (!IsOwner) return;
+        if (cinemachineFollowTarget == null) return;
         cameraDirection += inputAimDirection * lookSpeed * Time.unscaledDeltaTime;
         cameraDirection.x = Mathf.Clamp(cameraDirection.x, -90f + bottomAngleClamp, 90f - topAngleClamp);
         cinemachineFollowTarget.transform.rotation = Quaternion.Euler(cameraDirection);
