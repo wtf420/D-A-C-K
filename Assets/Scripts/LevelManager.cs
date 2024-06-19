@@ -109,24 +109,10 @@ public class LevelManager : NetworkBehaviour
 
         networkManager.OnClientDisconnectCallback += OnDisconnectedCallback;
         networkManager.OnClientConnectedCallback += OnConnectedCallback;
+        networkManager.SceneManager.OnLoadComplete += OnSceneLoadComplete;
         networkManager.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
         PlayerLevelInfoNetworkList.OnListChanged += OnListChanged;
         currentNetworkLevelStatus.OnValueChanged += OnGamePhaseChanged;
-
-        if (IsServer || IsHost) 
-        {
-            foreach (NetworkPlayer networkPlayer in FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.InstanceID))
-            {
-                if (!PlayerNetworkListToNormalList().Any(x => x.clientId == networkPlayer.OwnerClientId))
-                    AddPlayer(networkPlayer);
-            }
-            StartCoroutine(GameLoop());
-        }
-    }
-
-    private void OnGamePhaseChanged(short previousValue, short newValue)
-    {
-        currentLevelStatus = (LevelStatus)currentNetworkLevelStatus.Value;
     }
 
     public override void OnNetworkDespawn()
@@ -134,8 +120,24 @@ public class LevelManager : NetworkBehaviour
         base.OnNetworkDespawn();
         networkManager.OnClientDisconnectCallback -= OnDisconnectedCallback;
         networkManager.OnClientConnectedCallback -= OnConnectedCallback;
+        networkManager.SceneManager.OnLoadComplete -= OnSceneLoadComplete;
         networkManager.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
         PlayerLevelInfoNetworkList.OnListChanged -= OnListChanged;
+        currentNetworkLevelStatus.OnValueChanged -= OnGamePhaseChanged;
+    }
+
+    private void OnSceneLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
+    {
+        if (clientId != NetworkManager.LocalClientId) return;
+        SpawnPlayerObjectRpc(clientId, PersistentPlayer.Instance.playerData);
+        networkManager.SceneManager.OnLoadComplete -= OnSceneLoadComplete;
+        Debug.Log("OnSceneLoadComplete");
+    }
+
+    private void OnGamePhaseChanged(short previousValue, short newValue)
+    {
+        currentLevelStatus = (LevelStatus)currentNetworkLevelStatus.Value;
+        Debug.Log("OnGamePhaseChanged");
     }
 
     private void OnListChanged(NetworkListEvent<PlayerLevelInfo> changeEvent)
@@ -151,6 +153,8 @@ public class LevelManager : NetworkBehaviour
     {
         if (networkManager.LocalClientId == clientId)
         {
+            Debug.Log("OnConnectedCallback: " + clientId + " | " + IsClient);
+            Debug.Log("OnConnectedCallback: " + PersistentPlayer.Instance.playerData.PlayerName + " | " + PersistentPlayer.Instance.playerData.PlayerColor);
             SpawnPlayerObjectRpc(clientId, PersistentPlayer.Instance.playerData);
         }
     }
@@ -158,7 +162,7 @@ public class LevelManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void SpawnPlayerObjectRpc(ulong clientId, PlayerData playerData)
     {
-        Debug.Log("PlayerData: " + playerData.PlayerName + " | " + playerData.PlayerColor);
+        Debug.Log("SpawnPlayerObjectRpc: " + playerData.PlayerName + " | " + playerData.PlayerColor);
         NetworkPlayer player = Instantiate(networkPlayerPrefab, Vector3.zero, Quaternion.identity, null);
         player.playerData = playerData;
         player.NetworkObject.SpawnAsPlayerObject(clientId);
@@ -194,6 +198,7 @@ public class LevelManager : NetworkBehaviour
         if (clientId != NetworkManager.LocalClientId) return;
         // manually refresh list
         OnListChanged(default);
+        Debug.Log("SyncDataAsLateJoiner");
     }
 
     //player data synchronization complete

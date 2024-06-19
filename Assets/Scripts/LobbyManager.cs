@@ -106,5 +106,6 @@ public class LobbyManager : MonoBehaviour
         Debug.Log("OnLobbyChanged");
         await UnityLobbyServiceManager.Instance.PollForLobbyUpdates();
         if (isHost) StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
+        if (!isHost && joinedLobby.Data["Status"].Value == "InGame") JoinGame();
     }
 }

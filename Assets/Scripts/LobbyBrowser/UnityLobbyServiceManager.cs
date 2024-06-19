@@ -33,6 +33,11 @@ public class UnityLobbyServiceManager : MonoBehaviour
         InnitializeUnityAuthentication();
     }
 
+    void OnApplicationQuit()
+    {
+        _ = LeaveLobby();
+    }
+
     async void InnitializeUnityAuthentication()
     {
         if (UnityServices.State != ServicesInitializationState.Initialized)
@@ -253,13 +258,14 @@ public class UnityLobbyServiceManager : MonoBehaviour
     {
         if (isHost)
             await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
+        Debug.Log("Removed!");
     }
 
     public async Task UpdatePlayerData(UpdatePlayerOptions options)
     {
         try
         {
-            var lobby = await LobbyService.Instance.UpdatePlayerAsync(joinedLobby.Id, GetClientId(), options);
+            var lobby = await LobbyService.Instance.UpdatePlayerAsync(joinedLobby.Id, AuthenticationService.Instance.PlayerId, options);
 
             //...
         }

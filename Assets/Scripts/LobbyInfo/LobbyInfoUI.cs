@@ -41,11 +41,6 @@ public class LobbyInfoUI : MonoBehaviour
 
         playerLobbyInfoUIItemList = new List<PlayerLobbyInfoUIItem>();
 
-        startButton.onClick.AddListener(async () =>
-        {
-            await UnityLobbyServiceManager.Instance.CreateAndHostLobby();
-            NetworkManager.Singleton.StartHost();
-        });
         joinButton.onClick.AddListener(() => LobbyManager.Instance.JoinGame());
         startButton.onClick.AddListener(() => LobbyManager.Instance.StartGame());
         exitButton.onClick.AddListener(ExitLobby);
@@ -90,7 +85,6 @@ public class LobbyInfoUI : MonoBehaviour
 
     void OnDestroy()
     {
-        _ = UnityLobbyServiceManager.Instance.LeaveLobby();
         startButton.onClick.RemoveAllListeners();
         joinButton.onClick.RemoveAllListeners();
         exitButton.onClick.RemoveAllListeners();
