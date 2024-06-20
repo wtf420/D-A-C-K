@@ -5218,6 +5218,11 @@ PrefabInstance:
         type: 3}
     - target: {fileID: 675882572066338128, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
+      propertyPath: playerStartingPoint
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 675882572066338128, guid: 04862a6d0cca0b14383b18be7f5628cc,
+        type: 3}
       propertyPath: characterPlayerPrefab
       value: 
       objectReference: {fileID: 6141844111371457217, guid: e50c5109bdcf0e14a8daf818a1833218,
@@ -5272,6 +5277,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: LevelManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 1038630611186786801, guid: 04862a6d0cca0b14383b18be7f5628cc,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2673554040656612885, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}

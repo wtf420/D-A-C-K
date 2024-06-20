@@ -10,6 +10,25 @@ using UnityEngine;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine.Events;
 
+public enum LobbyDataField
+{
+    Name,
+    IPAddress,
+    Status
+}
+
+public enum LobbyStatusDataValue
+{
+    InGame,
+    InLobby
+}
+
+public enum PlayerDataField
+{
+    Name,
+    Status
+}
+
 // For managing Lobby from Unity Lobby Package
 public class UnityLobbyServiceManager : MonoBehaviour
 {
@@ -65,27 +84,27 @@ public class UnityLobbyServiceManager : MonoBehaviour
                     data: new Dictionary<string, PlayerDataObject>()
                     {
                         {
-                            "Name", new PlayerDataObject(
+                            PlayerDataField.Name.ToString(), new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
                                 value: PersistentPlayer.Instance.playerData.PlayerName)
                         },
                         {
-                            "Status", new PlayerDataObject(
+                            PlayerDataField.Status.ToString(), new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
-                                value: "InLobby")
+                                value: LobbyStatusDataValue.InLobby.ToString())
                         },
                 }),
                 Data = new Dictionary<string, DataObject>()
                 {
                     {
-                        "IP Address", new DataObject(
+                        LobbyDataField.IPAddress.ToString(), new DataObject(
                             visibility: DataObject.VisibilityOptions.Public,
                             value: NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address)
                     },
                     {
-                        "Status", new DataObject(
+                        LobbyDataField.Status.ToString(), new DataObject(
                             visibility: DataObject.VisibilityOptions.Public,
-                            value: "InLobby",
+                            value: LobbyStatusDataValue.InLobby.ToString(),
                             index: DataObject.IndexOptions.S1)
                     },
                 }
@@ -148,14 +167,14 @@ public class UnityLobbyServiceManager : MonoBehaviour
                     data: new Dictionary<string, PlayerDataObject>()
                     {
                         {
-                            "Name", new PlayerDataObject(
+                            PlayerDataField.Name.ToString(), new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
                                 value: PersistentPlayer.Instance.playerData.PlayerName)
                         },
                         {
-                            "Status", new PlayerDataObject(
+                            PlayerDataField.Status.ToString(), new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
-                                value: "InLobby")
+                                value: LobbyStatusDataValue.InLobby.ToString())
                         },
                     })
             };
@@ -187,14 +206,14 @@ public class UnityLobbyServiceManager : MonoBehaviour
                     data: new Dictionary<string, PlayerDataObject>()
                     {
                         {
-                            "Name", new PlayerDataObject(
+                            PlayerDataField.Name.ToString(), new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
                                 value: PersistentPlayer.Instance.playerData.PlayerName)
                         },
                         {
-                            "Status", new PlayerDataObject(
+                            PlayerDataField.Status.ToString(), new PlayerDataObject(
                                 visibility: PlayerDataObject.VisibilityOptions.Member, // Visible only to members of the lobby.
-                                value: "InLobby")
+                                value: LobbyStatusDataValue.InLobby.ToString())
                         },
                     })
             };

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class LobbyManager : MonoBehaviour
 {
@@ -16,12 +16,13 @@ public class LobbyManager : MonoBehaviour
         get { return UnityLobbyServiceManager.Instance.joinedLobby; }
         set { UnityLobbyServiceManager.Instance.joinedLobby = value; }
     }
+
     public bool isHost => UnityLobbyServiceManager.Instance.isHost;
 
     void Awake()
     {
         if (Instance)
-            Destroy(this.gameObject);
+            Destroy(gameObject);
         else
             Instance = this;
         DontDestroyOnLoad(this);
@@ -63,9 +64,9 @@ public class LobbyManager : MonoBehaviour
             Data = new Dictionary<string, DataObject>()
         {
             {
-                "Status", new DataObject(
+                PlayerDataField.Status.ToString(), new DataObject(
                     visibility: DataObject.VisibilityOptions.Public,
-                    value: "InGame",
+                    value: LobbyStatusDataValue.InGame.ToString(),
                     index: DataObject.IndexOptions.S1)
             },
         }
@@ -77,9 +78,9 @@ public class LobbyManager : MonoBehaviour
             Data = new Dictionary<string, PlayerDataObject>()
         {
             {
-                "Status", new PlayerDataObject(
+                PlayerDataField.Status.ToString(), new PlayerDataObject(
                     visibility: PlayerDataObject.VisibilityOptions.Member,
-                    value: "InGame")
+                    value: LobbyStatusDataValue.InGame.ToString())
             },
         }
         };
@@ -88,6 +89,19 @@ public class LobbyManager : MonoBehaviour
 
     public void JoinGame()
     {
+        UpdatePlayerOptions updatePlayerOptions = new UpdatePlayerOptions
+        {
+            Data = new Dictionary<string, PlayerDataObject>()
+        {
+            {
+                PlayerDataField.Status.ToString(), new PlayerDataObject(
+                    visibility: PlayerDataObject.VisibilityOptions.Member,
+                    value: LobbyStatusDataValue.InGame.ToString())
+            },
+        }
+        };
+        _ = UnityLobbyServiceManager.Instance.UpdatePlayerData(updatePlayerOptions);
+        NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address = joinedLobby.Data[LobbyDataField.IPAddress.ToString()].Value;
         NetworkManager.Singleton.StartClient();
     }
 
@@ -106,6 +120,6 @@ public class LobbyManager : MonoBehaviour
         Debug.Log("OnLobbyChanged");
         await UnityLobbyServiceManager.Instance.PollForLobbyUpdates();
         if (isHost) StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
-        if (!isHost && joinedLobby.Data["Status"].Value == "InGame") JoinGame();
+        if (!isHost && joinedLobby.Data[PlayerDataField.Status.ToString()].Value == LobbyStatusDataValue.InGame.ToString()) JoinGame();
     }
 }

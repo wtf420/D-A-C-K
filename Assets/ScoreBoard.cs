@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ScoreBoard : MonoBehaviour
@@ -36,7 +37,7 @@ public class ScoreBoard : MonoBehaviour
         }
         playerScoreBoardUIItemList.Clear();
 
-        foreach (PlayerLevelInfo info in LevelManager.Instance.PlayerLevelInfoNetworkList)
+        foreach (PlayerLevelInfo info in LevelManager.Instance.PlayerNetworkListToNormalList().OrderByDescending(x => x.playerScore))
         {
             PlayerScoreBoardUIItem InstantiateItem = Instantiate(playerScoreBoardUIItemPrefab, ScrollviewContent, false);
             InstantiateItem.Initialize(info);

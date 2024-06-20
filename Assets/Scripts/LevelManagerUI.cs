@@ -15,13 +15,13 @@ public class LevelManagerUI : MonoBehaviour
     protected virtual void Awake()
     {
         if (Instance)
-            Destroy(this.gameObject);
+            Destroy(gameObject);
         else
             Instance = this;
         currentScreen = null;
     }
 
-    protected virtual void Update()
+    protected virtual void LateUpdate()
     {
         currentScreen?.UpdateScreen();
     }
