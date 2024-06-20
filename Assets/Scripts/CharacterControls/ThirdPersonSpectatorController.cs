@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Cinemachine;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,6 +18,7 @@ public class ThirdPersonSpectatorController : Playable
     [Header("~*// UI")]
     [SerializeField] Canvas screenCanvas;
     [SerializeField] Canvas worldCanvas;
+    [SerializeField] TMP_Text currentlySpectatingText;
 
     [field: Header("~* NETWORKING")]
     public NetworkPlayer controlPlayer;
@@ -117,6 +119,7 @@ public class ThirdPersonSpectatorController : Playable
             if (infos[i].character.TryGet(out ThirdPersonController character))
             {
                 thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
+                currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;
             }
@@ -127,11 +130,13 @@ public class ThirdPersonSpectatorController : Playable
             if (infos[i].character.TryGet(out ThirdPersonController character))
             {
                 thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
+                currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;
             }
         }
         thirdPersonAimController.SetFollowTarget(transform);
+        currentlySpectatingText.text = "Currently spectating: None.";
         Debug.Log("No Spectate-able found");
     }
 
@@ -144,6 +149,7 @@ public class ThirdPersonSpectatorController : Playable
             if (infos[i].character.TryGet(out ThirdPersonController character))
             {
                 thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
+                currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;
             }
@@ -154,11 +160,13 @@ public class ThirdPersonSpectatorController : Playable
             if (infos[i].character.TryGet(out ThirdPersonController character))
             {
                 thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
+                currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;
             }
         }
         thirdPersonAimController.SetFollowTarget(transform);
+        currentlySpectatingText.text = "Currently spectating: None.";
         Debug.Log("No Spectate-able found");
     }
     #endregion

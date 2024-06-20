@@ -54,7 +54,7 @@ public class PlayerThirdPersonAimController : ThirdPersonAimController
 
     protected override void LateUpdate()
     {
-        if (!IsOwner) return;
+        if (!IsOwner || cinemachineFollowTarget == null) return;
         cameraDirection += inputAimDirection * (isAiming ? aimSpeed : lookSpeed) * Time.unscaledDeltaTime;
         cameraDirection.x = Mathf.Clamp(cameraDirection.x, -90f + bottomAngleClamp, 90f - topAngleClamp);
         cinemachineFollowTarget.transform.rotation = Quaternion.Euler(cameraDirection);

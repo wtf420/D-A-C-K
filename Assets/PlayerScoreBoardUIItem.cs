@@ -1,19 +1,29 @@
 using TMPro;
 using Unity.Netcode;
-using Unity.Services.Lobbies.Models;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
-using UnityEngine.UI;
 
 public class PlayerScoreBoardUIItem : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI LobbyNameText, PlayerHostStatusText, PlayerPerformanceText, PlayerStatusText;
+    PlayerLevelInfo info;
 
     public void Initialize(PlayerLevelInfo playerInfo)
     {
         LobbyNameText.text = playerInfo.playerName.ToString();
         PlayerHostStatusText.text = playerInfo.clientId == NetworkManager.ServerClientId ? "Host" : "Client";
         PlayerPerformanceText.text = playerInfo.playerScore.ToString();
-        PlayerStatusText.text = playerInfo.character.TryGet(out ThirdPersonController character) ? "Alive" : "Dead";
+        PlayerStatusText.text = ((PlayerStatus)playerInfo.playerStatus).ToString();
+        info = playerInfo;
+    }
+
+    public void ManualUpdate()
+    {
+        if (!info.Equals(default))
+        {
+            LobbyNameText.text = info.playerName.ToString();
+            PlayerHostStatusText.text = info.clientId == NetworkManager.ServerClientId ? "Host" : "Client";
+            PlayerPerformanceText.text = info.playerScore.ToString();
+            PlayerStatusText.text = ((PlayerStatus)info.playerStatus).ToString();
+        }
     }
 }

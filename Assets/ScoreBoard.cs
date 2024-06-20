@@ -18,6 +18,14 @@ public class ScoreBoard : MonoBehaviour
         UpdateScoreBoard();
     }
 
+    void Update()
+    {
+        foreach (PlayerScoreBoardUIItem item in playerScoreBoardUIItemList)
+        {
+            item.ManualUpdate();
+        }
+    }
+
     public void UpdateScoreBoard()
     {
         Debug.Log("Start Deleted: " + playerScoreBoardUIItemList.Count);
