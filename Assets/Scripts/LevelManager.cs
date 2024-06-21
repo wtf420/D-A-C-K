@@ -87,6 +87,7 @@ public class LevelManager : NetworkBehaviour
 
     [SerializeField] public int miniumPlayerToStart = 4;
     [SerializeField] public float playerStartingPoint = 0;
+    [SerializeField] public Weapon testWeapon;
 
     [SerializeField] public LevelStatus currentLevelStatus = LevelStatus.None;
     public NetworkVariable<short> currentNetworkLevelStatus = new NetworkVariable<short>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
@@ -132,7 +133,8 @@ public class LevelManager : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.Tab)) scoreBoard.gameObject.SetActive(true); else scoreBoard.gameObject.SetActive(false);
+        if (Input.GetKeyDown(KeyCode.Tab)) scoreBoard.Show(); 
+        else if (Input.GetKeyUp(KeyCode.Tab)) scoreBoard.Hide();
         if (!IsServer) return;
     }
 
@@ -359,12 +361,13 @@ public class LevelManager : NetworkBehaviour
         OnPlayerDeathEvent.AddListener(CustomOnPlayerDeathLogicWaitingForPlayers);
         currentNetworkLevelStatus.Value = (short)LevelStatus.WaitingForPlayers;
         yield return new WaitUntil(() => PlayerLevelInfoNetworkList.Count >= miniumPlayerToStart);
+        OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicWaitingForPlayers);
     }
 
     protected virtual IEnumerator GameInProgress()
     {
-        OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicWaitingForPlayers);
         OnPlayerDeathEvent.AddListener(CustomOnPlayerDeathLogicProgress);
+        OnPlayerSpawnEvent.AddListener(CustomOnPlayerSpawnLogicProgress);
         for (int i = 0; i < PlayerLevelInfoNetworkList.Count; i++)
         {
             PlayerLevelInfo info = PlayerLevelInfoNetworkList[i];
@@ -374,11 +377,12 @@ public class LevelManager : NetworkBehaviour
         }
         currentNetworkLevelStatus.Value = (short)LevelStatus.InProgress;
         yield return new WaitUntil(() => CheckGameIsOver());
+        OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicProgress);
+        OnPlayerSpawnEvent.RemoveListener(CustomOnPlayerSpawnLogicProgress);
     }
 
     protected virtual IEnumerator GameOver()
     {
-        OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicProgress);
         for (int i = 0; i < PlayerLevelInfoNetworkList.Count; i++)
         {
             KillCharacterRpc(PlayerLevelInfoNetworkList[i].clientId);
@@ -389,7 +393,6 @@ public class LevelManager : NetworkBehaviour
 
     public bool CheckGameIsOver()
     {
-        Debug.Log("Checking");
         int currentAlivePlayer = 0;
         int currentSpectatingPlayers = 0;
         winner.Value = PlayerLevelInfoNetworkList[0];
@@ -436,10 +439,10 @@ public class LevelManager : NetworkBehaviour
         character.controlPlayerNetworkBehaviourReference.Value = info.networkPlayer;
         character.NetworkObject.SpawnWithOwnership(info.clientId, true);
 
-        OnPlayerSpawn(clientId);
         info.character = character;
         info.playerStatus = (short)PlayerStatus.Alive;
         UpdateNetworkList(info);
+        OnPlayerSpawn(clientId);
     }
 
     [Rpc(SendTo.Server)]
@@ -450,10 +453,10 @@ public class LevelManager : NetworkBehaviour
         character.controlPlayerNetworkBehaviourReference.Value = info.networkPlayer;
         character.NetworkObject.SpawnWithOwnership(info.clientId, true);
 
-        OnPlayerSpawn(clientId);
         info.character = character;
         info.playerStatus = (short)PlayerStatus.Spectating;
         UpdateNetworkList(info);
+        OnPlayerSpawn(clientId);
     }
 
     [Rpc(SendTo.Server)]
@@ -532,6 +535,18 @@ public class LevelManager : NetworkBehaviour
         else
         {
             RespawnCharacterRpc(clientId, 3f, true, false);
+        }
+    }
+
+    private void CustomOnPlayerSpawnLogicProgress(ulong clientId)
+    {
+        PlayerLevelInfo info = GetPlayerLevelInfoFromNetworkList(clientId);
+        if (info.character.TryGet(out ThirdPersonController character))
+        {
+            Weapon weapon = Instantiate(testWeapon);
+            weapon.NetworkObject.Spawn(true);
+            weapon.wielderNetworkBehaviourReference.Value = character;
+            character.weaponNetworkBehaviourReference.Value = weapon;
         }
     }
 }

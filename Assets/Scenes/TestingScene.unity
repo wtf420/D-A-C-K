@@ -5119,6 +5119,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4907906957290030533, guid: 702cd601c27674b4fa75783705cf0032,
         type: 3}
+      propertyPath: NetworkConfig.TickRate
+      value: 240
+      objectReference: {fileID: 0}
+    - target: {fileID: 4907906957290030533, guid: 702cd601c27674b4fa75783705cf0032,
+        type: 3}
       propertyPath: NetworkConfig.RpcHashSize
       value: 1
       objectReference: {fileID: 0}
@@ -5126,6 +5131,16 @@ PrefabInstance:
         type: 3}
       propertyPath: NetworkConfig.PlayerPrefab
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4907906957290030533, guid: 702cd601c27674b4fa75783705cf0032,
+        type: 3}
+      propertyPath: NetworkConfig.LoadSceneTimeOut
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4907906957290030533, guid: 702cd601c27674b4fa75783705cf0032,
+        type: 3}
+      propertyPath: NetworkConfig.ConnectionApproval
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5637380818890283483, guid: 702cd601c27674b4fa75783705cf0032,
         type: 3}
@@ -5195,6 +5210,12 @@ PrefabInstance:
       propertyPath: scoreBoard
       value: 
       objectReference: {fileID: 1926083622}
+    - target: {fileID: 675882572066338128, guid: 04862a6d0cca0b14383b18be7f5628cc,
+        type: 3}
+      propertyPath: testWeapon
+      value: 
+      objectReference: {fileID: 8861618190684403599, guid: ecb480d87c36ac242bc4b2eb395d9904,
+        type: 3}
     - target: {fileID: 675882572066338128, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
       propertyPath: gameOverText
@@ -5342,6 +5363,16 @@ PrefabInstance:
         type: 3}
       propertyPath: GlobalObjectIdHash
       value: 3393399521
+      objectReference: {fileID: 0}
+    - target: {fileID: 5157066366471546883, guid: 04862a6d0cca0b14383b18be7f5628cc,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6275938784756702694, guid: 04862a6d0cca0b14383b18be7f5628cc,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8089697393465804154, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}

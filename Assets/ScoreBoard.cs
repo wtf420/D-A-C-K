@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class ScoreBoard : MonoBehaviour
+public class ScoreBoard : Screen
 {
     [SerializeField] PlayerScoreBoardUIItem playerScoreBoardUIItemPrefab;
     [SerializeField] Transform ScrollviewContent;
@@ -14,25 +14,15 @@ public class ScoreBoard : MonoBehaviour
         playerScoreBoardUIItemList = new List<PlayerScoreBoardUIItem>();
     }
 
-    void OnEnable()
+    void LateUpdate()
     {
-        UpdateScoreBoard();
+        if (gameObject.activeInHierarchy) UpdateScreen();
     }
 
-    void Update()
+    public override void UpdateScreen()
     {
         foreach (PlayerScoreBoardUIItem item in playerScoreBoardUIItemList)
         {
-            item.ManualUpdate();
-        }
-    }
-
-    public void UpdateScoreBoard()
-    {
-        Debug.Log("Start Deleted: " + playerScoreBoardUIItemList.Count);
-        foreach (PlayerScoreBoardUIItem item in playerScoreBoardUIItemList)
-        {
-            Debug.Log("Item Deleted: " + playerScoreBoardUIItemList.Count);
             Destroy(item.gameObject);
         }
         playerScoreBoardUIItemList.Clear();

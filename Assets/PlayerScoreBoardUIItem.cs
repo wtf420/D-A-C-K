@@ -1,14 +1,18 @@
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerScoreBoardUIItem : MonoBehaviour
 {
+    [SerializeField] Image PlayerColorDisplay;
     [SerializeField] TextMeshProUGUI LobbyNameText, PlayerHostStatusText, PlayerPerformanceText, PlayerStatusText;
     PlayerLevelInfo info;
 
     public void Initialize(PlayerLevelInfo playerInfo)
     {
+        if (ColorUtility.TryParseHtmlString(playerInfo.playerColor.ToString(), out Color color))
+        PlayerColorDisplay.color = color;
         LobbyNameText.text = playerInfo.playerName.ToString();
         PlayerHostStatusText.text = playerInfo.clientId == NetworkManager.ServerClientId ? "Host" : "Client";
         PlayerPerformanceText.text = playerInfo.playerScore.ToString();
