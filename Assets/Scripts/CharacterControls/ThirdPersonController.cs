@@ -4,9 +4,6 @@ using UnityEngine.InputSystem;
 using Unity.Netcode;
 using System.Linq;
 using TMPro;
-using System;
-
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -72,6 +69,7 @@ public class ThirdPersonController : Playable
 
     [field: Header("~* NETWORKING")]
     public NetworkPlayer controlPlayer;
+    public ClientTransform clientTransform;
     public NetworkVariable<NetworkBehaviourReference> weaponNetworkBehaviourReference = new NetworkVariable<NetworkBehaviourReference>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<bool> ragdollEnabled = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     public NetworkVariable<float> healthPoint = new NetworkVariable<float>(100, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
@@ -121,6 +119,7 @@ public class ThirdPersonController : Playable
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+        clientTransform.enabled = true;
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
         weaponNetworkBehaviourReference.OnValueChanged += OnWeaponChanged;
         healthPoint.OnValueChanged += OnHealthPointChanged;
@@ -135,6 +134,14 @@ public class ThirdPersonController : Playable
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
+        if (weapon != null)
+        {
+            if (weapon.NetworkObject.IsSpawned)
+                weapon.NetworkObject.Despawn(true);
+            else
+                Destroy(weapon.gameObject);
+        }
+
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
         weaponNetworkBehaviourReference.OnValueChanged -= OnWeaponChanged;
         healthPoint.OnValueChanged -= OnHealthPointChanged;
@@ -153,7 +160,6 @@ public class ThirdPersonController : Playable
     {
         controlPlayerNetworkBehaviourReference.Value.TryGet(out NetworkPlayer networkPlayer);
         controlPlayer = networkPlayer;
-        Debug.Log("shirtMaterial: " + OwnerClientId + " | " + controlPlayer.playerName.Value + " | " + controlPlayer.playerColor.Value);
         playerNameDisplay.text = controlPlayer.playerName.Value.ToString();
         if (shirtMaterial != null && ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color))
         {
@@ -184,6 +190,10 @@ public class ThirdPersonController : Playable
     {
         isGrounded = GroundCheck(maxGroundCheckRadius);
         playerNameDisplay.transform.forward = camera.transform.forward;
+        ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color);
+        if (shirtMaterial.color != color) shirtMaterial.color = color;
+        if (playerNameDisplay.text != controlPlayer.playerName.Value.ToString()) playerNameDisplay.text = controlPlayer.playerName.Value.ToString();
+
         if (!IsOwner) return;
         if (IsServer) // testing purposes
         {
@@ -222,6 +232,13 @@ public class ThirdPersonController : Playable
     #endregion MonoBehaviourMethods
 
     #region RPCs
+    [Rpc(SendTo.Owner)]
+    public void InitialzeRpc(Vector3 spawnPosition, Quaternion rotation)
+    {
+        transform.position = spawnPosition;
+        transform.rotation = rotation;
+    }
+
     [Rpc(SendTo.Server)] //Server mark complete server spawn process
     public void TakeDamageRpc(float damage, Vector3 direction)
     {
@@ -239,10 +256,6 @@ public class ThirdPersonController : Playable
         if (!ragdollEnabled.Value) EnableRagdollRpc();
         if (IsServer || IsHost)
         {
-            if (weapon)
-            {
-                weapon.NetworkObject.Despawn(true);
-            }
             LevelManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId);
         }
     }

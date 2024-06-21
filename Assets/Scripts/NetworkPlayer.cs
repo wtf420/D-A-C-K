@@ -16,13 +16,12 @@ public class NetworkPlayer : NetworkBehaviour
     #region Monobehaviour & NetworkBehaviour
     void Awake()
     {
-        DontDestroyOnLoad(this);
+        
     }
 
     void Update()
     {
-        if (IsOwner && Input.GetKeyDown(KeyCode.Delete))
-            LevelManager.Instance.RespawnCharacterRpc(NetworkManager.LocalClientId);
+
     }
 
     //sync or create network data

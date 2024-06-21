@@ -5218,6 +5218,12 @@ PrefabInstance:
         type: 3}
     - target: {fileID: 675882572066338128, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
+      propertyPath: spawnWeapon
+      value: 
+      objectReference: {fileID: 8861618190684403599, guid: ecb480d87c36ac242bc4b2eb395d9904,
+        type: 3}
+    - target: {fileID: 675882572066338128, guid: 04862a6d0cca0b14383b18be7f5628cc,
+        type: 3}
       propertyPath: gameOverText
       value: 
       objectReference: {fileID: 190447320}
