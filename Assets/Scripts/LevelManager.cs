@@ -92,7 +92,7 @@ public class LevelManager : NetworkBehaviour
     public NetworkVariable<short> currentNetworkLevelStatus = new NetworkVariable<short>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<PlayerLevelInfo> winner;
     public NetworkVariable<bool> GameStarted = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkList<PlayerLevelInfo> PlayerLevelInfoNetworkList = new NetworkList<PlayerLevelInfo>();
+    public NetworkList<PlayerLevelInfo> PlayerLevelInfoNetworkList;
     // Crazy idea saved for later
     // private bool playerLevelInfoNormalListRefresh = false;
     // private List<PlayerLevelInfo> playerLevelInfoNormalList;
@@ -126,6 +126,7 @@ public class LevelManager : NetworkBehaviour
     void Start()
     {
         networkManager = NetworkManager.Singleton;
+        PlayerLevelInfoNetworkList = new NetworkList<PlayerLevelInfo>();
     }
 
     // Update is called once per frame
@@ -142,7 +143,7 @@ public class LevelManager : NetworkBehaviour
         networkManager.OnClientConnectedCallback += OnConnectedCallback;
         networkManager.SceneManager.OnLoadComplete += OnSceneLoadComplete;
         networkManager.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
-        PlayerLevelInfoNetworkList.OnListChanged += OnListChanged;
+        PlayerLevelInfoNetworkList.OnListChanged += OnPlayerLevelInfoNetworkListChanged;
         if (GameStarted.Value) currentNetworkLevelStatus.OnValueChanged += OnGamePhaseChanged;
 
         if (IsServer) StartCoroutine(GameLoop());
@@ -156,7 +157,7 @@ public class LevelManager : NetworkBehaviour
         networkManager.OnClientConnectedCallback -= OnConnectedCallback;
         networkManager.SceneManager.OnLoadComplete -= OnSceneLoadComplete;
         networkManager.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
-        PlayerLevelInfoNetworkList.OnListChanged -= OnListChanged;
+        PlayerLevelInfoNetworkList.OnListChanged -= OnPlayerLevelInfoNetworkListChanged;
         currentNetworkLevelStatus.OnValueChanged -= OnGamePhaseChanged;
     }
 
@@ -171,6 +172,7 @@ public class LevelManager : NetworkBehaviour
     private void OnConnectedCallback(ulong clientId)
     {
         Debug.Log("OnConnectedCallback");
+        OnPlayerJoinedEvent?.Invoke(clientId);
         if (clientId != NetworkManager.LocalClientId) return;
         if (!GetPlayerLevelInfoFromNetworkList(clientId).networkPlayer.TryGet(out NetworkPlayer _)) SpawnPlayerObjectRpc(clientId, PersistentPlayer.Instance.playerData);
     }
@@ -185,20 +187,21 @@ public class LevelManager : NetworkBehaviour
         {
             SceneManager.LoadScene("LobbyScene");
         }
+        OnPlayerLeaveEvent?.Invoke(clientId);
     }
 
     void SyncDataAsLateJoiner(ulong clientId)
     {
         if (clientId != NetworkManager.LocalClientId) return;
         // manually refresh
-        OnListChanged(default);
+        OnPlayerLevelInfoNetworkListChanged(default);
         OnGamePhaseChanged(default, default);
         Debug.Log("SyncDataAsLateJoiner");
     }
     #endregion
 
     #region Player Management
-    private void OnListChanged(NetworkListEvent<PlayerLevelInfo> changeEvent)
+    private void OnPlayerLevelInfoNetworkListChanged(NetworkListEvent<PlayerLevelInfo> changeEvent)
     {
         PlayerNetworkListToNormalList().Clear();
         foreach (PlayerLevelInfo info in PlayerLevelInfoNetworkList)
@@ -214,22 +217,22 @@ public class LevelManager : NetworkBehaviour
         NetworkPlayer player = Instantiate(networkPlayerPrefab, Vector3.zero, Quaternion.identity, null);
         player.playerData = playerData;
         player.NetworkObject.SpawnAsPlayerObject(clientId);
-        StartCoroutine(AddnewPlayer(clientId));
+        StartCoroutine(AddNewPlayer(clientId));
     }
 
-    IEnumerator AddnewPlayer(ulong clientId)
+    IEnumerator AddNewPlayer(ulong clientId)
     {
         NetworkPlayer player = null;
         yield return new WaitUntil(() => networkManager.SpawnManager.GetPlayerNetworkObject(clientId));
         player = networkManager.SpawnManager.GetPlayerNetworkObject(clientId).GetComponent<NetworkPlayer>();
         if (player)
         {
-            AddPlayer(player);
+            AddPlayerLevelInfo(player);
         }
         SpawnCharacterRpc(clientId);
     }
 
-    public void AddPlayer(NetworkPlayer player)
+    public void AddPlayerLevelInfo(NetworkPlayer player)
     {
         PlayerLevelInfo playerLevelInfo = new PlayerLevelInfo
         {
@@ -245,25 +248,18 @@ public class LevelManager : NetworkBehaviour
         Debug.Log("PlayerData: " + player.playerName.Value + " | " + player.playerColor.Value);
     }
 
-    public void RemovePlayer(NetworkPlayer player)
-    {
-        PlayerLevelInfo info = PlayerNetworkListToNormalList().Find(x => x.networkPlayer == player);
-        RemovePlayer(info.clientId);
-    }
-
     public void RemovePlayer(ulong clientId)
     {
-        PlayerLevelInfo info = PlayerNetworkListToNormalList().Find(x => x.clientId == clientId);
-        PlayerLevelInfoNetworkList.Remove(info);
+        int index = GetPlayerIndexFromNetworkList(clientId);
+        if (index != -1)
+            PlayerLevelInfoNetworkList.RemoveAt(index);
     }
 
     public void UpdateNetworkList(PlayerLevelInfo info)
     {
         int index = GetPlayerIndexFromNetworkList(info.clientId);
         if (index != -1)
-        {
             PlayerLevelInfoNetworkList[index] = info;
-        }
     }
 
     public int GetPlayerIndexFromNetworkList(ulong clientId)
@@ -360,14 +356,18 @@ public class LevelManager : NetworkBehaviour
     // this thing is cursed, do not touch yet
     protected virtual IEnumerator WaitingForPlayers()
     {
+        OnPlayerDeathEvent.AddListener(CustomOnPlayerDeathLogicWaitingForPlayers);
         currentNetworkLevelStatus.Value = (short)LevelStatus.WaitingForPlayers;
-        yield return new WaitUntil(() => PlayerNetworkListToNormalList().Count >= miniumPlayerToStart);
+        yield return new WaitUntil(() => PlayerLevelInfoNetworkList.Count >= miniumPlayerToStart);
     }
 
     protected virtual IEnumerator GameInProgress()
     {
-        foreach (PlayerLevelInfo info in PlayerNetworkListToNormalList().ToList())
+        OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicWaitingForPlayers);
+        OnPlayerDeathEvent.AddListener(CustomOnPlayerDeathLogicProgress);
+        for (int i = 0; i < PlayerLevelInfoNetworkList.Count; i++)
         {
+            PlayerLevelInfo info = PlayerLevelInfoNetworkList[i];
             Debug.Log("PlayerData: " + info.playerName + " | " + info.playerColor);
             yield return 0; //wait for next frame
             RespawnCharacterRpc(info.clientId, 0f);
@@ -378,9 +378,10 @@ public class LevelManager : NetworkBehaviour
 
     protected virtual IEnumerator GameOver()
     {
-        foreach (PlayerLevelInfo info in PlayerNetworkListToNormalList().ToList())
+        OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicProgress);
+        for (int i = 0; i < PlayerLevelInfoNetworkList.Count; i++)
         {
-            KillCharacterRpc(info.clientId);
+            KillCharacterRpc(PlayerLevelInfoNetworkList[i].clientId);
         }
         currentNetworkLevelStatus.Value = (short)LevelStatus.Done;
         yield return new WaitForSeconds(5f);
@@ -392,8 +393,9 @@ public class LevelManager : NetworkBehaviour
         int currentAlivePlayer = 0;
         int currentSpectatingPlayers = 0;
         winner.Value = PlayerLevelInfoNetworkList[0];
-        foreach (PlayerLevelInfo info in PlayerNetworkListToNormalList())
+        for (int i = 0; i < PlayerLevelInfoNetworkList.Count; i++)
         {
+            PlayerLevelInfo info = PlayerLevelInfoNetworkList[i];
             if (info.playerScore > 0 && info.playerStatus != (short)PlayerStatus.Spectating)
             {
                 currentAlivePlayer++;
@@ -423,29 +425,12 @@ public class LevelManager : NetworkBehaviour
     public void OnPlayerDeath(ulong clientId)
     {
         OnPlayerDeathEvent?.Invoke(clientId);
-        PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
-        if (currentLevelStatus == LevelStatus.InProgress)
-        {
-            if (info.playerScore > 0)
-            {
-                info.playerScore--;
-                UpdateNetworkList(info);
-                RespawnCharacterRpc(clientId, 3f, false, false);
-            }
-            else
-            {
-                UpdateNetworkList(info);
-            }
-        } else
-        {
-            RespawnCharacterRpc(clientId, 3f, true, false);
-        }
     }
 
     [Rpc(SendTo.Server)]
     public void SpawnCharacterRpc(ulong clientId)
     {
-        PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
+        PlayerLevelInfo info = GetPlayerLevelInfoFromNetworkList(clientId);
         Transform spawn = spawnPointList[UnityEngine.Random.Range(0, spawnPointList.Count -1)].transform;
         ThirdPersonController character = Instantiate(characterPlayerPrefab, spawn.position, spawn.rotation, null);
         character.controlPlayerNetworkBehaviourReference.Value = info.networkPlayer;
@@ -460,7 +445,7 @@ public class LevelManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void SpawnSpectatorRpc(ulong clientId)
     {
-        PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
+        PlayerLevelInfo info = GetPlayerLevelInfoFromNetworkList(clientId);
         ThirdPersonSpectatorController character = Instantiate(spectatorPlayerPrefab, null);
         character.controlPlayerNetworkBehaviourReference.Value = info.networkPlayer;
         character.NetworkObject.SpawnWithOwnership(info.clientId, true);
@@ -474,7 +459,7 @@ public class LevelManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void KillCharacterRpc(ulong clientId)
     {
-        PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
+        PlayerLevelInfo info = GetPlayerLevelInfoFromNetworkList(clientId);
         if (info.character.TryGet(out ThirdPersonController character))
         {
             info.character = default;
@@ -485,24 +470,14 @@ public class LevelManager : NetworkBehaviour
         }
     }
 
-    IEnumerator DestroyAndDespawnAfter(Playable character, float time)
-    {
-        yield return new WaitForSeconds(time);
-        if (character == null) yield break;
-        if (character.NetworkObject.IsSpawned)
-            character.NetworkObject.Despawn();
-        else
-            Destroy(character.gameObject);
-    }
-
     [Rpc(SendTo.Server)]
     public void RespawnCharacterRpc(ulong clientId, float respawnTime = 1f, bool respawnAsSpectator = false, bool immediatelyDestroy = true)
     {
-        PlayerLevelInfo info = PlayerNetworkListToNormalList().First(x => x.clientId == clientId);
+        PlayerLevelInfo info = GetPlayerLevelInfoFromNetworkList(clientId);
         if (info.character.TryGet(out Playable character) && immediatelyDestroy)
         {
-            if (character.NetworkObject.IsSpawned) 
-                character.NetworkObject.Despawn(); 
+            if (character.NetworkObject.IsSpawned)
+                character.NetworkObject.Despawn();
             else
                 Destroy(character.gameObject);
             info.character = default;
@@ -511,6 +486,16 @@ public class LevelManager : NetworkBehaviour
         UpdateNetworkList(info);
         StartCoroutine(RespawnCharacter(info.clientId, respawnTime, respawnAsSpectator));
     }
+
+    IEnumerator DestroyAndDespawnAfter(Playable character, float time)
+    {
+        yield return new WaitForSeconds(time);
+        if (character == null) yield break;
+        if (character.NetworkObject.IsSpawned)
+            character.NetworkObject.Despawn();
+        else
+            Destroy(character.gameObject);
+    } 
 
     IEnumerator RespawnCharacter(ulong clientId, float respawnTime = 1f, bool respawnAsSpectator = false)
     {
@@ -521,4 +506,32 @@ public class LevelManager : NetworkBehaviour
             SpawnCharacterRpc(clientId);
     }
     #endregion
+
+    private void CustomOnPlayerDeathLogicWaitingForPlayers(ulong clientId)
+    {
+        RespawnCharacterRpc(clientId, 3f, false, false);
+    }
+
+    private void CustomOnPlayerDeathLogicProgress(ulong clientId)
+    {
+        PlayerLevelInfo info = GetPlayerLevelInfoFromNetworkList(clientId);
+        if (currentLevelStatus == LevelStatus.InProgress)
+        {
+            info.playerScore--;
+            if (info.playerScore > 0)
+            {
+                UpdateNetworkList(info);
+                RespawnCharacterRpc(clientId, 3f, false, false);
+            }
+            else
+            {
+                UpdateNetworkList(info);
+                RespawnCharacterRpc(clientId, 3f, true, false);
+            }
+        }
+        else
+        {
+            RespawnCharacterRpc(clientId, 3f, true, false);
+        }
+    }
 }
