@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class PlayerDataInitializer : MonoBehaviour
+public class PlayerDataInitializer : Screen
 {
     [field: SerializeField] FlexibleColorPicker playerColorPicker;
     [field: SerializeField] TMP_InputField playerNameInput;
@@ -11,7 +11,7 @@ public class PlayerDataInitializer : MonoBehaviour
     [field: SerializeField] GameObject NetworkingUI;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         saveButton.onClick.AddListener(OnSave);
     }

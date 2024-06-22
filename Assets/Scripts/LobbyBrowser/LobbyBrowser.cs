@@ -4,7 +4,7 @@ using UnityEngine;
 using Unity.Services.Lobbies.Models;
 using UnityEngine.UI;
 
-public class LobbyBrowser : MonoBehaviour
+public class LobbyBrowser : Screen
 {
     [SerializeField] LobbyInfoUIItem LobbyInfoUIItemPrefab;
     [SerializeField] Button RefreshButton, CreateLobbyButton;
@@ -14,9 +14,9 @@ public class LobbyBrowser : MonoBehaviour
     List<Lobby> lobbies;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-        RefreshButton.onClick.AddListener(UpdateLobbbyList);
+        RefreshButton.onClick.AddListener(UpdateScreen);
         CreateLobbyButton.onClick.AddListener(HostNewLobby);
         lobbyInfoUIItemList = new List<LobbyInfoUIItem>();
         lobbies = new List<Lobby>();
@@ -28,17 +28,12 @@ public class LobbyBrowser : MonoBehaviour
         CreateLobbyButton.onClick.RemoveAllListeners();
     }
 
-    void OnEnable()
-    {
-        UpdateLobbbyList();
-    }
-
     private void HostNewLobby()
     {
         MainMenuUI.Instance.HostLobby();
     }
 
-    public async void UpdateLobbbyList()
+    public async override void UpdateScreen()
     {
         lobbies = await UnityLobbyServiceManager.Instance.GetAllLobbies();
         foreach (LobbyInfoUIItem lobbyInfoUIItem in lobbyInfoUIItemList)

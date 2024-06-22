@@ -39,15 +39,10 @@ public class UnityLobbyServiceManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
-        {
-            if (Instance) Destroy(Instance.gameObject);
-            Instance = this;
-        }
-        else
-        {
+        if (Instance)
             Destroy(gameObject);
-        }
+        else
+            Instance = this;
         DontDestroyOnLoad(this);
         InnitializeUnityAuthentication();
     }
@@ -271,6 +266,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
         string playerId = AuthenticationService.Instance.PlayerId;
         await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
         joinedLobby = null;
+        isHost = false;
     }
 
     public async Task RemovePlayerFromLobby(string playerId)
@@ -315,7 +311,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
         while (true)
         {
             yield return delay;
-            //yield return PollForLobbyUpdates();
+            if (joinedLobby != null && LobbyService.Instance != null) yield break;
             LobbyService.Instance.SendHeartbeatPingAsync(joinedLobby.Id);
             Debug.Log("HeartbeatLobby");
         }

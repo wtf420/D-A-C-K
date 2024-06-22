@@ -104,7 +104,7 @@ public struct PlayerLevelInfo : INetworkSerializable, IEquatable<PlayerLevelInfo
 public class LevelManager : NetworkBehaviour
 {
     public static LevelManager Instance;
-    public NetworkManager networkManager;
+    public NetworkManager networkManager => NetworkManager.Singleton;
 
     public NetworkPlayer networkPlayerPrefab;
     public ThirdPersonController characterPlayerPrefab;
@@ -135,12 +135,6 @@ public class LevelManager : NetworkBehaviour
     {
         if (Instance) Destroy(Instance.gameObject);
         Instance = this;
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        networkManager = NetworkManager.Singleton;
         PlayerLevelInfoNetworkList = new NetworkList<PlayerLevelInfo>();
     }
 
@@ -166,7 +160,7 @@ public class LevelManager : NetworkBehaviour
         PlayerLevelInfoNetworkList.OnListChanged += OnPlayerLevelInfoNetworkListChanged;
         if (GameStarted.Value) currentNetworkLevelStatus.OnValueChanged += OnGamePhaseChanged;
 
-        if (IsServer) StartCoroutine(GameLoop());
+        if (IsServer || IsHost) StartCoroutine(GameLoop());
     }
 
     public override void OnNetworkDespawn()

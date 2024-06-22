@@ -1,29 +1,28 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using TMPro;
-using Unity.Netcode;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LobbyInfoUI : MonoBehaviour
+public class LobbyInfoUI : Screen
 {
     public static LobbyInfoUI Instance;
 
     [field: SerializeField] Button startButton;
     [field: SerializeField] Button joinButton;
     [field: SerializeField] Button exitButton;
+    [field: SerializeField] Button editLobbyButton;
+
+    [field: SerializeField] TMP_Text lobbyNameTitleText;
 
     [field: SerializeField] TMP_Text lobbyIdDisplayText;
-    [field: SerializeField] TMP_Text lobbyNameTitleText;
-    [field: SerializeField] TMP_InputField lobbyNameDisplayInputField;
+    [field: SerializeField] TMP_Text lobbyNameDisplayText;
+    [field: SerializeField] TMP_Text lobbyStatusDisplayText;
     [field: SerializeField] Toggle lobbyIsPrivateToggle;
 
     [field: SerializeField] GameObject playerLobbyInfoScrollviewContent;
+    [field: SerializeField] LobbyEditInfoUIPanel lobbyEditInfoUIPanel;
     [field: SerializeField] PlayerLobbyInfoUIItem playerLobbyInfoUIItemPrefab;
 
     public Lobby joinedLobby {
@@ -44,43 +43,10 @@ public class LobbyInfoUI : MonoBehaviour
         joinButton.onClick.AddListener(() => LobbyManager.Instance.JoinGame());
         startButton.onClick.AddListener(() => LobbyManager.Instance.StartGame());
         exitButton.onClick.AddListener(ExitLobby);
+        editLobbyButton.onClick.AddListener(() => lobbyEditInfoUIPanel.Show());
 
-        lobbyNameDisplayInputField.onSubmit.AddListener(OnLobbyNameSubmit);
-        lobbyIsPrivateToggle.onValueChanged.AddListener(OnLobbyIsPrivateToggle);
-    }
-
-    private void OnLobbyIsPrivateToggle(bool arg0)
-    {
-        if (!UnityLobbyServiceManager.Instance.isHost) return;
-        UpdateLobbyOptions options = new UpdateLobbyOptions()
-        {
-            IsPrivate = arg0
-        };
-        _ = UnityLobbyServiceManager.Instance.UpdateLobbyData(options);
-        UpdateLobbyAsync();
-    }
-
-    private void OnLobbyNameSubmit(string arg0)
-    {
-        if (!UnityLobbyServiceManager.Instance.isHost) return;
-        UpdateLobbyOptions options = new UpdateLobbyOptions(){
-            Name = arg0
-        };
-        _ = UnityLobbyServiceManager.Instance.UpdateLobbyData(options);
-        UpdateLobbyAsync();
-    }
-
-    void OnEnable()
-    {
-        UpdateLobbyAsync();
-    }
-
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            UpdateLobbyAsync();
-        }
+        // lobbyNameDisplayInputField.onSubmit.AddListener(OnLobbyNameSubmit);
+        //lobbyIsPrivateToggle.onValueChanged.AddListener(OnLobbyIsPrivateToggle);
     }
 
     void OnDestroy()
@@ -88,10 +54,17 @@ public class LobbyInfoUI : MonoBehaviour
         startButton.onClick.RemoveAllListeners();
         joinButton.onClick.RemoveAllListeners();
         exitButton.onClick.RemoveAllListeners();
+        editLobbyButton.onClick.RemoveAllListeners();
     }
 
-    public async void UpdateLobbyAsync()
+    public override void Show()
     {
+        base.Show();
+    }
+
+    public async override void UpdateScreen()
+    {
+        if (LobbyManager.Instance.joinedLobby == null) return;
         await UnityLobbyServiceManager.Instance.PollForLobbyUpdates();
         Debug.Log("UpdateLobby: " + joinedLobby.Players.Count);
         foreach (PlayerLobbyInfoUIItem item in playerLobbyInfoUIItemList)
@@ -100,12 +73,15 @@ public class LobbyInfoUI : MonoBehaviour
         }
         playerLobbyInfoUIItemList.Clear();
 
-        lobbyIdDisplayText.text = joinedLobby.Id;
-        lobbyNameDisplayInputField.text = joinedLobby.Name;
-        if (UnityLobbyServiceManager.Instance.isHost) lobbyNameDisplayInputField.interactable = true; else lobbyNameDisplayInputField.interactable = false;
         lobbyNameTitleText.text = joinedLobby.Name;
+        lobbyIdDisplayText.text = joinedLobby.Id;
+        lobbyNameDisplayText.text = joinedLobby.Name;
+        lobbyStatusDisplayText.text = joinedLobby.Data[LobbyDataField.Status.ToString()].Value;
         lobbyIsPrivateToggle.isOn = joinedLobby.IsPrivate;
-        if (UnityLobbyServiceManager.Instance.isHost) lobbyIsPrivateToggle.interactable = true; else lobbyIsPrivateToggle.interactable = false;
+
+        editLobbyButton.gameObject.SetActive(UnityLobbyServiceManager.Instance.isHost);
+        startButton.gameObject.SetActive(UnityLobbyServiceManager.Instance.isHost);
+        
         if (joinedLobby.Players.Count == 0) return;
         foreach (Player player in joinedLobby.Players)
         {

@@ -115,12 +115,6 @@ public class ThirdPersonController : Playable
         }
     }
 
-    public override void OnDestroy()
-    {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-    }
-
     //sync or create network data
     public override void OnNetworkSpawn()
     {
@@ -151,6 +145,10 @@ public class ThirdPersonController : Playable
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
         weaponNetworkBehaviourReference.OnValueChanged -= OnWeaponChanged;
         healthPoint.OnValueChanged -= OnHealthPointChanged;
+
+        if (!IsOwner) return;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     public void OnWeaponChanged(NetworkBehaviourReference previous = default, NetworkBehaviourReference current = default)

@@ -10,6 +10,8 @@ public class PersistentPlayer : MonoBehaviour
     public PlayerData playerData;
     public PlayerInput playerInput;
 
+    public bool initialized = false;
+
     void Awake()
     {
         if (Instance)

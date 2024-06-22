@@ -48,37 +48,37 @@ public class MainMenuUI : MonoBehaviour
 
     public void HideAllMenu()
     {
-        playerDataInitializer.gameObject.SetActive(false);
-        lobbyBrowser.gameObject.SetActive(false);
-        lobbyInfo.gameObject.SetActive(false);
+        playerDataInitializer.Hide();
+        lobbyBrowser.Hide();
+        lobbyInfo.Hide();
     }
 
     // Placeholder for LobbyManagering, redesign this flow later
     public void NavigateToLobbyBrowser()
     {
         HideAllMenu();
-        lobbyBrowser.gameObject.SetActive(true);
+        lobbyBrowser.Show();
     }
 
     // Placeholder for LobbyManagering, redesign this flow later
     public void NavigateToLobbyInfo()
     {
         HideAllMenu();
-        lobbyInfo.gameObject.SetActive(true);
+        lobbyInfo.Show();
     }
 
     void AddListenerToLobby()
     {
         UnityLobbyServiceManager.Instance.OnKickedFromLobbyEvent.AddListener(OnKickedFromLobby);
         UnityLobbyServiceManager.Instance.OnLobbyDeletedEvent.AddListener(OnKickedFromLobby);
-        UnityLobbyServiceManager.Instance.OnLobbyChangedEvent.AddListener(() => { if (lobbyInfo) lobbyInfo.UpdateLobbyAsync(); } );
+        UnityLobbyServiceManager.Instance.OnLobbyChangedEvent.AddListener(() => { lobbyInfo.UpdateScreen(); } );
     }
 
     void RemoveListenerFromLobby()
     {
         UnityLobbyServiceManager.Instance.OnKickedFromLobbyEvent.RemoveListener(OnKickedFromLobby);
         UnityLobbyServiceManager.Instance.OnLobbyDeletedEvent.RemoveListener(OnKickedFromLobby);
-        UnityLobbyServiceManager.Instance.OnLobbyChangedEvent.RemoveListener(() => { if (lobbyInfo) lobbyInfo.UpdateLobbyAsync(); });
+        UnityLobbyServiceManager.Instance.OnLobbyChangedEvent.RemoveListener(() => { lobbyInfo.UpdateScreen(); });
     }
 
     void OnKickedFromLobby()

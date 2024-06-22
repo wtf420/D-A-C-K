@@ -11,6 +11,7 @@ using UnityEngine.SceneManagement;
 public class LobbyManager : MonoBehaviour
 {
     public static LobbyManager Instance;
+    Coroutine heartbeatCoroutine;
 
     public Lobby joinedLobby
     {
@@ -44,7 +45,7 @@ public class LobbyManager : MonoBehaviour
     public async Task HostLobby()
     {
         joinedLobby = await UnityLobbyServiceManager.Instance.CreateAndHostLobby();
-        StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
+        heartbeatCoroutine = StartCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
         AddListenerToLobby();
     }
 
@@ -52,7 +53,7 @@ public class LobbyManager : MonoBehaviour
     {
         if (joinedLobby != null)
         {
-            if (isHost) StopCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
+            if (isHost) StopCoroutine(heartbeatCoroutine);
             await UnityLobbyServiceManager.Instance.LeaveLobby();
         }
         RemoveListenerFromLobby();
