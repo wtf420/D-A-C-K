@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,11 +13,13 @@ public class ScoreBoard : Screen
     void Awake()
     {
         playerScoreBoardUIItemList = new List<PlayerScoreBoardUIItem>();
+        LevelManager.Instance.OnInfoChangedEvent.AddListener(OnInfoChanged);
     }
 
-    void LateUpdate()
+    private void OnInfoChanged(PlayerLevelInfo info)
     {
-        if (gameObject.activeInHierarchy) UpdateScreen();
+        // temporary fix, replace later
+        UpdateScreen();
     }
 
     public override void UpdateScreen()

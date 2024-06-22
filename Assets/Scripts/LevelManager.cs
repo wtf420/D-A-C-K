@@ -125,7 +125,9 @@ public class LevelManager : NetworkBehaviour
     public NetworkVariable<PlayerLevelInfo> winner;
     public NetworkVariable<bool> GameStarted = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkList<PlayerLevelInfo> PlayerLevelInfoNetworkList;
+
     public UnityEvent<ulong> OnPlayerJoinedEvent, OnPlayerLeaveEvent, OnPlayerSpawnEvent, OnPlayerDeathEvent;
+    public UnityEvent<PlayerLevelInfo> OnInfoChangedEvent;
 
     #region Mono & NetworkBehaviour
     void Awake()
@@ -170,6 +172,12 @@ public class LevelManager : NetworkBehaviour
         networkManager.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
         PlayerLevelInfoNetworkList.OnListChanged -= OnPlayerLevelInfoNetworkListChanged;
         currentNetworkLevelStatus.OnValueChanged -= OnGamePhaseChanged;
+
+        OnPlayerJoinedEvent.RemoveAllListeners();
+        OnPlayerLeaveEvent.RemoveAllListeners();
+        OnPlayerSpawnEvent.RemoveAllListeners();
+        OnPlayerLeaveEvent.RemoveAllListeners();
+        OnInfoChangedEvent.RemoveAllListeners();
     }
 
     private void OnSceneLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
@@ -271,7 +279,10 @@ public class LevelManager : NetworkBehaviour
     {
         int index = GetPlayerIndexFromNetworkList(info.clientId);
         if (index != -1)
+        {
             PlayerLevelInfoNetworkList[index] = info;
+            OnInfoChangedEvent.Invoke(info);
+        }
     }
 
     public int GetPlayerIndexFromNetworkList(ulong clientId)
