@@ -107,6 +107,7 @@ public class LobbyManager : MonoBehaviour
         };
         _ = UnityLobbyServiceManager.Instance.UpdatePlayerData(updatePlayerOptions);
         NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address = joinedLobby.Data[LobbyDataField.IPAddress.ToString()].Value;
+        Debug.Log("IPAddress: " + joinedLobby.Data[LobbyDataField.IPAddress.ToString()].Value);
         NetworkManager.Singleton.StartClient();
     }
 

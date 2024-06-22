@@ -9,6 +9,8 @@ using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine.Events;
+using System.Net;
+using System.Net.Sockets;
 
 public enum LobbyDataField
 {
@@ -68,6 +70,17 @@ public class UnityLobbyServiceManager : MonoBehaviour
     {
         try
         {
+            string IPAddress = "";
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    IPAddress = ip.ToString();
+                    break;
+                }
+            }
+
             string lobbyName = "New lobby";
             int maxPlayers = 8;
             CreateLobbyOptions options = new CreateLobbyOptions
@@ -94,7 +107,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
                     {
                         LobbyDataField.IPAddress.ToString(), new DataObject(
                             visibility: DataObject.VisibilityOptions.Public,
-                            value: NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address)
+                            value: IPAddress)
                     },
                     {
                         LobbyDataField.Status.ToString(), new DataObject(
