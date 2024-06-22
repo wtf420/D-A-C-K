@@ -81,6 +81,7 @@ public class LobbyInfoUI : Screen
 
         editLobbyButton.gameObject.SetActive(UnityLobbyServiceManager.Instance.isHost);
         startButton.gameObject.SetActive(UnityLobbyServiceManager.Instance.isHost);
+        joinButton.gameObject.SetActive(joinedLobby.Data[LobbyDataField.Status.ToString()].Value == LobbyStatusDataValue.InGame.ToString());
         
         if (joinedLobby.Players.Count == 0) return;
         foreach (Player player in joinedLobby.Players)
