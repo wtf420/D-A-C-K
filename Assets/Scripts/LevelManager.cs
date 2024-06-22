@@ -178,6 +178,8 @@ public class LevelManager : NetworkBehaviour
         OnPlayerSpawnEvent.RemoveAllListeners();
         OnPlayerLeaveEvent.RemoveAllListeners();
         OnInfoChangedEvent.RemoveAllListeners();
+
+        LobbyManager.Instance.ExitGame();
     }
 
     private void OnSceneLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
@@ -202,7 +204,7 @@ public class LevelManager : NetworkBehaviour
         }
         if (clientId == networkManager.LocalClientId)
         {
-            SceneManager.LoadScene("LobbyScene");
+            LobbyManager.Instance.ExitGame();
         }
         OnPlayerLeaveEvent?.Invoke(clientId);
     }
