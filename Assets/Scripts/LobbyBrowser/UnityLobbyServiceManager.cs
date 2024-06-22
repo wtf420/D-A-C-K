@@ -324,7 +324,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
         while (true)
         {
             yield return delay;
-            if (joinedLobby != null && LobbyService.Instance != null) yield break;
+            if (joinedLobby == null && LobbyService.Instance == null) yield break;
             LobbyService.Instance.SendHeartbeatPingAsync(joinedLobby.Id);
             Debug.Log("HeartbeatLobby");
         }
