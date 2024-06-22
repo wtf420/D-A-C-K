@@ -13,7 +13,7 @@ public class PersistentPlayer : MonoBehaviour
     void Awake()
     {
         if (Instance)
-            Destroy(this.gameObject);
+            Destroy(gameObject);
         else
             Instance = this;
         DontDestroyOnLoad(this);

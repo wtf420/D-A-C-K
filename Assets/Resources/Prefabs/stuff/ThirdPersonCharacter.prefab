@@ -1152,7 +1152,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2062671228488013058}
         m_TargetAssemblyTypeName: ThirdPersonAimController, Assembly-CSharp
-        m_MethodName: AimDirectionInputAction
+        m_MethodName: LookDirectionInputAction
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

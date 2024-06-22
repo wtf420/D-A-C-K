@@ -115,6 +115,12 @@ public class ThirdPersonController : Playable
         }
     }
 
+    public override void OnDestroy()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
     //sync or create network data
     public override void OnNetworkSpawn()
     {
@@ -293,25 +299,6 @@ public class ThirdPersonController : Playable
         if (context.performed && isGrounded)
         {
             verticalVelocity += jumpForce;
-        }
-    }
-
-    public void InteractInputAction(InputAction.CallbackContext context)
-    {
-        if (context.performed)
-        {
-            //if (Time.timeScale == 0f) Time.timeScale = 1f; else Time.timeScale = 0f;
-            if (Cursor.visible)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
-            else
-            {
-                
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-            }
         }
     }
 

@@ -43,7 +43,7 @@ public class ThirdPersonAimController : NetworkBehaviour
         virtualCamera.Follow = cinemachineFollowTarget;
     }
 
-    public virtual void AimDirectionInputAction(InputAction.CallbackContext context)
+    public virtual void LookDirectionInputAction(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)
         {

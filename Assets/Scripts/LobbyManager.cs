@@ -6,6 +6,7 @@ using Unity.Netcode.Transports.UTP;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class LobbyManager : MonoBehaviour
 {
@@ -49,8 +50,11 @@ public class LobbyManager : MonoBehaviour
 
     public async Task ExitLobby()
     {
-        if (isHost) StopCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
-        await UnityLobbyServiceManager.Instance.LeaveLobby();
+        if (joinedLobby != null)
+        {
+            if (isHost) StopCoroutine(UnityLobbyServiceManager.Instance.HeartbeatLobbyCoroutine());
+            await UnityLobbyServiceManager.Instance.LeaveLobby();
+        }
         RemoveListenerFromLobby();
     }
 
@@ -103,6 +107,13 @@ public class LobbyManager : MonoBehaviour
         _ = UnityLobbyServiceManager.Instance.UpdatePlayerData(updatePlayerOptions);
         NetworkManager.Singleton.GetComponent<UnityTransport>().ConnectionData.Address = joinedLobby.Data[LobbyDataField.IPAddress.ToString()].Value;
         NetworkManager.Singleton.StartClient();
+    }
+
+    public async void ExitGame()
+    {
+        await ExitLobby();
+        NetworkManager.Singleton.Shutdown();
+        SceneManager.LoadScene("LobbyScene", LoadSceneMode.Single);
     }
 
     void AddListenerToLobby()

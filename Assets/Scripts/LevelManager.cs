@@ -111,7 +111,8 @@ public class LevelManager : NetworkBehaviour
     public ThirdPersonSpectatorController spectatorPlayerPrefab;
 
     [SerializeField] LevelManagerUI levelManagerUI;
-    [SerializeField] public ScoreBoard scoreBoard;
+    [SerializeField] ScoreBoard scoreBoard;
+    [SerializeField] PauseMenuScreen pauseMenuScreen;
 
     [SerializeField] public List<GameObject> spawnPointList;
 
@@ -146,8 +147,13 @@ public class LevelManager : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Escape))
+            if (pauseMenuScreen.isShowing) pauseMenuScreen.Hide(); 
+            else pauseMenuScreen.Show();
+
         if (Input.GetKeyDown(KeyCode.Tab)) scoreBoard.Show(); 
         else if (Input.GetKeyUp(KeyCode.Tab)) scoreBoard.Hide();
+        
         if (!IsServer) return;
     }
 
@@ -335,9 +341,7 @@ public class LevelManager : NetworkBehaviour
         Debug.Log("Game Over!");
         yield return StartCoroutine(GameOver());
 
-        _ = LobbyManager.Instance.ExitLobby();
-        networkManager.SceneManager.LoadScene("LobbyScene", LoadSceneMode.Single);
-        networkManager.Shutdown();
+        LobbyManager.Instance.ExitGame();
     }
 
     private void OnGamePhaseChanged(short previousValue, short newValue)

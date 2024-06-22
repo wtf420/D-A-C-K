@@ -27,13 +27,19 @@ public class PlayerThirdPersonAimController : ThirdPersonAimController
         {
             virtualCamera.Follow = cinemachineFollowTarget;
             virtualCamera.gameObject.SetActive(true);
-            virtualCamera.Follow = cinemachineFollowTarget;
+            aimVirtualCamera.Follow = cinemachineFollowTarget;
             aimVirtualCamera.gameObject.SetActive(false);
 
             inputAimDirection = Vector3.zero;
             virtualCamera.m_Lens.FieldOfView = lookFOV;
         }
         isAiming = false;
+    }
+
+    public override void SetFollowTarget(Transform target)
+    {
+        base.SetFollowTarget(target);
+        aimVirtualCamera.Follow = cinemachineFollowTarget;
     }
 
     public void AimInputAction(InputAction.CallbackContext context)
