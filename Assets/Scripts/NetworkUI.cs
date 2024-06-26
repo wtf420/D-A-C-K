@@ -67,13 +67,16 @@ public class NetworkUI : MonoBehaviour
     public string GetIpAddress()
     {
         var host = Dns.GetHostEntry(Dns.GetHostName());
+        string str = "";
         foreach (var ip in host.AddressList)
         {
             if (ip.AddressFamily == AddressFamily.InterNetwork)
             {
-                return ip.ToString();
+                str = ip.ToString();
+                Debug.Log(str);
             }
         }
+        return str;
         throw new System.Exception("No network adapters with an IPv4 address in the system!");
     }
 }

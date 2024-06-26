@@ -113,6 +113,7 @@ public class LevelManager : NetworkBehaviour
     [SerializeField] LevelManagerUI levelManagerUI;
     [SerializeField] ScoreBoard scoreBoard;
     [SerializeField] PauseMenuScreen pauseMenuScreen;
+    [SerializeField] KillFeed killFeed;
 
     [SerializeField] public List<GameObject> spawnPointList;
 
@@ -389,6 +390,10 @@ public class LevelManager : NetworkBehaviour
     {
         OnPlayerDeathEvent.AddListener(CustomOnPlayerDeathLogicProgress);
         OnPlayerSpawnEvent.AddListener(CustomOnPlayerSpawnLogicProgress);
+        if (killFeed.isActiveAndEnabled)
+        {
+            ClearKillFeedRpc();
+        }
 
         int index = 0;
         for (int i = 0; i < PlayerLevelInfoNetworkList.Count; i++)
@@ -527,7 +532,7 @@ public class LevelManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    public void KillCharacterRpc(ulong clientId)
+    public void KillCharacterRpc(ulong clientId, ulong killerId = default, bool AddToKillFeed = false)
     {
         Debug.Log("Kill");
         PlayerLevelInfo info = GetPlayerLevelInfoFromNetworkList(clientId);
@@ -537,12 +542,21 @@ public class LevelManager : NetworkBehaviour
             StartCoroutine(DestroyAndDespawnAfter(character, 3f));
         }
         info.playerStatus = (short)PlayerStatus.Dead;
+
+        if (killFeed.isActiveAndEnabled && AddToKillFeed)
+        {
+            AddToKillFeedRpc(clientId, killerId);
+        }
         UpdateNetworkList(info);
         OnPlayerDeath(clientId);
     }
 
     IEnumerator DestroyAndDespawnAfter(Playable character, float time)
     {
+        if (character is ThirdPersonController)
+        {
+            ((ThirdPersonController)character).KillRpc();
+        }
         yield return new WaitForSeconds(time);
         if (character == null) yield break;
         if (character.NetworkObject.IsSpawned)
@@ -614,6 +628,18 @@ public class LevelManager : NetworkBehaviour
             weapon.wielderNetworkBehaviourReference.Value = character;
             character.weaponNetworkBehaviourReference.Value = weapon;
         }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    void AddToKillFeedRpc(ulong clientId, ulong killerId = default)
+    {
+        killFeed.AddNewItem(killerId, clientId);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    void ClearKillFeedRpc()
+    {
+        killFeed.Clear();
     }
     #endregion
 }

@@ -66,21 +66,24 @@ public class UnityLobbyServiceManager : MonoBehaviour
         }
     }
 
+    public string GetIpAddress()
+    {
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {
+                Debug.Log(ip.ToString());
+                return ip.ToString();
+            }
+        }
+        throw new System.Exception("No network adapters with an IPv4 address in the system!");
+    }
+
     public async Task<Lobby> CreateAndHostLobby()
     {
         try
         {
-            string IPAddress = "";
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    IPAddress = ip.ToString();
-                    break;
-                }
-            }
-
             string lobbyName = "New lobby";
             int maxPlayers = 8;
             CreateLobbyOptions options = new CreateLobbyOptions
@@ -107,7 +110,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
                     {
                         LobbyDataField.IPAddress.ToString(), new DataObject(
                             visibility: DataObject.VisibilityOptions.Public,
-                            value: IPAddress)
+                            value: GetIpAddress())
                     },
                     {
                         LobbyDataField.Status.ToString(), new DataObject(

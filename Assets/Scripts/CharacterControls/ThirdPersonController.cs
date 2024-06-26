@@ -4,6 +4,8 @@ using UnityEngine.InputSystem;
 using Unity.Netcode;
 using System.Linq;
 using TMPro;
+using System;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -244,13 +246,13 @@ public class ThirdPersonController : Playable
     }
 
     [Rpc(SendTo.Server)] //Server mark complete server spawn process
-    public void TakeDamageRpc(float damage, Vector3 direction)
+    public void TakeDamageRpc(ulong dealerId, float damage, Vector3 direction)
     {
         healthPoint.Value -= damage;
         if (healthPoint.Value <= 0)
         {
             AddImpulseForceToRagdollPartRpc(direction.normalized * 5.0f, "Spine", true);
-            KillRpc();
+            LevelManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId, dealerId, true);
         }
     }
 
@@ -258,10 +260,6 @@ public class ThirdPersonController : Playable
     public void KillRpc()
     {
         if (!ragdollEnabled.Value) EnableRagdollRpc();
-        if (IsServer || IsHost)
-        {
-            LevelManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId);
-        }
     }
 
     [Rpc(SendTo.Everyone)]
@@ -320,7 +318,7 @@ public class ThirdPersonController : Playable
             currentFallingTimer += Time.deltaTime;
             if (currentFallingTimer > maxFallingTime && distanceToGround == Mathf.Infinity && controlPlayer != null)
             {
-                KillRpc();
+                LevelManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId, controlPlayer.OwnerClientId, true);
                 return;
             }
         }

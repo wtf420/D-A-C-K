@@ -69,10 +69,15 @@ public class LobbyManager : MonoBehaviour
             Data = new Dictionary<string, DataObject>()
         {
             {
-                PlayerDataField.Status.ToString(), new DataObject(
+                LobbyDataField.Status.ToString(), new DataObject(
                     visibility: DataObject.VisibilityOptions.Public,
                     value: LobbyStatusDataValue.InGame.ToString(),
                     index: DataObject.IndexOptions.S1)
+            },
+            {
+                LobbyDataField.IPAddress.ToString(), new DataObject(
+                    visibility: DataObject.VisibilityOptions.Public,
+                    value: UnityLobbyServiceManager.Instance.GetIpAddress())
             },
         }
         };

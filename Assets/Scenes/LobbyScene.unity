@@ -6043,8 +6043,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4907906957290030533, guid: 702cd601c27674b4fa75783705cf0032,
         type: 3}
+      propertyPath: NetworkConfig.TickRate
+      value: 240
+      objectReference: {fileID: 0}
+    - target: {fileID: 4907906957290030533, guid: 702cd601c27674b4fa75783705cf0032,
+        type: 3}
       propertyPath: NetworkConfig.PlayerPrefab
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5378711208381828438, guid: 702cd601c27674b4fa75783705cf0032,
+        type: 3}
+      propertyPath: m_MaxConnectAttempts
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5378711208381828438, guid: 702cd601c27674b4fa75783705cf0032,
+        type: 3}
+      propertyPath: m_DisconnectTimeoutMS
+      value: 10000
       objectReference: {fileID: 0}
     - target: {fileID: 5637380818890283483, guid: 702cd601c27674b4fa75783705cf0032,
         type: 3}
