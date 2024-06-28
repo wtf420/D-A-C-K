@@ -47,11 +47,21 @@ public class UnityLobbyServiceManager : MonoBehaviour
             Instance = this;
         DontDestroyOnLoad(this);
         InnitializeUnityAuthentication();
+        Application.wantsToQuit += CheckForLobbyOnQuit;
     }
 
-    void OnApplicationQuit()
+    bool CheckForLobbyOnQuit()
     {
-        _ = LeaveLobby();
+        bool canQuit = joinedLobby == null;
+        if (!canQuit) StartCoroutine(LeaveLobbyOnQuit());
+        return canQuit;
+    }
+
+    IEnumerator LeaveLobbyOnQuit()
+    {
+        yield return LeaveLobby();
+        Application.wantsToQuit -= CheckForLobbyOnQuit;
+        Application.Quit();
     }
 
     async void InnitializeUnityAuthentication()
@@ -279,10 +289,15 @@ public class UnityLobbyServiceManager : MonoBehaviour
 
     public async Task LeaveLobby()
     {
-        string playerId = AuthenticationService.Instance.PlayerId;
-        await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
-        joinedLobby = null;
-        isHost = false;
+        Debug.Log("Leaving!");
+        if (joinedLobby != null)
+        {
+            string playerId = AuthenticationService.Instance.PlayerId;
+            await LobbyService.Instance.RemovePlayerAsync(joinedLobby.Id, playerId);
+            joinedLobby = null;
+            isHost = false;
+            Debug.Log("Left!");
+        }
     }
 
     public async Task RemovePlayerFromLobby(string playerId)
@@ -327,7 +342,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
         while (true)
         {
             yield return delay;
-            if (joinedLobby == null && LobbyService.Instance == null) yield break;
+            if (joinedLobby == null || LobbyService.Instance == null) yield break;
             LobbyService.Instance.SendHeartbeatPingAsync(joinedLobby.Id);
             Debug.Log("HeartbeatLobby");
         }

@@ -8,7 +8,6 @@ public class MainMenuUI : MonoBehaviour
 {
     public static MainMenuUI Instance;
 
-    [field: SerializeField] PlayerDataInitializer playerDataInitializer;
     [field: SerializeField] LobbyBrowser lobbyBrowser;
     [field: SerializeField] LobbyInfoUI lobbyInfo;
 
@@ -48,7 +47,6 @@ public class MainMenuUI : MonoBehaviour
 
     public void HideAllMenu()
     {
-        playerDataInitializer.Hide();
         lobbyBrowser.Hide();
         lobbyInfo.Hide();
     }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PlayerDataInitializer : Screen
 {
@@ -23,6 +24,8 @@ public class PlayerDataInitializer : Screen
         gameObject.SetActive(false);
         if (NetworkingUI) NetworkingUI.SetActive(true);
         MainMenuUI.Instance?.NavigateToLobbyBrowser();
+        if (SceneManager.GetActiveScene().name == "InitializeScene")
+        SceneManager.LoadScene("LobbyScene", LoadSceneMode.Single);
     }
 
     // Update is called once per frame

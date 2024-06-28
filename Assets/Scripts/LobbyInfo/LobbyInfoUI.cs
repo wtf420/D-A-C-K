@@ -49,6 +49,14 @@ public class LobbyInfoUI : Screen
         //lobbyIsPrivateToggle.onValueChanged.AddListener(OnLobbyIsPrivateToggle);
     }
 
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            UpdateScreen();
+        }
+    }
+
     void OnDestroy()
     {
         startButton.onClick.RemoveAllListeners();
