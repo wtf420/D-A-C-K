@@ -12,11 +12,11 @@ public class KillFeedUIItem : MonoBehaviour
 
     public void Initialize(ulong killerId, ulong victimId)
     {
-        PlayerLevelInfo killerInfo = LevelManager.Instance.GetPlayerLevelInfoFromNetworkList(killerId);
+        NetworkPlayerInfo killerInfo = NetworkPlayersManager.Instance.GetNetworkPlayerInfoFromNetworkList(killerId);
         KillerNameText.text = killerInfo.playerName.ToString();
         KillerNameText.color = killerId == NetworkManager.Singleton.LocalClientId ? green : red;
 
-        PlayerLevelInfo victimInfo = LevelManager.Instance.GetPlayerLevelInfoFromNetworkList(victimId);
+        NetworkPlayerInfo victimInfo = NetworkPlayersManager.Instance.GetNetworkPlayerInfoFromNetworkList(victimId);
         VictimNameText.text = victimInfo.playerName.ToString();
         VictimNameText.color = victimId == NetworkManager.Singleton.LocalClientId ? green : red;
 

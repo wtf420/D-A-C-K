@@ -112,13 +112,13 @@ public class ThirdPersonSpectatorController : Playable
 
     public void GoToNextTarget()
     {
-        List<PlayerLevelInfo> infos = LevelManager.Instance.PlayerNetworkListToNormalList();
+        List<NetworkPlayerInfo> infos = NetworkPlayersManager.Instance.PlayerNetworkListToNormalList();
         for (int i = targetIndex + 1; i < infos.Count - 1; i++)
         {
             if (i >= infos.Count) break;
-            if (infos[i].character.TryGet(out ThirdPersonController character))
+            if (infos[i].character.TryGet(out Playable character))
             {
-                thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
+                thirdPersonAimController.SetFollowTarget(character.transform);
                 currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;
@@ -127,9 +127,9 @@ public class ThirdPersonSpectatorController : Playable
         for (int i = 0; i <= targetIndex; i++)
         {
             if (i >= infos.Count) break;
-            if (infos[i].character.TryGet(out ThirdPersonController character))
+            if (infos[i].character.TryGet(out Playable character))
             {
-                thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
+                thirdPersonAimController.SetFollowTarget(character.transform);
                 currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;
@@ -142,13 +142,13 @@ public class ThirdPersonSpectatorController : Playable
 
     public void GoToPreviousTarget()
     {
-        List<PlayerLevelInfo> infos = LevelManager.Instance.PlayerNetworkListToNormalList();
+        List<NetworkPlayerInfo> infos = NetworkPlayersManager.Instance.PlayerNetworkListToNormalList();
         for (int i = targetIndex - 1; i >= 0; i--)
         {
             if (i < 0) break;
-            if (infos[i].character.TryGet(out ThirdPersonController character))
+            if (infos[i].character.TryGet(out Playable character))
             {
-                thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
+                thirdPersonAimController.SetFollowTarget(character.transform);
                 currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;
@@ -157,9 +157,9 @@ public class ThirdPersonSpectatorController : Playable
         for (int i = infos.Count - 1; i >= targetIndex; i--)
         {
             if (i < 0) break;
-            if (infos[i].character.TryGet(out ThirdPersonController character))
+            if (infos[i].character.TryGet(out Playable character))
             {
-                thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
+                thirdPersonAimController.SetFollowTarget(character.transform);
                 currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;

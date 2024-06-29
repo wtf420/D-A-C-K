@@ -252,7 +252,7 @@ public class ThirdPersonController : Playable
         if (healthPoint.Value <= 0)
         {
             AddImpulseForceToRagdollPartRpc(direction.normalized * 5.0f, "Spine", true);
-            LevelManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId, dealerId, true);
+            GamePlayManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId, dealerId, true);
         }
     }
 
@@ -318,7 +318,7 @@ public class ThirdPersonController : Playable
             currentFallingTimer += Time.deltaTime;
             if (currentFallingTimer > maxFallingTime && distanceToGround == Mathf.Infinity && controlPlayer != null)
             {
-                LevelManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId, controlPlayer.OwnerClientId, true);
+                GamePlayManager.Instance.KillCharacterRpc(controlPlayer.OwnerClientId, controlPlayer.OwnerClientId, true);
                 return;
             }
         }

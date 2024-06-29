@@ -13,10 +13,10 @@ public class ScoreBoard : Screen
     void Awake()
     {
         playerScoreBoardUIItemList = new List<PlayerScoreBoardUIItem>();
-        LevelManager.Instance.OnInfoChangedEvent.AddListener(OnInfoChanged);
+        NetworkPlayersManager.Instance.OnNetworkPlayerInfoChangedEvent.AddListener(OnInfoChanged);
     }
 
-    private void OnInfoChanged(PlayerLevelInfo info)
+    private void OnInfoChanged(NetworkPlayerInfo index)
     {
         // temporary fix, replace later
         UpdateScreen();
@@ -30,12 +30,12 @@ public class ScoreBoard : Screen
         }
         playerScoreBoardUIItemList.Clear();
 
-        foreach (PlayerLevelInfo info in LevelManager.Instance.PlayerNetworkListToNormalList().OrderByDescending(x => x.playerScore))
+        foreach (NetworkPlayerInfo info in NetworkPlayersManager.Instance.PlayerNetworkListToNormalList().OrderByDescending(x => x.playerScore))
         {
             PlayerScoreBoardUIItem InstantiateItem = Instantiate(playerScoreBoardUIItemPrefab, ScrollviewContent, false);
             InstantiateItem.Initialize(info);
             playerScoreBoardUIItemList.Add(InstantiateItem);
-            Debug.Log("Item Added: " + LevelManager.Instance.PlayerLevelInfoNetworkList.Count);
+            Debug.Log("Item Added: " + NetworkPlayersManager.Instance.NetworkPlayerInfoNetworkList.Count);
         }
     }
 }

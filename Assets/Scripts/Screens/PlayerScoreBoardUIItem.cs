@@ -7,9 +7,9 @@ public class PlayerScoreBoardUIItem : MonoBehaviour
 {
     [SerializeField] Image PlayerColorDisplay;
     [SerializeField] TextMeshProUGUI LobbyNameText, PlayerHostStatusText, PlayerPerformanceText, PlayerStatusText;
-    PlayerLevelInfo info;
+    NetworkPlayerInfo info;
 
-    public void Initialize(PlayerLevelInfo playerInfo)
+    public void Initialize(NetworkPlayerInfo playerInfo)
     {
         if (ColorUtility.TryParseHtmlString(playerInfo.playerColor.ToString(), out Color color))
         PlayerColorDisplay.color = color;
