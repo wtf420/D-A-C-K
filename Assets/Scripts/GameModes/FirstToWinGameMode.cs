@@ -2,9 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LastManStandingGameMode : GameMode
+public class FirstToWinGameMode : GameMode
 {
     [SerializeField] Weapon spawnWeapon;
+    [SerializeField] float winTargetPoint;
 
     LevelManager levelManager => LevelManager.Instance;
     GamePlayManager gamePlayManager => GamePlayManager.Instance;
@@ -24,6 +25,7 @@ public class LastManStandingGameMode : GameMode
         gamePlayManager.OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicWaitingForPlayers);
         gamePlayManager.OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicProgress);
         gamePlayManager.OnPlayerSpawnEvent.RemoveListener(CustomOnPlayerSpawnLogicProgress);
+        gamePlayManager.OnPlayerKillEvent.RemoveListener(CustomOnPlayerKillLogicProgress);
         switch (status)
         {
             case LevelStatus.None:
@@ -43,6 +45,7 @@ public class LastManStandingGameMode : GameMode
                 {
                     gamePlayManager.OnPlayerDeathEvent.AddListener(CustomOnPlayerDeathLogicProgress);
                     gamePlayManager.OnPlayerSpawnEvent.AddListener(CustomOnPlayerSpawnLogicProgress);
+                    gamePlayManager.OnPlayerKillEvent.AddListener(CustomOnPlayerKillLogicProgress);
                     gamePlayManager.StartCoroutine(Custom1());
                     break;
                 }
@@ -68,6 +71,16 @@ public class LastManStandingGameMode : GameMode
         }
     }
 
+    private void CustomOnPlayerKillLogicProgress(ulong clientId, ulong victimId)
+    {
+        if (clientId != victimId)
+        {
+            NetworkPlayerInfo info = NetworkPlayersManager.Instance.GetNetworkPlayerInfoFromNetworkList(clientId);
+            info.playerScore++;
+            NetworkPlayersManager.Instance.UpdateNetworkList(info);
+        }
+    }
+
     private void CustomOnPlayerDeathLogicWaitingForPlayers(ulong clientId)
     {
         gamePlayManager.RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
@@ -75,17 +88,7 @@ public class LastManStandingGameMode : GameMode
 
     private void CustomOnPlayerDeathLogicProgress(ulong clientId)
     {
-        NetworkPlayerInfo info = NetworkPlayersManager.Instance.GetNetworkPlayerInfoFromNetworkList(clientId);
-        info.playerScore--;
-        if (info.playerScore > 0)
-        {
-            gamePlayManager.RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(levelManager.GetRandomSpawnPoint(), false));
-        }
-        else
-        {
-            gamePlayManager.RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(levelManager.GetRandomSpawnPoint(), true));
-        }
-        NetworkPlayersManager.Instance.UpdateNetworkList(info);
+        gamePlayManager.RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(levelManager.GetRandomSpawnPoint(), false));
     }
 
     private void CustomOnPlayerSpawnLogicProgress(ulong clientId)
@@ -102,29 +105,26 @@ public class LastManStandingGameMode : GameMode
 
     public override bool CheckGameIsOver()
     {
-        int currentAlivePlayer = 0;
         int currentSpectatingPlayers = 0;
         gamePlayManager.winner.Value = NetworkPlayersManager.Instance.NetworkPlayerInfoNetworkList[0];
         for (int i = 0; i < NetworkPlayersManager.Instance.NetworkPlayerInfoNetworkList.Count; i++)
         {
             NetworkPlayerInfo info = NetworkPlayersManager.Instance.NetworkPlayerInfoNetworkList[i];
-            if (info.playerScore > 0 && info.playerStatus != (short)PlayerStatus.Spectating)
+            if (info.playerScore >= winTargetPoint && info.playerStatus != (short)PlayerStatus.Spectating)
             {
-                currentAlivePlayer++;
                 gamePlayManager.winner.Value = info;
+                return true;
             }
             else
             {
                 currentSpectatingPlayers++;
             }
-            if (currentAlivePlayer > 1) return false;
         }
         if (currentSpectatingPlayers == NetworkPlayersManager.Instance.NetworkPlayerInfoNetworkList.Count)
         {
             //special case where everybody is spectating
             return false;
         }
-        if (currentAlivePlayer == 1) return true;
         return false;
     }
 }

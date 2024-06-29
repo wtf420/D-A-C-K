@@ -88,6 +88,7 @@ public class GamePlayManager : NetworkBehaviour
     public NetworkVariable<NetworkPlayerInfo> winner;
     public NetworkVariable<bool> GameStarted = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public UnityEvent<ulong> OnPlayerSpawnEvent, OnPlayerDeathEvent;
+    public UnityEvent<ulong, ulong> OnPlayerKillEvent;
     public UnityEvent<LevelStatus> OnLevelStatusChangedEvent;
 
     private NetworkList<NetworkPlayerInfo> NetworkPlayerInfoNetworkList => networkPlayersManager.NetworkPlayerInfoNetworkList;
@@ -238,45 +239,17 @@ public class GamePlayManager : NetworkBehaviour
         }
 
         currentNetworkLevelStatus.Value = (short)LevelStatus.InProgress;
-        yield return new WaitUntil(() => CheckGameIsOver());
+        yield return new WaitUntil(() => gameMode.CheckGameIsOver());
     }
 
     protected virtual IEnumerator GameOver()
     {
         for (int i = 0; i < NetworkPlayerInfoNetworkList.Count; i++)
         {
-            KillCharacterRpc(NetworkPlayerInfoNetworkList[i].clientId);
+            KillCharacterRpc(NetworkPlayerInfoNetworkList[i].clientId, NetworkPlayerInfoNetworkList[i].clientId);
         }
         currentNetworkLevelStatus.Value = (short)LevelStatus.Done;
         yield return new WaitForSeconds(5f);
-    }
-
-    public bool CheckGameIsOver()
-    {
-        int currentAlivePlayer = 0;
-        int currentSpectatingPlayers = 0;
-        winner.Value = NetworkPlayerInfoNetworkList[0];
-        for (int i = 0; i < NetworkPlayerInfoNetworkList.Count; i++)
-        {
-            NetworkPlayerInfo info = NetworkPlayerInfoNetworkList[i];
-            if (info.playerScore > 0 && info.playerStatus != (short)PlayerStatus.Spectating)
-            {
-                currentAlivePlayer++;
-                winner.Value = info;
-            }
-            else
-            {
-                currentSpectatingPlayers++;
-            }
-            if (currentAlivePlayer > 1) return false;
-        }
-        if (currentSpectatingPlayers == NetworkPlayerInfoNetworkList.Count)
-        {
-            //special case where everybody is spectating
-            return false;
-        }
-        if (currentAlivePlayer == 1) return true;
-        return false;
     }
     #endregion
 
@@ -289,6 +262,11 @@ public class GamePlayManager : NetworkBehaviour
     public void OnPlayerDeath(ulong clientId)
     {
         OnPlayerDeathEvent?.Invoke(clientId);
+    }
+
+    public void OnPlayerKill(ulong clientId, ulong victimId)
+    {
+        OnPlayerKillEvent?.Invoke(clientId, victimId);
     }
 
     [Rpc(SendTo.Server)]
@@ -356,7 +334,7 @@ public class GamePlayManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    public void KillCharacterRpc(ulong clientId, ulong killerId = default, bool AddToKillFeed = false)
+    public void KillCharacterRpc(ulong clientId, ulong killerId, bool AddToKillFeed = false)
     {
         Debug.Log("Kill");
         NetworkPlayerInfo info = NetworkPlayersManager.Instance.GetNetworkPlayerInfoFromNetworkList(clientId);
@@ -373,6 +351,7 @@ public class GamePlayManager : NetworkBehaviour
         }
         NetworkPlayersManager.Instance.UpdateNetworkList(info);
         OnPlayerDeath(clientId);
+        OnPlayerKill(killerId, clientId);
     }
 
     IEnumerator DestroyAndDespawnAfter(Playable character, float time)

@@ -11,5 +11,6 @@ public class GameMode : ScriptableObject
 
     public virtual void Initialize() {}
     public virtual void DeInitialize() { }
+    public virtual bool CheckGameIsOver() { return true; }
     protected virtual void OnGamePhaseChanged(LevelStatus status) { }
 }
