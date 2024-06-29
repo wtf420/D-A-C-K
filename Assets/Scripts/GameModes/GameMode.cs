@@ -7,7 +7,9 @@ public class GameMode : ScriptableObject
 {
     [SerializeField] public int miniumPlayerToStart = 4;
     [SerializeField] public float respawnTime = 3f;
+    [SerializeField] public float playerStartingPoint = 3f;
 
-    protected virtual void SyncDataAsLateJoiner(ulong clientId) { }
-    protected virtual void OnGamePhaseChanged(short previousValue, short newValue) { }
+    public virtual void Initialize() {}
+    public virtual void DeInitialize() { }
+    protected virtual void OnGamePhaseChanged(LevelStatus status) { }
 }

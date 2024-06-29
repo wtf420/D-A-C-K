@@ -77,17 +77,18 @@ public class GamePlayManager : NetworkBehaviour
     [SerializeField] ScoreBoard scoreBoard;
     [SerializeField] PauseMenuScreen pauseMenuScreen;
     [SerializeField] KillFeed killFeed;
+    [SerializeField] GameMode gameMode;
 
     [SerializeField] public int miniumPlayerToStart = 4;
     [SerializeField] public float playerStartingPoint = 0;
     [SerializeField] public float respawnTime = 3f;
-    [SerializeField] public Weapon spawnWeapon;
 
     [SerializeField] public LevelStatus currentLevelStatus = LevelStatus.None;
     public NetworkVariable<short> currentNetworkLevelStatus = new NetworkVariable<short>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<NetworkPlayerInfo> winner;
     public NetworkVariable<bool> GameStarted = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public UnityEvent<ulong> OnPlayerSpawnEvent, OnPlayerDeathEvent;
+    public UnityEvent<LevelStatus> OnLevelStatusChangedEvent;
 
     private NetworkList<NetworkPlayerInfo> NetworkPlayerInfoNetworkList => networkPlayersManager.NetworkPlayerInfoNetworkList;
 
@@ -148,8 +149,22 @@ public class GamePlayManager : NetworkBehaviour
     #endregion
 
     #region Gameloop & Gamephases
+    public void InitializeGameMode(GameMode gameMode)
+    {
+        miniumPlayerToStart = gameMode.miniumPlayerToStart;
+        respawnTime = gameMode.respawnTime;
+        playerStartingPoint = gameMode.playerStartingPoint;
+        gameMode.Initialize();
+    }
+
+    public void DeInitializeGameMode(GameMode gameMode)
+    {
+        gameMode.DeInitialize();
+    }
+
     IEnumerator GameLoop()
     {
+        InitializeGameMode(gameMode);
         yield return new WaitUntil(() => networkManager.IsServer || networkManager.IsHost);
         GameStarted.Value = true;
         currentNetworkLevelStatus.Value = (short)LevelStatus.None;
@@ -166,12 +181,15 @@ public class GamePlayManager : NetworkBehaviour
         Debug.Log("Game Over!");
         yield return StartCoroutine(GameOver());
 
+        StopAllCoroutines();
+        DeInitializeGameMode(gameMode);
         LobbyManager.Instance.ExitGame();
     }
 
     private void OnGamePhaseChanged(short previousValue, short newValue)
     {
         currentLevelStatus = (LevelStatus)currentNetworkLevelStatus.Value;
+        OnLevelStatusChangedEvent.Invoke(currentLevelStatus);
         Debug.Log("OnGamePhaseChanged: " + currentLevelStatus.ToString());
 
         switch (currentLevelStatus)
@@ -208,36 +226,19 @@ public class GamePlayManager : NetworkBehaviour
     // this thing is cursed, do not touch yet
     protected virtual IEnumerator WaitingForPlayers()
     {
-        OnPlayerDeathEvent.AddListener(CustomOnPlayerDeathLogicWaitingForPlayers);
         currentNetworkLevelStatus.Value = (short)LevelStatus.WaitingForPlayers;
         yield return new WaitUntil(() => NetworkPlayerInfoNetworkList.Count >= miniumPlayerToStart);
-        OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicWaitingForPlayers);
     }
 
     protected virtual IEnumerator GameInProgress()
     {
-        OnPlayerDeathEvent.AddListener(CustomOnPlayerDeathLogicProgress);
-        OnPlayerSpawnEvent.AddListener(CustomOnPlayerSpawnLogicProgress);
         if (killFeed.isActiveAndEnabled)
         {
             ClearKillFeedRpc();
         }
 
-        int index = 0;
-        for (int i = 0; i < NetworkPlayerInfoNetworkList.Count; i++)
-        {
-            NetworkPlayerInfo info = NetworkPlayerInfoNetworkList[i];
-            RespawnCharacterRpc(info.clientId, 0, new SpawnOptions(levelManager.SpawnPoints[index]));
-            index++;
-            if (index >= levelManager.SpawnPoints.Count) index = 0;
-            yield return 0; //wait for next frame
-        }
         currentNetworkLevelStatus.Value = (short)LevelStatus.InProgress;
         yield return new WaitUntil(() => CheckGameIsOver());
-
-
-        OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicProgress);
-        OnPlayerSpawnEvent.RemoveListener(CustomOnPlayerSpawnLogicProgress);
     }
 
     protected virtual IEnumerator GameOver()
@@ -389,46 +390,6 @@ public class GamePlayManager : NetworkBehaviour
     }
     #endregion
 
-    #region CustomLogic
-    private void CustomOnPlayerDeathLogicWaitingForPlayers(ulong clientId)
-    {
-        RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
-    }
-
-    private void CustomOnPlayerDeathLogicProgress(ulong clientId)
-    {
-        NetworkPlayerInfo info = NetworkPlayersManager.Instance.GetNetworkPlayerInfoFromNetworkList(clientId);
-        if (currentLevelStatus == LevelStatus.InProgress)
-        {
-            info.playerScore--;
-            if (info.playerScore > 0)
-            {
-                RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(levelManager.GetRandomSpawnPoint(), false));
-            }
-            else
-            {
-                RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(levelManager.GetRandomSpawnPoint(), true));
-            }
-            NetworkPlayersManager.Instance.UpdateNetworkList(info);
-        }
-        else
-        {
-            RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(levelManager.GetRandomSpawnPoint(), true));
-        }
-    }
-
-    private void CustomOnPlayerSpawnLogicProgress(ulong clientId)
-    {
-        NetworkPlayerInfo info = NetworkPlayersManager.Instance.GetNetworkPlayerInfoFromNetworkList(clientId);
-        if (info.character.TryGet(out ThirdPersonController character))
-        {
-            Weapon weapon = Instantiate(spawnWeapon);
-            weapon.NetworkObject.Spawn(true);
-            weapon.wielderNetworkBehaviourReference.Value = character;
-            character.weaponNetworkBehaviourReference.Value = weapon;
-        }
-    }
-
     [Rpc(SendTo.Everyone)]
     void AddToKillFeedRpc(ulong clientId, ulong killerId = default)
     {
@@ -440,5 +401,4 @@ public class GamePlayManager : NetworkBehaviour
     {
         killFeed.Clear();
     }
-    #endregion
 }
