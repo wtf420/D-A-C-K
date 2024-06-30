@@ -177,7 +177,8 @@ public class UnityLobbyServiceManager : MonoBehaviour
         }
         catch (LobbyServiceException e)
         {
-            Debug.Log(e);
+            
+            Modal.CreateNewModalWindow(e.ToString(), () => {});
             return null;
         }
     }
@@ -349,9 +350,16 @@ public class UnityLobbyServiceManager : MonoBehaviour
         while (true)
         {
             yield return delay;
-            if (joinedLobby == null || LobbyService.Instance == null) yield break;
-            LobbyService.Instance.SendHeartbeatPingAsync(joinedLobby.Id);
-            Debug.Log("HeartbeatLobby");
+            try
+            {
+                if (joinedLobby == null || LobbyService.Instance == null) yield break;
+                LobbyService.Instance.SendHeartbeatPingAsync(joinedLobby.Id);
+                Debug.Log("HeartbeatLobby");
+            }
+            catch (LobbyServiceException e)
+            {
+                Modal.CreateNewModalWindow("Heartbeat lobby failed!\n" + e.ToString(), () => { });
+            }
         }
     }
 
@@ -365,7 +373,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
         }
         catch (LobbyServiceException e)
         {
-            Debug.Log(e);
+            Modal.CreateNewModalWindow("PollForLobbyUpdates failed!\n" + e.ToString(), () => { });
         }
     }
 

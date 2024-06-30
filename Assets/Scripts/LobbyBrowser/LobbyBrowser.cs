@@ -42,7 +42,7 @@ public class LobbyBrowser : Screen
         }
         lobbyInfoUIItemList.Clear();
 
-        if (lobbies.Count == 0) return;
+        if (lobbies == null || lobbies.Count == 0) return;
         foreach (Lobby lobby in lobbies)
         {
             LobbyInfoUIItem InstantiateItem = Instantiate(LobbyInfoUIItemPrefab, ScrollviewContent.transform, false);
