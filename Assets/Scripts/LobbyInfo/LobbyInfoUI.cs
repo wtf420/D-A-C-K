@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Services.Lobbies;
@@ -20,6 +21,7 @@ public class LobbyInfoUI : Screen
     [field: SerializeField] TMP_Text lobbyNameDisplayText;
     [field: SerializeField] TMP_Text lobbyStatusDisplayText;
     [field: SerializeField] Toggle lobbyIsPrivateToggle;
+    [field: SerializeField] TMP_Dropdown lobbyGameModeDropDown;
 
     [field: SerializeField] GameObject playerLobbyInfoScrollviewContent;
     [field: SerializeField] LobbyEditInfoUIPanel lobbyEditInfoUIPanel;
@@ -86,6 +88,14 @@ public class LobbyInfoUI : Screen
         lobbyNameDisplayText.text = joinedLobby.Name;
         lobbyStatusDisplayText.text = joinedLobby.Data[LobbyDataField.Status.ToString()].Value;
         lobbyIsPrivateToggle.isOn = joinedLobby.IsPrivate;
+        if (Enum.TryParse(joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value, out AvailableGameMode gameMode))
+        {
+            lobbyGameModeDropDown.value = (short)gameMode;
+        }
+        else
+        {
+            lobbyGameModeDropDown.value = 0;
+        }
 
         editLobbyButton.gameObject.SetActive(UnityLobbyServiceManager.Instance.isHost);
         startButton.gameObject.SetActive(UnityLobbyServiceManager.Instance.isHost);

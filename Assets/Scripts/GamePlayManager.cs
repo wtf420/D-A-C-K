@@ -62,6 +62,13 @@ public struct SpawnOptions : INetworkSerializable, IEquatable<SpawnOptions>
     }
 }
 
+[Serializable]
+public struct GameModeSerializable
+{
+    public AvailableGameMode enumGameMode;
+    public GameMode GameMode;
+}
+
 // this will only update on the server
 public class GamePlayManager : NetworkBehaviour
 {
@@ -78,6 +85,8 @@ public class GamePlayManager : NetworkBehaviour
     [SerializeField] PauseMenuScreen pauseMenuScreen;
     [SerializeField] KillFeed killFeed;
     [SerializeField] GameMode gameMode;
+
+    [SerializeField] List<GameModeSerializable> availableGameModes;
 
     [SerializeField] public int miniumPlayerToStart = 4;
     [SerializeField] public float playerStartingPoint = 0;
@@ -120,8 +129,7 @@ public class GamePlayManager : NetworkBehaviour
 
         if (IsServer || IsHost)
         {
-            StartCoroutine(GameLoop());
-            networkPlayersManager.OnPlayerJoinedEvent.AddListener(OnNewPlayerJoined);
+            StartGame();
         }
     }
 
@@ -150,6 +158,19 @@ public class GamePlayManager : NetworkBehaviour
     #endregion
 
     #region Gameloop & Gamephases
+    public void StartGame()
+    {
+        if (Enum.TryParse(LobbyManager.Instance.joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value, out AvailableGameMode lobbyGameMode))
+        {
+            gameMode = availableGameModes.FirstOrDefault(x => x.enumGameMode == lobbyGameMode).GameMode;
+        }
+        else
+        {
+            throw new Exception("Game Mode Not Found");
+        }
+        StartCoroutine(GameLoop());
+    }
+
     public void InitializeGameMode(GameMode gameMode)
     {
         miniumPlayerToStart = gameMode.miniumPlayerToStart;
@@ -167,6 +188,9 @@ public class GamePlayManager : NetworkBehaviour
     {
         InitializeGameMode(gameMode);
         yield return new WaitUntil(() => networkManager.IsServer || networkManager.IsHost);
+        // Move this to GameMode code
+        networkPlayersManager.OnPlayerJoinedEvent.AddListener(OnNewPlayerJoined);
+
         GameStarted.Value = true;
         currentNetworkLevelStatus.Value = (short)LevelStatus.None;
         currentNetworkLevelStatus.OnValueChanged += OnGamePhaseChanged;

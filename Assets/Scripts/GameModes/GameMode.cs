@@ -3,6 +3,11 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
 
+public enum AvailableGameMode{
+    LastManStanding,
+    FirstToWin
+}
+
 public class GameMode : ScriptableObject
 {
     [SerializeField] public int miniumPlayerToStart = 4;

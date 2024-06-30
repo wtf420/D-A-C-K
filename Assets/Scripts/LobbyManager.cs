@@ -62,7 +62,7 @@ public class LobbyManager : MonoBehaviour
     public void StartGame()
     {
         NetworkManager.Singleton.StartHost();
-        NetworkManager.Singleton.SceneManager.LoadScene("TestingScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        NetworkManager.Singleton.SceneManager.LoadScene("TestingScene", LoadSceneMode.Single);
 
         UpdateLobbyOptions lobbyoptions = new UpdateLobbyOptions
         {

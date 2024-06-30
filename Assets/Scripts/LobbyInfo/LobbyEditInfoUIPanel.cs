@@ -16,6 +16,7 @@ public class LobbyEditInfoUIPanel : Screen
     [field: SerializeField] TMP_InputField lobbyNameInputField;
     [field: SerializeField] TMP_Text lobbyStatusDisplayText;
     [field: SerializeField] Toggle lobbyIsPrivateToggle;
+    [field: SerializeField] TMP_Dropdown lobbyGameModeDropDown;
 
     void Awake()
     {
@@ -28,6 +29,14 @@ public class LobbyEditInfoUIPanel : Screen
         {
             Name = lobbyNameInputField.text,
             IsPrivate = lobbyIsPrivateToggle.isOn,
+            Data = new Dictionary<string, DataObject>()
+        {
+            {
+                LobbyDataField.GameMode.ToString(), new DataObject(
+                    visibility: DataObject.VisibilityOptions.Public,
+                    value: ((AvailableGameMode)lobbyGameModeDropDown.value).ToString())
+            },
+        }
         };
         await UnityLobbyServiceManager.Instance.UpdateLobbyData(options);
         LobbyInfoUI.Instance.Show();

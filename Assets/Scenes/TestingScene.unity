@@ -4260,6 +4260,28 @@ PrefabInstance:
       propertyPath: playerStartingPoint
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 8850868480726300008, guid: 0cd7aba15425cf34bb3789132767b1cc,
+        type: 3}
+      propertyPath: availableGameModes.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8850868480726300008, guid: 0cd7aba15425cf34bb3789132767b1cc,
+        type: 3}
+      propertyPath: availableGameModes.Array.data[0].GameMode
+      value: 
+      objectReference: {fileID: 11400000, guid: 0d9878edfd9ae3346b11297b3a2b4e6f,
+        type: 2}
+    - target: {fileID: 8850868480726300008, guid: 0cd7aba15425cf34bb3789132767b1cc,
+        type: 3}
+      propertyPath: availableGameModes.Array.data[1].GameMode
+      value: 
+      objectReference: {fileID: 11400000, guid: a68b567e6a918d245afc3102dc323be2,
+        type: 2}
+    - target: {fileID: 8850868480726300008, guid: 0cd7aba15425cf34bb3789132767b1cc,
+        type: 3}
+      propertyPath: availableGameModes.Array.data[1].enumGameMode
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
