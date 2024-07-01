@@ -24,18 +24,18 @@ public class ScoreBoard : Screen
 
     public override void UpdateScreen()
     {
-        foreach (PlayerScoreBoardUIItem item in playerScoreBoardUIItemList)
-        {
-            Destroy(item.gameObject);
-        }
-        playerScoreBoardUIItemList.Clear();
+        // foreach (PlayerScoreBoardUIItem item in playerScoreBoardUIItemList)
+        // {
+        //     Destroy(item.gameObject);
+        // }
+        // playerScoreBoardUIItemList.Clear();
 
-        foreach (NetworkPlayerInfo info in NetworkPlayersManager.Instance.PlayerNetworkListToNormalList().OrderByDescending(x => x.playerScore))
-        {
-            PlayerScoreBoardUIItem InstantiateItem = Instantiate(playerScoreBoardUIItemPrefab, ScrollviewContent, false);
-            InstantiateItem.Initialize(info);
-            playerScoreBoardUIItemList.Add(InstantiateItem);
-            Debug.Log("Item Added: " + NetworkPlayersManager.Instance.NetworkPlayerInfoNetworkList.Count);
-        }
+        // foreach (NetworkPlayerInfo info in NetworkPlayersManager.Instance.PlayerNetworkListToNormalList().OrderByDescending(x => x.playerScore))
+        // {
+        //     PlayerScoreBoardUIItem InstantiateItem = Instantiate(playerScoreBoardUIItemPrefab, ScrollviewContent, false);
+        //     InstantiateItem.Initialize(info);
+        //     playerScoreBoardUIItemList.Add(InstantiateItem);
+        //     Debug.Log("Item Added: " + NetworkPlayersManager.Instance.NetworkPlayerInfoNetworkList.Count);
+        // }
     }
 }

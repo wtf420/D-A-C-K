@@ -17,8 +17,6 @@ public struct NetworkPlayerInfo : INetworkSerializable, IEquatable<NetworkPlayer
     public FixedString32Bytes playerColor;
     public NetworkBehaviourReference networkPlayer;
     public NetworkBehaviourReference character;
-    public float playerScore;
-    public short playerStatus;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
@@ -30,8 +28,6 @@ public struct NetworkPlayerInfo : INetworkSerializable, IEquatable<NetworkPlayer
             reader.ReadValueSafe(out playerColor);
             reader.ReadValueSafe(out networkPlayer);
             reader.ReadValueSafe(out character);
-            reader.ReadValueSafe(out playerScore);
-            reader.ReadValueSafe(out playerStatus);
         }
         else
         {
@@ -41,8 +37,6 @@ public struct NetworkPlayerInfo : INetworkSerializable, IEquatable<NetworkPlayer
             writer.WriteValueSafe(playerColor);
             writer.WriteValueSafe(networkPlayer);
             writer.WriteValueSafe(character);
-            writer.WriteValueSafe(playerScore);
-            writer.WriteValueSafe(playerStatus);
         }
     }
 
@@ -85,8 +79,6 @@ public class NetworkPlayersManager : NetworkBehaviour
                 Debug.Log("clientId: " + networkPlayerInfo.clientId.ToString());
                 Debug.Log("playerName: " + networkPlayerInfo.playerName.ToString());
                 Debug.Log("playerColor: " + networkPlayerInfo.playerColor.ToString());
-                Debug.Log("playerScore;: " + networkPlayerInfo.playerScore.ToString());
-                Debug.Log("playerStatus;: " + ((PlayerStatus)networkPlayerInfo.playerStatus).ToString());
             }
         }
         if (!IsServer) return;
@@ -197,9 +189,6 @@ public class NetworkPlayersManager : NetworkBehaviour
             playerName = player.playerName.Value,
             playerColor = player.playerColor.Value,
             networkPlayer = player,
-            character = default,
-            playerScore = GamePlayManager.Instance.playerStartingPoint,
-            playerStatus = (short)PlayerStatus.Spectating,
         };
         NetworkPlayerInfoNetworkList.Add(NetworkPlayerInfo);
     }

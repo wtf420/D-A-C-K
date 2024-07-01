@@ -10,6 +10,6 @@ public class GameOverScreen : Screen
     public override void UpdateScreen()
     {
         base.UpdateScreen();
-        gameOverText.text = "Game is over!\nWinner is: " + GamePlayManager.Instance.winner.Value.playerName.ToString();
+        // gameOverText.text = "Game is over!\nWinner is: " + GamePlayManager.Instance.winner.Value.playerName.ToString();
     }
 }

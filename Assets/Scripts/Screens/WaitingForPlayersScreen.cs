@@ -10,6 +10,6 @@ public class WaitingForPlayersScreen : Screen
     public override void UpdateScreen()
     {
         base.UpdateScreen();
-        waitingForPlayersText.text = "Waiting for players. (" + NetworkPlayersManager.Instance.PlayerNetworkListToNormalList().Count + "/" + GamePlayManager.Instance.miniumPlayerToStart + ")";
+        // waitingForPlayersText.text = "Waiting for players. (" + NetworkPlayersManager.Instance.PlayerNetworkListToNormalList().Count + "/" + GamePlayManager.Instance.miniumPlayerToStart + ")";
     }
 }
