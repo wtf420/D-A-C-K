@@ -99,6 +99,7 @@ public class FirstToWinGameMode : GameMode
 
     public override void OnNewPlayerJoined(ulong clientId)
     {
+        Debug.Log("OnNewPlayerJoined");
         NetworkPlayerInfo networkPlayerInfo = networkPlayersManager.GetNetworkPlayerInfoFromNetworkList(clientId);
         CustomFTWGameModePlayerInfo info = new CustomFTWGameModePlayerInfo(networkPlayerInfo);
         CustomFTWGameModePlayerInfoList.Add(info);

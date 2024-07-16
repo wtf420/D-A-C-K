@@ -748,7 +748,7 @@ Transform:
   m_GameObject: {fileID: 420859611}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1277.2589, y: 733.8809, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3995,12 +3995,12 @@ PrefabInstance:
     - target: {fileID: 2893268896889095416, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1277.2589
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2893268896889095416, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -733.8809
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2893268896889095416, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
@@ -4015,17 +4015,17 @@ PrefabInstance:
     - target: {fileID: 2893268896889095416, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2893268896889095416, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2893268896889095416, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2893268896889095416, guid: 04862a6d0cca0b14383b18be7f5628cc,
         type: 3}
@@ -4253,7 +4253,7 @@ PrefabInstance:
         type: 3}
       propertyPath: gameMode
       value: 
-      objectReference: {fileID: 532032639908787978, guid: 71da8ec08c5efd44f8ca81c3be5ba0fa,
+      objectReference: {fileID: 8512622532686085284, guid: d11276bc361c19146989be36ab4fd415,
         type: 3}
     - target: {fileID: 8850868480726300008, guid: 0cd7aba15425cf34bb3789132767b1cc,
         type: 3}
@@ -4281,6 +4281,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: a68b567e6a918d245afc3102dc323be2,
         type: 2}
+    - target: {fileID: 8850868480726300008, guid: 0cd7aba15425cf34bb3789132767b1cc,
+        type: 3}
+      propertyPath: availableGameModes.Array.data[0].enumGameMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8850868480726300008, guid: 0cd7aba15425cf34bb3789132767b1cc,
         type: 3}
       propertyPath: availableGameModes.Array.data[1].enumGameMode

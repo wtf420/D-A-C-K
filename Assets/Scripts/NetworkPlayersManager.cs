@@ -165,7 +165,7 @@ public class NetworkPlayersManager : NetworkBehaviour
     IEnumerator AddNewPlayer(ulong clientId)
     {
         NetworkPlayer player = null;
-        yield return new WaitUntil(() => networkManager.SpawnManager.GetPlayerNetworkObject(clientId));
+        yield return new WaitUntil(() => networkManager.SpawnManager.GetPlayerNetworkObject(clientId) != null);
         player = networkManager.SpawnManager.GetPlayerNetworkObject(clientId).GetComponent<NetworkPlayer>();
         if (player)
         {
