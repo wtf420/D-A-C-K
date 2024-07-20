@@ -116,9 +116,10 @@ public class ThirdPersonSpectatorController : Playable
         for (int i = targetIndex + 1; i < infos.Count - 1; i++)
         {
             if (i >= infos.Count) break;
-            if (infos[i].character.TryGet(out Playable character))
+            Debug.Log("Considering: " + i);
+            if (infos[i].character.TryGet(out ThirdPersonController character))
             {
-                thirdPersonAimController.SetFollowTarget(character.transform);
+                thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
                 currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;
@@ -127,9 +128,10 @@ public class ThirdPersonSpectatorController : Playable
         for (int i = 0; i <= targetIndex; i++)
         {
             if (i >= infos.Count) break;
-            if (infos[i].character.TryGet(out Playable character))
+            Debug.Log("Considering: " + i);
+            if (infos[i].character.TryGet(out ThirdPersonController character))
             {
-                thirdPersonAimController.SetFollowTarget(character.transform);
+                thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
                 currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;
@@ -146,9 +148,10 @@ public class ThirdPersonSpectatorController : Playable
         for (int i = targetIndex - 1; i >= 0; i--)
         {
             if (i < 0) break;
-            if (infos[i].character.TryGet(out Playable character))
+            Debug.Log("Considering: " + i);
+            if (infos[i].character.TryGet(out ThirdPersonController character) && character != this)
             {
-                thirdPersonAimController.SetFollowTarget(character.transform);
+                thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
                 currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;
@@ -157,9 +160,10 @@ public class ThirdPersonSpectatorController : Playable
         for (int i = infos.Count - 1; i >= targetIndex; i--)
         {
             if (i < 0) break;
-            if (infos[i].character.TryGet(out Playable character))
+            Debug.Log("Considering: " + i);
+            if (infos[i].character.TryGet(out ThirdPersonController character))
             {
-                thirdPersonAimController.SetFollowTarget(character.transform);
+                thirdPersonAimController.SetFollowTarget(character.cinemachineFollowTarget.transform);
                 currentlySpectatingText.text = "Currently spectating: " + infos[i].playerName.ToString();
                 targetIndex = i;
                 return;

@@ -412,6 +412,10 @@ public class FirstToWinGameMode : GameMode
             info.playerStatus = (short)PlayerStatus.Alive;
         }
         CustomNetworkListHelper<CustomFTWGameModePlayerInfo>.UpdateItemToList(info, CustomFTWGameModePlayerInfoList);
+
+        NetworkPlayerInfo networkPlayerInfo = networkPlayersManager.GetNetworkPlayerInfoFromNetworkList(clientId);
+        networkPlayerInfo.character = info.character;
+        CustomNetworkListHelper<NetworkPlayerInfo>.UpdateItemToList(networkPlayerInfo, networkPlayersManager.NetworkPlayerInfoNetworkList);
         OnPlayerSpawn(clientId);
     }
 

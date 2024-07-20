@@ -446,6 +446,10 @@ public class LastManStandingGameMode : GameMode
             info.playerStatus = (short)PlayerStatus.Alive;
         }
         CustomNetworkListHelper<CustomLMSGameModePlayerInfo>.UpdateItemToList(info, CustomLMSGameModePlayerInfoList);
+
+        NetworkPlayerInfo networkPlayerInfo = networkPlayersManager.GetNetworkPlayerInfoFromNetworkList(clientId);
+        networkPlayerInfo.character = info.character;
+        CustomNetworkListHelper<NetworkPlayerInfo>.UpdateItemToList(networkPlayerInfo, networkPlayersManager.NetworkPlayerInfoNetworkList);
         OnPlayerSpawn(clientId);
     }
 

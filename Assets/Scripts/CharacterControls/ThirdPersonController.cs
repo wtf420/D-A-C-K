@@ -345,7 +345,7 @@ public class ThirdPersonController : Playable
 
     public void PlayerRotation()
     {
-        if (isAiming)
+        if (isAiming && playerThirdPersonAimController.enabled)
         {
             Vector3 cameraforward = camera.transform.forward;
             //rotate character model to camera direction
