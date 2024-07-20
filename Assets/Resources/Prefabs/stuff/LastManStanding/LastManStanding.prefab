@@ -369,6 +369,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1007a7c5c2bd20941890e70581d7f276, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameMode: {fileID: 0}
   gameOverText: {fileID: 4459970493181166656}
 --- !u!1 &1557361587262697835
 GameObject:
@@ -1258,7 +1259,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2535017935
+  GlobalObjectIdHash: 3700941254
   InScenePlacedSourceGlobalObjectIdHash: 300573546
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -2842,6 +2843,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da65d5f1a8325084080c29e0aed36c58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameMode: {fileID: 8512622532686085284}
   waitingForPlayersText: {fileID: 847148832626929946}
 --- !u!1 &7958949501334418109
 GameObject:

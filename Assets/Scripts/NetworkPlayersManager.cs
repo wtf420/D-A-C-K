@@ -69,18 +69,6 @@ public class NetworkPlayersManager : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Debug.Log("\n\n\n");
-            Debug.Log("Players count: " + NetworkPlayerInfoNetworkList.Count);
-            foreach (NetworkPlayerInfo networkPlayerInfo in NetworkPlayerInfoNetworkList)
-            {
-                Debug.Log("\n\n\n");
-                Debug.Log("clientId: " + networkPlayerInfo.clientId.ToString());
-                Debug.Log("playerName: " + networkPlayerInfo.playerName.ToString());
-                Debug.Log("playerColor: " + networkPlayerInfo.playerColor.ToString());
-            }
-        }
         if (!IsServer) return;
     }
 

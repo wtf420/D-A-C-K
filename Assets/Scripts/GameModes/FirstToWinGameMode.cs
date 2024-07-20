@@ -53,10 +53,10 @@ public struct CustomFTWGameModePlayerInfo : INetworkSerializable, IEquatable<Cus
 public class FirstToWinGameMode : GameMode
 {
     [SerializeField] Weapon spawnWeapon;
-    [SerializeField] float winTargetPoint;
+    [SerializeField] public float winTargetPoint;
 
     [SerializeField] LevelManagerUI levelManagerUI;
-    [SerializeField] ScoreBoard scoreBoard;
+    [SerializeField] FirstToWinScoreBoard scoreBoard;
     [SerializeField] PauseMenuScreen pauseMenuScreen;
     [SerializeField] KillFeed killFeed;
 
@@ -141,6 +141,8 @@ public class FirstToWinGameMode : GameMode
         currentNetworkLevelStatus.OnValueChanged -= OnGamePhaseChanged;
     }
 
+    #region GameLoop
+    // runs on host & clients machine
     public override void OnGamePhaseChanged(short previousValue, short newValue)
     {
         LevelStatus status = (LevelStatus)newValue;
@@ -152,6 +154,7 @@ public class FirstToWinGameMode : GameMode
                 }
             case LevelStatus.WaitingForPlayers:
                 {
+                    levelManagerUI.ShowWaitingForPlayersScreen();
                     break;
                 }
             case LevelStatus.CountDown:
@@ -160,15 +163,18 @@ public class FirstToWinGameMode : GameMode
                 }
             case LevelStatus.InProgress:
                 {
+                    levelManagerUI.ShowGameInProgressScreen();
                     break;
                 }
             case LevelStatus.Done:
                 {
+                    levelManagerUI.ShowGameOverScreen();
                     break;
                 }
         }
     }
 
+    // runs on host machine only
     public override IEnumerator GameLoop()
     {
         yield return new WaitUntil(() => networkManager.IsServer || networkManager.IsHost);
@@ -178,6 +184,7 @@ public class FirstToWinGameMode : GameMode
         GameStarted.Value = true;
         currentNetworkLevelStatus.Value = (short)LevelStatus.None;
         currentNetworkLevelStatus.OnValueChanged += OnGamePhaseChanged;
+        UpdateScoreBoardScreenRpc();
 
         Debug.Log("Awaiting Players...");
         // currentNetworkLevelStatus.Value = (short)LevelStatus.WaitingForPlayers;
@@ -194,15 +201,16 @@ public class FirstToWinGameMode : GameMode
         LobbyManager.Instance.ExitGame();
     }
 
+    // runs on host machine only
     protected virtual IEnumerator WaitingForPlayers()
     {
         OnPlayerDeathEvent.AddListener(CustomOnPlayerDeathLogicWaitingForPlayers);
         currentNetworkLevelStatus.Value = (short)LevelStatus.WaitingForPlayers;
-        levelManagerUI.ShowWaitingForPlayersScreen();
         yield return new WaitUntil(() => CustomFTWGameModePlayerInfoList.Count >= (int)miniumPlayerToStart);
         OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicWaitingForPlayers);
     }
 
+    // runs on host machine only
     protected virtual IEnumerator GameInProgress()
     {
         OnPlayerDeathEvent.AddListener(CustomOnPlayerDeathLogicProgress);
@@ -227,7 +235,6 @@ public class FirstToWinGameMode : GameMode
         }
 
         currentNetworkLevelStatus.Value = (short)LevelStatus.InProgress;
-        levelManagerUI.ShowGameInProgressScreen();
         yield return new WaitUntil(() => CheckGameIsOver());
 
         OnPlayerDeathEvent.RemoveListener(CustomOnPlayerDeathLogicProgress);
@@ -235,6 +242,7 @@ public class FirstToWinGameMode : GameMode
         OnPlayerKillEvent.RemoveListener(CustomOnPlayerKillLogicProgress);
     }
 
+    // runs on host machine only
     protected virtual IEnumerator GameOver()
     {
         for (int i = 0; i < CustomFTWGameModePlayerInfoList.Count; i++)
@@ -242,7 +250,6 @@ public class FirstToWinGameMode : GameMode
             KillCharacterRpc(CustomFTWGameModePlayerInfoList[i].clientId, CustomFTWGameModePlayerInfoList[i].clientId);
         }
         currentNetworkLevelStatus.Value = (short)LevelStatus.Done;
-        levelManagerUI.ShowGameOverScreen();
         yield return new WaitForSeconds(5f);
     }
 
@@ -303,17 +310,30 @@ public class FirstToWinGameMode : GameMode
         return false;
     }
 
-    [Rpc(SendTo.Everyone)]
+    [Rpc(SendTo.ClientsAndHost)]
     void AddToKillFeedRpc(ulong clientId, ulong killerId = default)
     {
         killFeed.AddNewItem(killerId, clientId);
     }
 
-    [Rpc(SendTo.Everyone)]
+    [Rpc(SendTo.ClientsAndHost)]
     void ClearKillFeedRpc()
     {
         killFeed.Clear();
     }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void UpdateScoreBoardScreenRpc()
+    {
+        scoreBoard.UpdateScreen();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void UpdateScoreBoardInfoRpc(ulong clientId)
+    {
+        scoreBoard.UpdateInfo(clientId);
+    }
+    #endregion
 
     #region Gameplay Management
     public void OnPlayerSpawn(ulong clientId)

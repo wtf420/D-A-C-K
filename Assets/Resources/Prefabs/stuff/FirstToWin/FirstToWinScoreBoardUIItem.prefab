@@ -1040,9 +1040,9 @@ GameObject:
   - component: {fileID: 1059319979707391090}
   - component: {fileID: 6569955297334015774}
   - component: {fileID: 3621749773612961100}
-  - component: {fileID: 3764448417019627238}
+  - component: {fileID: 6148992625386754049}
   m_Layer: 5
-  m_Name: PlayerScoreBoardUIItem
+  m_Name: FirstToWinScoreBoardUIItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1140,7 +1140,7 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &3764448417019627238
+--- !u!114 &6148992625386754049
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1149,7 +1149,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8536705894222028290}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f16286c995367a469ea180a11fde2d3, type: 3}
+  m_Script: {fileID: 11500000, guid: 70cf58ff38a2d5c40ac3b275611a788b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerColorDisplay: {fileID: 3258349340956548612}
@@ -1157,6 +1157,10 @@ MonoBehaviour:
   PlayerHostStatusText: {fileID: 3116918969513178828}
   PlayerPerformanceText: {fileID: 5654748149524098865}
   PlayerStatusText: {fileID: 203734119744768685}
+  info:
+    clientId: 0
+    playerScore: 0
+    playerStatus: 0
 --- !u!1 &9001093103325942629
 GameObject:
   m_ObjectHideFlags: 0

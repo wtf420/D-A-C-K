@@ -5,11 +5,13 @@ using UnityEngine;
 
 public class GameOverScreen : Screen
 {
+    [SerializeField] FirstToWinGameMode gameMode;
     [SerializeField] TMP_Text gameOverText;
 
     public override void UpdateScreen()
     {
         base.UpdateScreen();
-        // gameOverText.text = "Game is over!\nWinner is: " + GamePlayManager.Instance.winner.Value.playerName.ToString();
+        NetworkPlayerInfo networkPlayerInfo = NetworkPlayersManager.Instance.GetNetworkPlayerInfoFromNetworkList(gameMode.winner.Value.clientId);
+        gameOverText.text = "Game is over!\nWinner is: " + networkPlayerInfo.playerName.ToString();
     }
 }

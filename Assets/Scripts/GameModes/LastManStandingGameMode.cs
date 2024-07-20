@@ -141,6 +141,7 @@ public class LastManStandingGameMode : GameMode
         currentNetworkLevelStatus.OnValueChanged -= OnGamePhaseChanged;
     }
 
+    #region GameLoop
     public override void OnGamePhaseChanged(short previousValue, short newValue)
     {
         LevelStatus levelStatus = (LevelStatus)newValue;
@@ -244,6 +245,48 @@ public class LastManStandingGameMode : GameMode
         yield return new WaitForSeconds(5f);
     }
 
+    public override bool CheckGameIsOver()
+    {
+        int currentAlivePlayer = 0;
+        int currentSpectatingPlayers = 0;
+        winner.Value = CustomLMSGameModePlayerInfoList[0];
+        for (int i = 0; i < CustomLMSGameModePlayerInfoList.Count; i++)
+        {
+            CustomLMSGameModePlayerInfo info = CustomLMSGameModePlayerInfoList[i];
+            if (info.playerLives > 0 && info.playerStatus != (short)PlayerStatus.Spectating)
+            {
+                currentAlivePlayer++;
+                winner.Value = info;
+            }
+            else
+            {
+                currentSpectatingPlayers++;
+            }
+            if (currentAlivePlayer > 1) return false;
+        }
+        if (currentSpectatingPlayers == CustomLMSGameModePlayerInfoList.Count)
+        {
+            //special case where everybody is spectating
+            return false;
+        }
+        if (currentAlivePlayer == 1) return true;
+        return false;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    void AddToKillFeedRpc(ulong clientId, ulong killerId = default)
+    {
+        killFeed.AddNewItem(killerId, clientId);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    void ClearKillFeedRpc()
+    {
+        killFeed.Clear();
+    }
+    #endregion
+
+    #region GameplayManagement
     public void OnPlayerSpawn(ulong clientId)
     {
         OnPlayerSpawnEvent?.Invoke(clientId);
@@ -289,47 +332,6 @@ public class LastManStandingGameMode : GameMode
             weapon.wielderNetworkBehaviourReference.Value = character;
             character.weaponNetworkBehaviourReference.Value = weapon;
         }
-    }
-
-    public override bool CheckGameIsOver()
-    {
-        int currentAlivePlayer = 0;
-        int currentSpectatingPlayers = 0;
-        winner.Value = CustomLMSGameModePlayerInfoList[0];
-        for (int i = 0; i < CustomLMSGameModePlayerInfoList.Count; i++)
-        {
-            CustomLMSGameModePlayerInfo info = CustomLMSGameModePlayerInfoList[i];
-            if (info.playerLives > 0 && info.playerStatus != (short)PlayerStatus.Spectating)
-            {
-                currentAlivePlayer++;
-                winner.Value = info;
-            }
-            else
-            {
-                currentSpectatingPlayers++;
-            }
-            if (currentAlivePlayer > 1) return false;
-        }
-        if (currentSpectatingPlayers == CustomLMSGameModePlayerInfoList.Count)
-        {
-            //special case where everybody is spectating
-            return false;
-        }
-        if (currentAlivePlayer == 1) return true;
-        return false;
-    }
-
-    [Rpc(SendTo.Everyone)]
-    void AddToKillFeedRpc(ulong clientId, ulong killerId = default)
-    {
-        killFeed.AddNewItem(killerId, clientId);
-    }
-
-
-    [Rpc(SendTo.Everyone)]
-    void ClearKillFeedRpc()
-    {
-        killFeed.Clear();
     }
 
     [Rpc(SendTo.Server)]
@@ -430,4 +432,5 @@ public class LastManStandingGameMode : GameMode
         else
             Destroy(character.gameObject);
     }
+    #endregion
 }

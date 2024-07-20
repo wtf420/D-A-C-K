@@ -5,11 +5,12 @@ using UnityEngine;
 
 public class WaitingForPlayersScreen : Screen
 {
+    [SerializeField] GameMode gameMode;
     [SerializeField] TMP_Text waitingForPlayersText;
 
     public override void UpdateScreen()
     {
         base.UpdateScreen();
-        // waitingForPlayersText.text = "Waiting for players. (" + NetworkPlayersManager.Instance.PlayerNetworkListToNormalList().Count + "/" + GamePlayManager.Instance.miniumPlayerToStart + ")";
+        waitingForPlayersText.text = "Waiting for players. (" + NetworkPlayersManager.Instance.NetworkPlayerInfoNetworkList.Count + "/" + gameMode.miniumPlayerToStart + ")";
     }
 }
