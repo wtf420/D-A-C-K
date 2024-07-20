@@ -31,8 +31,8 @@ public class Weapon : NetworkBehaviour
         Debug.Log(this + "SyncDataAsLateJoiner: " + NetworkObjectId);
         if (IsClient && !IsHost)
         {
-            wielderNetworkBehaviourReference.Value.TryGet(out ThirdPersonController player);
-            wielder = player;
+            wielderNetworkBehaviourReference.Value.TryGet(out ThirdPersonController character);
+            wielder = character;
         }
         NetworkManager.Singleton.SceneManager.OnSynchronizeComplete -= SyncDataAsLateJoiner;
     }

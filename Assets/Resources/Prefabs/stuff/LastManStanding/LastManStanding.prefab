@@ -231,7 +231,7 @@ GameObject:
   - component: {fileID: 3732074740265448978}
   - component: {fileID: 8758664995060558330}
   - component: {fileID: 4459970493181166656}
-  - component: {fileID: 859736963389745864}
+  - component: {fileID: 252373269367567511}
   m_Layer: 0
   m_Name: GameOverScreen
   m_TagString: Untagged
@@ -357,7 +357,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &859736963389745864
+--- !u!114 &252373269367567511
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -366,10 +366,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1203360212521486084}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1007a7c5c2bd20941890e70581d7f276, type: 3}
+  m_Script: {fileID: 11500000, guid: ae500f04be39c774494301be129adba0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameMode: {fileID: 0}
+  gameMode: {fileID: 8512622532686085284}
   gameOverText: {fileID: 4459970493181166656}
 --- !u!1 &1557361587262697835
 GameObject:
@@ -382,7 +382,7 @@ GameObject:
   - component: {fileID: 4253263918517114237}
   - component: {fileID: 3800349499069122734}
   - component: {fileID: 8418932230669116568}
-  - component: {fileID: 9013433304430026465}
+  - component: {fileID: 5942309973632514330}
   m_Layer: 5
   m_Name: ScoreBoard
   m_TagString: Untagged
@@ -449,7 +449,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &9013433304430026465
+--- !u!114 &5942309973632514330
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -458,13 +458,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1557361587262697835}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84538f4b6ad8e0544bf0d0e1549da087, type: 3}
+  m_Script: {fileID: 11500000, guid: c3e0744ee61ffb44cb08f13c12112daa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerScoreBoardUIItemPrefab: {fileID: 3764448417019627238, guid: f27201952a592ca4f873bd5029c2af2f,
+  gameMode: {fileID: 8512622532686085284}
+  lastManStandingScoreBoardUIItem: {fileID: 1439290626963812327, guid: 2878f8740b30a8e44953cd448c9d1e73,
     type: 3}
   ScrollviewContent: {fileID: 433208439571350404}
-  playerScoreBoardUIItemList: []
+  lastManStandingScoreBoardUIItemList: []
 --- !u!1 &1667430716873566263
 GameObject:
   m_ObjectHideFlags: 0
@@ -716,7 +717,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7493103076523176247}
   - component: {fileID: 1032961184209463097}
-  - component: {fileID: 7107773668796965460}
+  - component: {fileID: 2354464585250420209}
   m_Layer: 0
   m_Name: ProgressScreen
   m_TagString: Untagged
@@ -771,7 +772,7 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &7107773668796965460
+--- !u!114 &2354464585250420209
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -780,9 +781,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2002442690608544966}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b83b09cb97be81408c8fdfebea139af, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f0852d672bded34881bf4489a62d34a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameMode: {fileID: 8512622532686085284}
   PersonalOwnerLabel: {fileID: 7507982687045604470}
   PersonalProgressBar: {fileID: 7238065068695158789}
   PersonalPerformanceDisplayText: {fileID: 3484838307290490885}
@@ -1000,8 +1002,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WaitingForPlayersScreen: {fileID: 5189531573907093154}
-  GameInProgressScreen: {fileID: 7107773668796965460}
-  GameOverScreen: {fileID: 859736963389745864}
+  GameInProgressScreen: {fileID: 2354464585250420209}
+  GameOverScreen: {fileID: 252373269367567511}
 --- !u!1 &3355519294530909229
 GameObject:
   m_ObjectHideFlags: 0
@@ -1296,7 +1298,7 @@ MonoBehaviour:
     type: 3}
   playerLives: 3
   levelManagerUI: {fileID: 5130732580456021789}
-  scoreBoard: {fileID: 9013433304430026465}
+  scoreBoard: {fileID: 5942309973632514330}
   pauseMenuScreen: {fileID: 6019960019626352312}
   killFeed: {fileID: 1274606868530485134}
   characterPlayerPrefab: {fileID: 6141844111371457217, guid: e50c5109bdcf0e14a8daf818a1833218,

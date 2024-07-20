@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class FirstToWinScoreBoard : Screen
+public class LastManStandingScoreBoard : Screen
 {
-    [SerializeField] FirstToWinGameMode gameMode;
-    [SerializeField] FirstToWinScoreBoardUIItem firstToWinScoreBoardUIItem;
+    [SerializeField] LastManStandingGameMode gameMode;
+    [SerializeField] LastManStandingScoreBoardUIItem lastManStandingScoreBoardUIItem;
     [SerializeField] Transform ScrollviewContent;
-    [SerializeField] List<FirstToWinScoreBoardUIItem> firstToWinScoreBoardUIItemList = new List<FirstToWinScoreBoardUIItem>();
+    [SerializeField] List<LastManStandingScoreBoardUIItem> lastManStandingScoreBoardUIItemList = new List<LastManStandingScoreBoardUIItem>();
 
     public void OnDestroy()
     {
-        foreach (FirstToWinScoreBoardUIItem item in firstToWinScoreBoardUIItemList)
+        foreach (LastManStandingScoreBoardUIItem item in lastManStandingScoreBoardUIItemList)
         {
             gameMode.OnPlayerDeathEvent.RemoveListener((ulong clientId) => item.ManualUpdate());
             gameMode.OnPlayerKillEvent.RemoveListener((ulong clientId, ulong victimId) => item.ManualUpdate());
@@ -23,10 +23,11 @@ public class FirstToWinScoreBoard : Screen
 
     public void UpdateInfo(ulong clientId)
     {
-        if (firstToWinScoreBoardUIItemList.Any(x => x.info.clientId == clientId))
+        if (lastManStandingScoreBoardUIItemList.Any(x => x.info.clientId == clientId))
         {
-            firstToWinScoreBoardUIItemList.First(x => x.info.clientId == clientId).ManualUpdate();
-        } else
+            lastManStandingScoreBoardUIItemList.First(x => x.info.clientId == clientId).ManualUpdate();
+        }
+        else
         {
             UpdateScreen();
         }
@@ -34,21 +35,21 @@ public class FirstToWinScoreBoard : Screen
 
     public override void UpdateScreen()
     {
-        List<CustomFTWGameModePlayerInfo> infoList = gameMode.CustomFTWGameModePlayerInfoNormalList;
-        foreach (FirstToWinScoreBoardUIItem item in firstToWinScoreBoardUIItemList)
+        List<CustomLMSGameModePlayerInfo> infoList = gameMode.CustomLMSGameModePlayerInfoNormalList;
+        foreach (LastManStandingScoreBoardUIItem item in lastManStandingScoreBoardUIItemList)
         {
             gameMode.OnPlayerDeathEvent.RemoveListener((ulong clientId) => item.ManualUpdate());
             gameMode.OnPlayerKillEvent.RemoveListener((ulong clientId, ulong victimId) => item.ManualUpdate());
             gameMode.OnPlayerSpawnEvent.RemoveListener((ulong clientId) => item.ManualUpdate());
             Destroy(item.gameObject);
         }
-        firstToWinScoreBoardUIItemList.Clear();
+        lastManStandingScoreBoardUIItemList.Clear();
 
-        foreach (CustomFTWGameModePlayerInfo info in infoList.OrderByDescending(x => x.playerScore))
+        foreach (CustomLMSGameModePlayerInfo info in infoList.OrderByDescending(x => x.playerLives))
         {
-            FirstToWinScoreBoardUIItem InstantiateItem = Instantiate(firstToWinScoreBoardUIItem, ScrollviewContent, false);
+            LastManStandingScoreBoardUIItem InstantiateItem = Instantiate(lastManStandingScoreBoardUIItem, ScrollviewContent, false);
             InstantiateItem.Initialize(info);
-            firstToWinScoreBoardUIItemList.Add(InstantiateItem);
+            lastManStandingScoreBoardUIItemList.Add(InstantiateItem);
             Debug.Log("Item Added: " + NetworkPlayersManager.Instance.NetworkPlayerInfoNetworkList.Count);
 
             gameMode.OnPlayerDeathEvent.AddListener((ulong clientId) => InstantiateItem.ManualUpdate());

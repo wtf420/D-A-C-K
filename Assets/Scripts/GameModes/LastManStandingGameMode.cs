@@ -56,7 +56,7 @@ public class LastManStandingGameMode : GameMode
     [SerializeField] float playerLives;
 
     [SerializeField] LevelManagerUI levelManagerUI;
-    [SerializeField] ScoreBoard scoreBoard;
+    [SerializeField] LastManStandingScoreBoard scoreBoard;
     [SerializeField] PauseMenuScreen pauseMenuScreen;
     [SerializeField] KillFeed killFeed;
 
@@ -91,6 +91,10 @@ public class LastManStandingGameMode : GameMode
 
     public override void OnNetworkSpawn()
     {
+        if (IsServer)
+        {
+            networkPlayersManager.OnPlayerJoinedEvent.AddListener(OnNewPlayerJoined);
+        }
         networkManager.SceneManager.OnSynchronizeComplete += SyncDataAsLateJoiner;
         if (GameStarted.Value) currentNetworkLevelStatus.OnValueChanged += OnGamePhaseChanged;
 
@@ -103,7 +107,38 @@ public class LastManStandingGameMode : GameMode
         NetworkPlayerInfo networkPlayerInfo = networkPlayersManager.GetNetworkPlayerInfoFromNetworkList(clientId);
         CustomLMSGameModePlayerInfo info = new CustomLMSGameModePlayerInfo(networkPlayerInfo);
         CustomLMSGameModePlayerInfoList.Add(info);
-        SpawnCharacterRpc(clientId, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+
+        LevelStatus levelStatus = (LevelStatus)currentNetworkLevelStatus.Value;
+        switch (levelStatus)
+        {
+            case LevelStatus.None:
+                {
+                    break;
+                }
+            case LevelStatus.WaitingForPlayers:
+                {
+                    levelManagerUI.ShowWaitingForPlayersScreen();
+                    SpawnCharacterRpc(clientId, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+                    break;
+                }
+            case LevelStatus.CountDown:
+                {
+                    break;
+                }
+            case LevelStatus.InProgress:
+                {
+                    levelManagerUI.ShowGameInProgressScreen();
+                    info.playerLives = playerLives;
+                    CustomNetworkListHelper<CustomLMSGameModePlayerInfo>.UpdateItemToList(info, CustomLMSGameModePlayerInfoList);
+                    SpawnCharacterRpc(info.clientId, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+                    break;
+                }
+            case LevelStatus.Done:
+                {
+                    levelManagerUI.ShowGameOverScreen();
+                    break;
+                }
+        }
     }
 
     public override void OnNetworkDespawn()
@@ -144,7 +179,7 @@ public class LastManStandingGameMode : GameMode
     #region GameLoop
     public override void OnGamePhaseChanged(short previousValue, short newValue)
     {
-        LevelStatus levelStatus = (LevelStatus)newValue;
+        LevelStatus levelStatus = (LevelStatus)currentNetworkLevelStatus.Value;
         switch (levelStatus)
         {
             case LevelStatus.None:
@@ -153,6 +188,7 @@ public class LastManStandingGameMode : GameMode
                 }
             case LevelStatus.WaitingForPlayers:
                 {
+                    levelManagerUI.ShowWaitingForPlayersScreen();
                     break;
                 }
             case LevelStatus.CountDown:
@@ -161,10 +197,12 @@ public class LastManStandingGameMode : GameMode
                 }
             case LevelStatus.InProgress:
                 {
+                    levelManagerUI.ShowGameInProgressScreen();
                     break;
                 }
             case LevelStatus.Done:
                 {
+                    levelManagerUI.ShowGameOverScreen();
                     break;
                 }
         }
@@ -174,11 +212,11 @@ public class LastManStandingGameMode : GameMode
     {
         yield return new WaitUntil(() => networkManager.IsServer || networkManager.IsHost);
         // Move this to GameMode code
-        networkPlayersManager.OnPlayerJoinedEvent.AddListener(OnNewPlayerJoined);
 
         GameStarted.Value = true;
         currentNetworkLevelStatus.Value = (short)LevelStatus.None;
         currentNetworkLevelStatus.OnValueChanged += OnGamePhaseChanged;
+        
 
         Debug.Log("Awaiting Players...");
         // currentNetworkLevelStatus.Value = (short)LevelStatus.WaitingForPlayers;
@@ -267,6 +305,7 @@ public class LastManStandingGameMode : GameMode
         if (currentSpectatingPlayers == CustomLMSGameModePlayerInfoList.Count)
         {
             //special case where everybody is spectating
+            //disabled for now
             return false;
         }
         if (currentAlivePlayer == 1) return true;
@@ -283,6 +322,18 @@ public class LastManStandingGameMode : GameMode
     void ClearKillFeedRpc()
     {
         killFeed.Clear();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void UpdateScoreBoardScreenRpc()
+    {
+        scoreBoard.UpdateScreen();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void UpdateScoreBoardInfoRpc(ulong clientId)
+    {
+        scoreBoard.UpdateInfo(clientId);
     }
     #endregion
 

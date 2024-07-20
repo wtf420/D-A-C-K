@@ -925,7 +925,7 @@ GameObject:
   - component: {fileID: 5376440276823833968}
   - component: {fileID: 5312609074812415388}
   - component: {fileID: 8294371416918729141}
-  - component: {fileID: 3230416521054154686}
+  - component: {fileID: 3995280974826525110}
   m_Layer: 0
   m_Name: GameOverScreen
   m_TagString: Untagged
@@ -1051,7 +1051,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &3230416521054154686
+--- !u!114 &3995280974826525110
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1060,7 +1060,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3636783730218332596}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1007a7c5c2bd20941890e70581d7f276, type: 3}
+  m_Script: {fileID: 11500000, guid: da0318fd236bba541becd23be051b2b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   gameMode: {fileID: 532032639908787978}
@@ -1665,7 +1665,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WaitingForPlayersScreen: {fileID: 8542436031165338927}
   GameInProgressScreen: {fileID: 5682473237808121568}
-  GameOverScreen: {fileID: 3230416521054154686}
+  GameOverScreen: {fileID: 3995280974826525110}
 --- !u!1 &5226876111282048941
 GameObject:
   m_ObjectHideFlags: 0
