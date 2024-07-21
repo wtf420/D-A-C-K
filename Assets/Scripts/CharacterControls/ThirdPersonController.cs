@@ -305,6 +305,18 @@ public class ThirdPersonController : Playable
             PlayerAttack();
         }
     }
+
+    public void InteractInputAction(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            
+            closestInteractable?.Interact(new InteractInfo
+            {
+                character = this.NetworkObject
+            });
+        }
+    }
     #endregion
 
     #region Player control

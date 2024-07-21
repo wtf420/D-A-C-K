@@ -20,7 +20,7 @@ public class Interactable : NetworkBehaviour
         InteractEvent.RemoveAllListeners();
     }
 
-    public void Interact(InteractInfo info)
+    public virtual void Interact(InteractInfo info)
     {
         if (isInteractable)
         {
@@ -30,7 +30,7 @@ public class Interactable : NetworkBehaviour
         }
     }
 
-    protected IEnumerator StartInteractionCoolDown()
+    protected virtual IEnumerator StartInteractionCoolDown()
     {
         isInteractable = false;
         yield return new WaitForSeconds(interactionCooldown);
