@@ -23,6 +23,7 @@ public class ThirdPersonController : Playable
     [SerializeField] float jumpForce = 10f;
     [SerializeField] float drag = 10f;
     [SerializeField] float maxGroundCheckRadius = 0.05f;
+    [SerializeField] float gravityMultiplier = 1f;
     Vector3 lastFramePosition;
     Vector3 externalForcesVelocity = Vector3.zero;
     float distanceMovedSinceLastFrame = 0.0f; // because distanceMovedSinceLastFrame is unreliable as heck
@@ -337,7 +338,7 @@ public class ThirdPersonController : Playable
 
         // Applying gravity
         if (isGrounded && distanceToGround < 0.1f && verticalVelocity < 0f) verticalVelocity = 0f;
-        verticalVelocity -= 9.81f * Time.deltaTime;
+        verticalVelocity -= 9.81f * gravityMultiplier * Time.deltaTime;
 
         //Move player relative to camera direction
         Vector3 cameraDirection = camera.transform.forward;

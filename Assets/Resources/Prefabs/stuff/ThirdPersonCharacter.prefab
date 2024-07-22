@@ -969,7 +969,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3757217874
+  GlobalObjectIdHash: 1734975255
   InScenePlacedSourceGlobalObjectIdHash: 1734975255
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -1027,15 +1027,16 @@ MonoBehaviour:
   characterController: {fileID: 7725764265818047518}
   groundCheckPosition: {fileID: 4905401196987055149}
   movementSpeed: 10
-  jumpForce: 5
+  jumpForce: 7.5
   drag: 1
   maxGroundCheckRadius: 0.2
+  gravityMultiplier: 2
   virtualCamera: {fileID: 1426581296847490612}
   cinemachineFollowTarget: {fileID: 2249925223028741301}
   playerThirdPersonAimController: {fileID: 2062671228488013058}
-  maxFallingTime: 3
+  maxFallingTime: 2
   camera: {fileID: 0}
-  rangeToInteract: 5
+  rangeToInteract: 2.5
   animator: {fileID: 4885513983431928102}
   ragdoll: {fileID: 3505399903176981747}
   shirtMaterial: {fileID: 2100000, guid: ae116c532a8899e44a78171cb0de0d3d, type: 2}

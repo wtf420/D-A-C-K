@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -61,6 +63,9 @@ public class BaseballBat : Weapon
     private void Hit()
     {
         RaycastHit[] info = Physics.SphereCastAll(wielder.transform.position, range, Vector3.up, 0, ~LayerMask.GetMask("PlayerRagdoll"));
+        if (info.Count() == 0) return;
+
+        List<ThirdPersonController> hitCharacters = new List<ThirdPersonController>();
         Debug.Log("Hit objects: " + info.Length);
         foreach (RaycastHit hit in info)
         {
@@ -79,19 +84,28 @@ public class BaseballBat : Weapon
                 {
                     if (hit2.collider.gameObject != hit.collider.gameObject && hit2.collider.gameObject != this.gameObject && hit.transform.tag == hit2.transform.tag)
                     {
-                        c = true;
-                        Debug.Log("break: " + hit2.collider.gameObject + " is in the way");
-                        break;
+                        ThirdPersonController hitCharacter2 = hit2.collider.gameObject.GetComponent<ThirdPersonController>();
+                        if (hitCharacter2 && !hitCharacters.Contains(hitCharacter2))
+                        {
+                            continue;
+                        } else
+                        {
+                            c = true;
+                            Debug.Log("break: " + hit2.collider.gameObject + " is in the way");
+                            break;
+                        }
                     }
                 }
                 if (c) continue; else Debug.Log("Considered: " + hit.collider.gameObject + " has no gameobject in between!");
 
                 //no wall in between, process hit
+                hitCharacters.Add(hitCharacter);
                 hitCharacter.TakeDamageRpc(wielder.controlPlayer.OwnerClientId, damage, wielder.transform.position - hit.point);
             }
             // Debug.DrawLine(this.transform.position, hitlocation, Color.green, 5f);
-            StartCoroutine(CoolDown());
         }
+
+        StartCoroutine(CoolDown());
     }
 
     void OnDrawGizmosSelected()
