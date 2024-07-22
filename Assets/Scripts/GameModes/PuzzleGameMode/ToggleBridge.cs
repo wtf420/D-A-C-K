@@ -4,17 +4,19 @@ using UnityEngine;
 
 public class ToggleBridge : InteractableTarget
 {
+    [SerializeField] Vector3 OriginalOrientation, DesiredOrientation;
+
     void Start()
     {
         ResetTrigger();
     }
 
     public override void Trigger() { 
-        this.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+        this.transform.rotation = Quaternion.Euler(DesiredOrientation);
     }
 
     public override void ResetTrigger()
     {
-        this.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        this.transform.rotation = Quaternion.Euler(OriginalOrientation);
     }
 }
