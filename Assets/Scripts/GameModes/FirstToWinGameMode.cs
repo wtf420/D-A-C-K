@@ -103,7 +103,7 @@ public class FirstToWinGameMode : GameMode
         NetworkPlayerInfo networkPlayerInfo = networkPlayersManager.GetNetworkPlayerInfoFromNetworkList(clientId);
         CustomFTWGameModePlayerInfo info = new CustomFTWGameModePlayerInfo(networkPlayerInfo);
         CustomFTWGameModePlayerInfoList.Add(info);
-        SpawnCharacterRpc(clientId, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+        SpawnCharacterRpc(clientId, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
     }
 
     public override void OnNetworkDespawn()
@@ -221,7 +221,7 @@ public class FirstToWinGameMode : GameMode
         for (int i = 0; i < CustomFTWGameModePlayerInfoList.Count; i++)
         {
             CustomFTWGameModePlayerInfo info = CustomFTWGameModePlayerInfoList[i];
-            RespawnCharacterRpc(info.clientId, 0, new SpawnOptions(levelManager.SpawnPoints[index]));
+            RespawnCharacterRpc(info.clientId, 0, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
             info.playerScore = playerStartingPoint;
             CustomNetworkListHelper<CustomFTWGameModePlayerInfo>.UpdateItemToList(info, CustomFTWGameModePlayerInfoList);
             index++;
@@ -265,7 +265,7 @@ public class FirstToWinGameMode : GameMode
 
     private void CustomOnPlayerDeathLogicWaitingForPlayers(ulong clientId)
     {
-        RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+        RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
     }
 
     private void CustomOnPlayerDeathLogicProgress(ulong clientId)
@@ -430,12 +430,12 @@ public class FirstToWinGameMode : GameMode
             StartCoroutine(DestroyAndDespawnAfter(character, 3f));
         }
         info.playerStatus = (short)PlayerStatus.Dead;
+        CustomNetworkListHelper<CustomFTWGameModePlayerInfo>.UpdateItemToList(info, CustomFTWGameModePlayerInfoList);
 
         if (killFeed.isActiveAndEnabled && AddToKillFeed)
         {
             AddToKillFeedRpc(clientId, killerId);
         }
-        CustomNetworkListHelper<CustomFTWGameModePlayerInfo>.UpdateItemToList(info, CustomFTWGameModePlayerInfoList);
         OnPlayerDeath(clientId);
         OnPlayerKill(killerId, clientId);
     }

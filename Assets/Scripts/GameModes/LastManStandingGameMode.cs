@@ -118,7 +118,7 @@ public class LastManStandingGameMode : GameMode
             case LevelStatus.WaitingForPlayers:
                 {
                     levelManagerUI.ShowWaitingForPlayersScreen();
-                    SpawnCharacterRpc(clientId, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+                    SpawnCharacterRpc(clientId, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
                     break;
                 }
             case LevelStatus.CountDown:
@@ -130,7 +130,7 @@ public class LastManStandingGameMode : GameMode
                     levelManagerUI.ShowGameInProgressScreen();
                     info.playerLives = playerLives;
                     CustomNetworkListHelper<CustomLMSGameModePlayerInfo>.UpdateItemToList(info, CustomLMSGameModePlayerInfoList);
-                    SpawnCharacterRpc(info.clientId, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+                    SpawnCharacterRpc(info.clientId, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
                     break;
                 }
             case LevelStatus.Done:
@@ -251,7 +251,7 @@ public class LastManStandingGameMode : GameMode
         for (int i = 0; i < CustomLMSGameModePlayerInfoList.Count; i++)
         {
             CustomLMSGameModePlayerInfo info = CustomLMSGameModePlayerInfoList[i];
-            RespawnCharacterRpc(info.clientId, 0, new SpawnOptions(levelManager.SpawnPoints[index]));
+            RespawnCharacterRpc(info.clientId, 0, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
             info.playerLives = playerLives;
             CustomNetworkListHelper<CustomLMSGameModePlayerInfo>.UpdateItemToList(info, CustomLMSGameModePlayerInfoList);
             index++;
@@ -355,7 +355,7 @@ public class LastManStandingGameMode : GameMode
 
     private void CustomOnPlayerDeathLogicWaitingForPlayers(ulong clientId)
     {
-        RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+        RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
     }
 
     private void CustomOnPlayerDeathLogicProgress(ulong clientId)
@@ -464,12 +464,12 @@ public class LastManStandingGameMode : GameMode
             StartCoroutine(DestroyAndDespawnAfter(character, 3f));
         }
         info.playerStatus = (short)PlayerStatus.Dead;
+        CustomNetworkListHelper<CustomLMSGameModePlayerInfo>.UpdateItemToList(info, CustomLMSGameModePlayerInfoList);
 
         if (killFeed.isActiveAndEnabled && AddToKillFeed)
         {
             AddToKillFeedRpc(clientId, killerId);
         }
-        CustomNetworkListHelper<CustomLMSGameModePlayerInfo>.UpdateItemToList(info, CustomLMSGameModePlayerInfoList);
         OnPlayerDeath(clientId);
         OnPlayerKill(killerId, clientId);
     }

@@ -4,8 +4,6 @@ using UnityEngine.InputSystem;
 using Unity.Netcode;
 using System.Linq;
 using TMPro;
-using System;
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -197,9 +195,13 @@ public class ThirdPersonController : Playable
     {
         isGrounded = GroundCheck(maxGroundCheckRadius);
         playerNameDisplay.transform.forward = camera.transform.forward;
-        ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color);
-        if (shirtMaterial.color != color) shirtMaterial.color = color;
-        if (playerNameDisplay.text != controlPlayer.playerName.Value.ToString()) playerNameDisplay.text = controlPlayer.playerName.Value.ToString();
+        
+        if (controlPlayer != null)
+        {
+            ColorUtility.TryParseHtmlString(controlPlayer.playerColor.Value.ToString(), out Color color);
+            if (shirtMaterial.color != color) shirtMaterial.color = color;
+            if (playerNameDisplay.text != controlPlayer.playerName.Value.ToString()) playerNameDisplay.text = controlPlayer.playerName.Value.ToString();
+        }
 
         if (!IsOwner) return;
         if (IsServer) // testing purposes
@@ -332,12 +334,13 @@ public class ThirdPersonController : Playable
             if (currentFallingTimer > maxFallingTime && distanceToGround == Mathf.Infinity && controlPlayer != null)
             {
                 GameMode.Instance.KillCharacterRpc(controlPlayer.OwnerClientId, controlPlayer.OwnerClientId, true);
+                controlPlayer = null;
                 return;
             }
         }
 
         // Applying gravity
-        if (isGrounded && distanceToGround < 0.1f && verticalVelocity < 0f) verticalVelocity = 0f;
+        if (isGrounded && verticalVelocity < 0f) verticalVelocity = 0f;
         verticalVelocity -= 9.81f * gravityMultiplier * Time.deltaTime;
 
         //Move player relative to camera direction

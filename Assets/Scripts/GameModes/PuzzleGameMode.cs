@@ -116,7 +116,7 @@ public class PuzzleGameMode : GameMode
             case LevelStatus.WaitingForPlayers:
                 {
                     levelManagerUI.ShowWaitingForPlayersScreen();
-                    SpawnCharacterRpc(clientId, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+                    SpawnCharacterRpc(clientId, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
                     break;
                 }
             case LevelStatus.CountDown:
@@ -127,7 +127,7 @@ public class PuzzleGameMode : GameMode
                 {
                     levelManagerUI.ShowGameInProgressScreen();
                     CustomNetworkListHelper<PuzzleGameModePlayerInfo>.UpdateItemToList(info, PuzzleGameModePlayerInfoList);
-                    SpawnCharacterRpc(info.clientId, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+                    SpawnCharacterRpc(info.clientId, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
                     break;
                 }
             case LevelStatus.Done:
@@ -247,7 +247,7 @@ public class PuzzleGameMode : GameMode
         for (int i = 0; i < PuzzleGameModePlayerInfoList.Count; i++)
         {
             PuzzleGameModePlayerInfo info = PuzzleGameModePlayerInfoList[i];
-            RespawnCharacterRpc(info.clientId, 0, new SpawnOptions(levelManager.SpawnPoints[index]));
+            RespawnCharacterRpc(info.clientId, 0, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
             CustomNetworkListHelper<PuzzleGameModePlayerInfo>.UpdateItemToList(info, PuzzleGameModePlayerInfoList);
             index++;
             if (index >= levelManager.SpawnPoints.Count) index = 0;
@@ -305,7 +305,7 @@ public class PuzzleGameMode : GameMode
 
     private void CustomOnPlayerDeathLogicWaitingForPlayers(ulong clientId)
     {
-        RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(LevelManager.Instance.GetRandomSpawnPoint()));
+        RespawnCharacterRpc(clientId, respawnTime, new SpawnOptions(levelManager.GetRandomSpawnPoint()));
     }
 
     private void CustomOnPlayerDeathLogicProgress(ulong clientId)
