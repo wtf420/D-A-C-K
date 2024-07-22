@@ -17,7 +17,8 @@ public enum LobbyDataField
     Name,
     IPAddress,
     Status,
-    GameMode
+    GameMode,
+    GameMap
 }
 
 public enum LobbyStatusDataValue
@@ -132,8 +133,14 @@ public class UnityLobbyServiceManager : MonoBehaviour
                     {
                         LobbyDataField.GameMode.ToString(), new DataObject(
                             visibility: DataObject.VisibilityOptions.Public,
-                            value: AvailableGameMode.LastManStanding.ToString(),
+                            value: GameModeDataHelper.Instance.MapsData.gameModeDatas[0].GameModeName,
                             index: DataObject.IndexOptions.S2)
+                    },
+                    {
+                        LobbyDataField.GameMap.ToString(), new DataObject(
+                            visibility: DataObject.VisibilityOptions.Public,
+                            value: GameModeDataHelper.Instance.MapsData.gameModeDatas[0].AvailableScene[0].name,
+                            index: DataObject.IndexOptions.S3)
                     },
                 }
             };

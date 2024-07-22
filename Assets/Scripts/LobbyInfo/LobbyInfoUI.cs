@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
@@ -22,6 +23,7 @@ public class LobbyInfoUI : Screen
     [field: SerializeField] TMP_Text lobbyStatusDisplayText;
     [field: SerializeField] Toggle lobbyIsPrivateToggle;
     [field: SerializeField] TMP_Dropdown lobbyGameModeDropDown;
+    [field: SerializeField] TMP_Dropdown lobbyGameMapDropDown;
 
     [field: SerializeField] GameObject playerLobbyInfoScrollviewContent;
     [field: SerializeField] LobbyEditInfoUIPanel lobbyEditInfoUIPanel;
@@ -47,8 +49,33 @@ public class LobbyInfoUI : Screen
         exitButton.onClick.AddListener(ExitLobby);
         editLobbyButton.onClick.AddListener(() => lobbyEditInfoUIPanel.Show());
 
+        lobbyGameModeDropDown.options.Clear();
+        foreach (GameModeData gameModeData in GameModeDataHelper.Instance.MapsData.gameModeDatas)
+        {
+            lobbyGameModeDropDown.options.Add(new TMP_Dropdown.OptionData(gameModeData.GameModeName));
+        }
+        lobbyGameModeDropDown.onValueChanged.AddListener(OnGameModeDropDownValueChanged);
+
         // lobbyNameDisplayInputField.onSubmit.AddListener(OnLobbyNameSubmit);
         //lobbyIsPrivateToggle.onValueChanged.AddListener(OnLobbyIsPrivateToggle);
+    }
+
+    private void OnGameModeDropDownValueChanged(int arg0)
+    {
+        lobbyGameMapDropDown.options.Clear();
+        foreach (UnityEngine.Object scene in GameModeDataHelper.Instance.MapsData.gameModeDatas[arg0].AvailableScene)
+        {
+            lobbyGameMapDropDown.options.Add(new TMP_Dropdown.OptionData(scene.name));
+        }
+        if (lobbyGameMapDropDown.options.Any(x => x.text == joinedLobby.Data[LobbyDataField.GameMap.ToString()].Value))
+        {
+            TMP_Dropdown.OptionData data = lobbyGameMapDropDown.options.First(x => x.text == joinedLobby.Data[LobbyDataField.GameMap.ToString()].Value);
+            lobbyGameMapDropDown.value = lobbyGameModeDropDown.options.IndexOf(data);
+        }
+        else
+        {
+            lobbyGameMapDropDown.value = 0;
+        }
     }
 
     void Update()
@@ -88,14 +115,26 @@ public class LobbyInfoUI : Screen
         lobbyNameDisplayText.text = joinedLobby.Name;
         lobbyStatusDisplayText.text = joinedLobby.Data[LobbyDataField.Status.ToString()].Value;
         lobbyIsPrivateToggle.isOn = joinedLobby.IsPrivate;
-        if (Enum.TryParse(joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value, out AvailableGameMode gameMode))
+
+        if (lobbyGameModeDropDown.options.Any(x => x.text == joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value))
         {
-            lobbyGameModeDropDown.value = (short)gameMode;
+            TMP_Dropdown.OptionData data = lobbyGameModeDropDown.options.First(x => x.text == joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value);
+            lobbyGameModeDropDown.value = lobbyGameModeDropDown.options.IndexOf(data);
         }
         else
         {
             lobbyGameModeDropDown.value = 0;
         }
+        OnGameModeDropDownValueChanged(lobbyGameModeDropDown.value);
+
+        // if (Enum.TryParse(joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value, out AvailableGameMode gameMode))
+        // {
+        //     lobbyGameModeDropDown.value = (short)gameMode;
+        // }
+        // else
+        // {
+        //     lobbyGameModeDropDown.value = 0;
+        // }
 
         editLobbyButton.gameObject.SetActive(UnityLobbyServiceManager.Instance.isHost);
         startButton.gameObject.SetActive(UnityLobbyServiceManager.Instance.isHost);

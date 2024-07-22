@@ -3,11 +3,6 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
 
-public enum AvailableGameMode{
-    LastManStanding,
-    FirstToWin
-}
-
 public class GameMode : NetworkBehaviour
 {
     public static GameMode Instance;

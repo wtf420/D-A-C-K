@@ -62,13 +62,6 @@ public struct SpawnOptions : INetworkSerializable, IEquatable<SpawnOptions>
     }
 }
 
-[Serializable]
-public struct GameModeSerializable
-{
-    public AvailableGameMode enumGameMode;
-    public GameMode GameMode;
-}
-
 // this will only update on the server
 public class GamePlayManager : NetworkBehaviour
 {
@@ -81,7 +74,6 @@ public class GamePlayManager : NetworkBehaviour
     public ThirdPersonSpectatorController spectatorPlayerPrefab;
 
     [SerializeField] GameMode gameMode;
-    [SerializeField] List<GameModeSerializable> availableGameModes;
 
     void Awake()
     {
@@ -99,17 +91,16 @@ public class GamePlayManager : NetworkBehaviour
 
     public void StartGame()
     {
-        // if (Enum.TryParse(LobbyManager.Instance.joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value, out AvailableGameMode lobbyGameMode))
-        // {
-        //     gameMode = Instantiate(availableGameModes.FirstOrDefault(x => x.enumGameMode == lobbyGameMode).GameMode, null);
-        //     gameMode.NetworkObject.Spawn();
-        // }
-        // else
-        // {
-        //     throw new Exception("Game Mode Not Found");
-        // }
+        if (GameModeDataHelper.Instance.MapsData.gameModeDatas.Any(x => x.GameModeName == LobbyManager.Instance.joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value))
+        {
+            GameModeData gameModeData = GameModeDataHelper.Instance.MapsData.gameModeDatas.First(x => x.GameModeName == LobbyManager.Instance.joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value);
+            gameMode = Instantiate(gameModeData.GameModePrefab, null);
+        }
+        else
+        {
+            throw new Exception("Game Mode Not Found");
+        }
 
-        gameMode = Instantiate(gameMode, null);
         gameMode.NetworkObject.Spawn();
         gameMode.Initialize();
     }

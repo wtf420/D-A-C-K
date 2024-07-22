@@ -1,5 +1,6 @@
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -61,12 +62,16 @@ public class LobbyManager : MonoBehaviour
 
     public void StartGame()
     {
-        NetworkManager.Singleton.StartHost();
-        NetworkManager.Singleton.SceneManager.LoadScene("TestingScene", LoadSceneMode.Single);
-
-        UpdateLobbyOptions lobbyoptions = new UpdateLobbyOptions
+        if (GameModeDataHelper.Instance.MapsData.gameModeDatas.Any(x => x.GameModeName == joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value))
         {
-            Data = new Dictionary<string, DataObject>()
+            GameModeData gameModeData = GameModeDataHelper.Instance.MapsData.gameModeDatas.First(x => x.GameModeName == joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value);
+            if (gameModeData.AvailableScene.Any(x => x.name == joinedLobby.Data[LobbyDataField.GameMap.ToString()].Value))
+            {
+                NetworkManager.Singleton.StartHost();
+                NetworkManager.Singleton.SceneManager.LoadScene(joinedLobby.Data[LobbyDataField.GameMap.ToString()].Value, LoadSceneMode.Single);
+                UpdateLobbyOptions lobbyoptions = new UpdateLobbyOptions
+                {
+                    Data = new Dictionary<string, DataObject>()
         {
             {
                 LobbyDataField.Status.ToString(), new DataObject(
@@ -80,12 +85,12 @@ public class LobbyManager : MonoBehaviour
                     value: UnityLobbyServiceManager.Instance.GetIpAddress())
             },
         }
-        };
-        _ = UnityLobbyServiceManager.Instance.UpdateLobbyData(lobbyoptions);
+                };
+                _ = UnityLobbyServiceManager.Instance.UpdateLobbyData(lobbyoptions);
 
-        UpdatePlayerOptions updatePlayerOptions = new UpdatePlayerOptions
-        {
-            Data = new Dictionary<string, PlayerDataObject>()
+                UpdatePlayerOptions updatePlayerOptions = new UpdatePlayerOptions
+                {
+                    Data = new Dictionary<string, PlayerDataObject>()
         {
             {
                 PlayerDataField.Status.ToString(), new PlayerDataObject(
@@ -93,8 +98,10 @@ public class LobbyManager : MonoBehaviour
                     value: LobbyStatusDataValue.InGame.ToString())
             },
         }
-        };
-        _ = UnityLobbyServiceManager.Instance.UpdatePlayerData(updatePlayerOptions);
+                };
+                _ = UnityLobbyServiceManager.Instance.UpdatePlayerData(updatePlayerOptions);
+            }
+        }
     }
 
     public void JoinGame()
