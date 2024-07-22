@@ -17,6 +17,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PuzzleScene.unity
     guid: 448acfa2a3fa2d44584d7788b87220c1
+  - enabled: 1
+    path: Assets/Scenes/GulagMap.unity
+    guid: c10589041ba84e74284cb3d919e7095e
+  - enabled: 1
+    path: Assets/Scenes/CrossBrigdeMap.unity
+    guid: f8982d590c3c13a4e9e49813af144142
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 03b2584b9cfbf32499164de31bb8a5e6,
       type: 2}
