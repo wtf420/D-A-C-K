@@ -7,7 +7,7 @@ public struct GameModeData
 {
     public string GameModeName;
     public GameMode GameModePrefab;
-    public List<UnityEngine.Object> AvailableScene;
+    public List<string> AvailableScene;
 }
 
 [CreateAssetMenu(fileName = "GameModeInfo", menuName = "ScriptableObjects/GameModeInfo", order = 1)]

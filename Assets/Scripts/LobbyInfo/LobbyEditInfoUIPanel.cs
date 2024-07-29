@@ -87,9 +87,9 @@ public class LobbyEditInfoUIPanel : Screen
         }
 
         lobbyGameMapDropDown.options.Clear();
-        foreach (UnityEngine.Object scene in GameModeDataHelper.Instance.MapsData.gameModeDatas[lobbyGameModeDropDown.value].AvailableScene)
+        foreach (string scene in GameModeDataHelper.Instance.MapsData.gameModeDatas[lobbyGameModeDropDown.value].AvailableScene)
         {
-            lobbyGameMapDropDown.options.Add(new TMP_Dropdown.OptionData(scene.name));
+            lobbyGameMapDropDown.options.Add(new TMP_Dropdown.OptionData(scene));
         }
         if (lobbyGameMapDropDown.options.Any(x => x.text == joinedLobby.Data[LobbyDataField.GameMap.ToString()].Value))
         {
@@ -105,9 +105,9 @@ public class LobbyEditInfoUIPanel : Screen
     private void OnGameModeDropDownValueChanged(int arg0)
     {
         lobbyGameMapDropDown.options.Clear();
-        foreach (UnityEngine.Object scene in GameModeDataHelper.Instance.MapsData.gameModeDatas[arg0].AvailableScene)
+        foreach (string scene in GameModeDataHelper.Instance.MapsData.gameModeDatas[arg0].AvailableScene)
         {
-            lobbyGameMapDropDown.options.Add(new TMP_Dropdown.OptionData(scene.name));
+            lobbyGameMapDropDown.options.Add(new TMP_Dropdown.OptionData(scene));
         }
         lobbyGameMapDropDown.value = 0;
     }

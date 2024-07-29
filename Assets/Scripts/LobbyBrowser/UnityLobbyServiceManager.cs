@@ -139,7 +139,7 @@ public class UnityLobbyServiceManager : MonoBehaviour
                     {
                         LobbyDataField.GameMap.ToString(), new DataObject(
                             visibility: DataObject.VisibilityOptions.Public,
-                            value: GameModeDataHelper.Instance.MapsData.gameModeDatas[0].AvailableScene[0].name,
+                            value: GameModeDataHelper.Instance.MapsData.gameModeDatas[0].AvailableScene[0],
                             index: DataObject.IndexOptions.S3)
                     },
                 }

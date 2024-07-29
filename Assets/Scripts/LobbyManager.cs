@@ -65,7 +65,7 @@ public class LobbyManager : MonoBehaviour
         if (GameModeDataHelper.Instance.MapsData.gameModeDatas.Any(x => x.GameModeName == joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value))
         {
             GameModeData gameModeData = GameModeDataHelper.Instance.MapsData.gameModeDatas.First(x => x.GameModeName == joinedLobby.Data[LobbyDataField.GameMode.ToString()].Value);
-            if (gameModeData.AvailableScene.Any(x => x.name == joinedLobby.Data[LobbyDataField.GameMap.ToString()].Value))
+            if (gameModeData.AvailableScene.Any(x => x == joinedLobby.Data[LobbyDataField.GameMap.ToString()].Value))
             {
                 NetworkManager.Singleton.StartHost();
                 NetworkManager.Singleton.SceneManager.LoadScene(joinedLobby.Data[LobbyDataField.GameMap.ToString()].Value, LoadSceneMode.Single);
